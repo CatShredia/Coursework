@@ -1,6 +1,9 @@
+@inject AuthService Auth
+@inject NavigationManager Nav
+@implements IDisposable
+
 <header class="app-header">
     <a href="/" class="header-logo">
-        <img src="logo_small.jpeg" alt="Runews" class="logo-img" />
         Runews
     </a>
 
@@ -8,9 +11,20 @@
         <button class="btn-search-trigger" @onclick="OpenSearch" title="Поиск">
             <i class="bi bi-search"></i>
         </button>
-        <a href="/login">
-            <button class="btn-header btn-header-filled">Войти</button>
-        </a>
+
+        @if (Auth.IsAuthenticated)
+        {
+            <a href="/profile" class="header-profile-btn" title="@Auth.CurrentUser!.Username">
+                <i class="bi bi-person-circle"></i>
+                <span class="header-profile-name">@Auth.CurrentUser.Username</span>
+            </a>
+        }
+        else
+        {
+            <a href="/login">
+                <button class="btn-header btn-header-filled">Войти</button>
+            </a>
+        }
     </div>
 </header>
 
@@ -50,6 +64,9 @@
     private string _searchQuery = "";
     private ElementReference _searchInput;
 
+    protected override void OnInitialized() => Auth.OnChange += StateHasChanged;
+    public void Dispose() => Auth.OnChange -= StateHasChanged;
+
     private async Task OpenSearch()
     {
         _searchOpen = true;
@@ -57,11 +74,7 @@
         await _searchInput.FocusAsync();
     }
 
-    private void CloseSearch()
-    {
-        _searchOpen = false;
-        _searchQuery = "";
-    }
+    private void CloseSearch() { _searchOpen = false; _searchQuery = ""; }
 
     private void OnSearchKeyDown(KeyboardEventArgs e)
     {

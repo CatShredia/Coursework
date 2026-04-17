@@ -1,0 +1,117 @@
+@page "/login"
+@using Microsoft.JSInterop
+@layout AuthLayout
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Вход — Runews</PageTitle>
+
+<div class="auth-card">
+    <button class="auth-back" @onclick="GoBack">
+        <i class="bi bi-arrow-left"></i> Назад
+    </button>
+    <div class="auth-logo">
+        <span>Runews</span>
+    </div>
+    <h1 class="auth-title">Вход в аккаунт</h1>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="auth-error">
+            <i class="bi bi-exclamation-circle"></i> @_error
+        </div>
+    }
+
+    <div class="auth-field">
+        <label>Email</label>
+        <div class="input-wrap @(_emailInvalid ? "input-invalid" : "")">
+            <i class="bi bi-envelope"></i>
+            <input type="email" placeholder="you@example.com"
+                   @bind="_email" @bind:event="oninput"
+                   @onblur="ValidateEmail" />
+        </div>
+        @if (_emailInvalid)
+        {
+            <span class="field-error">Введите корректный email (например: you@example.com)</span>
+        }
+    </div>
+
+    <div class="auth-field">
+        <label>Пароль</label>
+        <div class="input-wrap @(_passwordInvalid ? "input-invalid" : "")">
+            <i class="bi bi-lock"></i>
+            <input type="@(_showPassword ? "text" : "password")"
+                   placeholder="Введите пароль"
+                   @bind="_password" @bind:event="oninput"
+                   @onblur="ValidatePassword" />
+            <button class="input-eye" type="button" @onclick="TogglePassword">
+                <i class="bi @(_showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+            </button>
+        </div>
+        @if (_passwordInvalid)
+        {
+            <span class="field-error">Пароль не может быть пустым</span>
+        }
+    </div>
+
+    <button class="auth-btn" @onclick="Submit" disabled="@_loading">
+        @if (_loading)
+        {
+            <span class="auth-spinner"></span>
+        }
+        else
+        {
+            <span>Войти</span>
+        }
+    </button>
+
+    <div class="auth-links">
+        <a href="/forgot-password">Забыли пароль?</a>
+        <a href="/register">Создать аккаунт</a>
+    </div>
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private string? _error;
+    private bool _loading;
+    private bool _showPassword;
+
+    private bool _emailInvalid;
+    private bool _passwordInvalid;
+
+    private void ValidateEmail()
+    {
+        _emailInvalid = !string.IsNullOrWhiteSpace(_email) &&
+                        !System.Text.RegularExpressions.Regex.IsMatch(_email,
+                            @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+    }
+
+    private void ValidatePassword()
+    {
+        _passwordInvalid = string.IsNullOrWhiteSpace(_password);
+    }
+
+    private void TogglePassword() => _showPassword = !_showPassword;
+
+    private void GoBack() => JS.InvokeVoidAsync("history.back");
+
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "Заполните все поля.";
+            return;
+        }
+        ValidateEmail();
+        ValidatePassword();
+        _loading = true;
+        _error = null;
+        if (_emailInvalid || _passwordInvalid) { _loading = false; return; }
+        _error = await Auth.LoginAsync(new() { Email = _email, Password = _password });
+        _loading = false;
+        if (_error is null) Nav.NavigateTo("/");
+    }
+}

@@ -1,0 +1,7 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Runews Launch with Watch" type="CompoundRunConfigurationType">
+    <toRun name="API" type="LaunchSettings" />
+    <toRun name="BlazorWatch" type="RunDotNetWatch" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,9 +1,37 @@
 @page "/"
+@inject NavigationManager Nav
+@inject AuthService Auth
 
 <PageTitle>Лента — Runews</PageTitle>
+
+@if (_showDeletedMessage)
+{
+    <div class="auth-success" style="margin-bottom:20px;font-size:15px;padding:16px 20px">
+        <i class="bi bi-check-circle"></i>
+        <div>
+            <strong>Аккаунт удалён.</strong> Спасибо, что были с нами.
+        </div>
+    </div>
+}
 
 <div class="page-title">Лента новостей</div>
 
 <div class="card">
     <p style="color:var(--text-secondary)">Здесь будут отображаться новости из ленты.</p>
 </div>
+
+@code {
+    private bool _showDeletedMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        if (query["deleted"] == "1")
+        {
+            _showDeletedMessage = true;
+            // Уведомляем header об изменении состояния авторизации
+            // Auth.NotifyChanged();
+        }
+    }
+}
