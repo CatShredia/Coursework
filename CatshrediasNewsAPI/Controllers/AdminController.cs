@@ -8,7 +8,7 @@ namespace CatshrediasNewsAPI.Controllers;
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
-public class AdminController(RssSourceService rssSourceService, TagService tagService) : ControllerBase
+public class AdminController(RssSourceService rssSourceService, TagService tagService, RssFetcherService rssFetcher) : ControllerBase
 {
     // ? GetSources : возвращает список всех RSS-источников
     // вызывается клиентом (Admin)
@@ -42,6 +42,52 @@ public class AdminController(RssSourceService rssSourceService, TagService tagSe
     {
         var result = await rssSourceService.DeleteAsync(id);
         return result ? NoContent() : NotFound();
+    }
+
+    // ? EnableSource : включает RSS-источник
+    // вызывается клиентом (Admin)
+    [HttpPost("sources/{id:int}/enable")]
+    public async Task<IActionResult> EnableSource(int id)
+    {
+        var result = await rssSourceService.SetEnabledAsync(id, true);
+        return result ? NoContent() : NotFound();
+    }
+
+    // ? DisableSource : отключает RSS-источник
+    // вызывается клиентом (Admin)
+    [HttpPost("sources/{id:int}/disable")]
+    public async Task<IActionResult> DisableSource(int id)
+    {
+        var result = await rssSourceService.SetEnabledAsync(id, false);
+        return result ? NoContent() : NotFound();
+    }
+
+    // ? TriggerRss : принудительно запускает парсинг всех включённых источников прямо сейчас
+    // вызывается клиентом (Admin)
+    [HttpPost("rss/trigger")]
+    public IActionResult TriggerRss()
+    {
+        rssFetcher.TriggerNow();
+        return Ok(new { message = "Парсинг RSS запущен принудительно." });
+    }
+
+    // ? SetRssInterval : изменяет интервал автоматического парсинга RSS
+    // вызывается клиентом (Admin)
+    [HttpPut("rss/interval")]
+    public IActionResult SetRssInterval(SetIntervalDto dto)
+    {
+        if (dto.IntervalMinutes < 1)
+            return BadRequest("Интервал должен быть не менее 1 минуты.");
+        rssFetcher.SetInterval(dto.IntervalMinutes);
+        return Ok(new { message = $"Интервал изменён на {dto.IntervalMinutes} мин.", intervalMinutes = dto.IntervalMinutes });
+    }
+
+    // ? GetRssStatus : возвращает текущий интервал парсинга
+    // вызывается клиентом (Admin)
+    [HttpGet("rss/status")]
+    public IActionResult GetRssStatus()
+    {
+        return Ok(new { intervalMinutes = (int)rssFetcher.CurrentInterval.TotalMinutes });
     }
 
     // ? GetTags : возвращает список всех тегов

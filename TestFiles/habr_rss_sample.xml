@@ -1,0 +1,1033 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" >
+
+  <channel>
+    <title><![CDATA[Все публикации подряд на Хабре]]></title>
+    <link>https://habr.com/ru/articles/</link>
+    <description><![CDATA[Все публикации подряд на Хабре]]></description>
+    <language>ru</language>
+    <managingEditor>editor@habr.com</managingEditor>
+    <generator>habr.com</generator>
+    <pubDate>Fri, 17 Apr 2026 11:26:18 GMT</pubDate>
+    
+    
+      <image>
+        <link>https://habr.com/ru/</link>
+        <url>https://habrastorage.org/webt/ym/el/wk/ymelwk3zy1gawz4nkejl_-ammtc.png</url>
+        <title>Хабр</title>
+      </image>
+    
+
+    
+      
+        
+    
+    <item>
+      <title><![CDATA[Принципиальная детерминированность нейросетей и безопасность]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/docdoc/articles/1023416/</guid>
+      <link>https://habr.com/ru/companies/docdoc/articles/1023416/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023416</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/46d/a6f/f99/46da6ff99e00d67505df0fbe3f31d309.jpeg" /><p>Одним из ключевых требований к информационной системе является воспроизводимость результатов. Однако многие специалисты сталкиваются с трудностями, когда попытка повторить эксперименты приводит к отличающимся показателям. Такая ситуация известна как недетерминированность: модель выдаёт различные результаты при одинаковых входных данных и конфигурации.</p><p>Вместе с тем, несмотря на распространённое заблуждение, источником проблемы чаще всего становятся не свойства самой нейросети, а упущения на этапах проектирования разработки и эксплуатации.&nbsp;</p><p>Меня зовут Черкас Руслан. Я архитектор в СберЗдоровье — МедТех-компании <a href="https://smartranking.ru/ru/analytics/medicinskie-tehnologii/rossijskij-medtech-v-iii-kvartale-2025-goda-uvelichil-rost-na-121/">№1</a> в России. По роду деятельности я часто сталкиваюсь с утверждениями о принципиальной недетерминированности нейросетей. И в этой статье хочу опровергнуть заблуждения, с которыми сталкиваюсь чаще всего.</p> <a href="https://habr.com/ru/articles/1023416/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023416#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:25:05 GMT</pubDate>
+      <dc:creator><![CDATA[still-swamp (СберЗдоровье)]]></dc:creator>
+      
+      <category><![CDATA[llm]]></category><category><![CDATA[ai]]></category><category><![CDATA[ии]]></category><category><![CDATA[безопасность]]></category><category><![CDATA[детерминированность]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+
+  
+
+  
+
+	
+  
+
+  
+    <item>
+      <title><![CDATA[[Перевод] Rust 1.95.0: макрос cfg_select!, if-let guards в match-выражениях]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024620/</guid>
+      <link>https://habr.com/ru/articles/1024620/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024620</link>
+      <description><![CDATA[<p>Команда Rust рада объявить о новом выпуске Rust 1.95.0. Rust — это язык программирования, который дает каждому возможность создавать надежное и эффективное программное обеспечение.</p><p>Если у вас уже установлена предыдущая версия Rust через <code>rustup</code>, вы можете получить 1.95.0 командой:</p><p><code>$ rustup update stable </code></p><p>Если у вас еще не установлен Rust, вы можете <a href="https://www.rust-lang.org/install.html" rel="noopener noreferrer nofollow">получить <code>rustup</code></a> на соответствующей странице нашего сайта, а также ознакомиться с <a href="https://doc.rust-lang.org/stable/releases.html#version-1950-2026-04-16" rel="noopener noreferrer nofollow">подробными примечаниями к выпуску 1.95.0</a>.</p><p>Если вы хотите помочь нам, тестируя будущие релизы, попробуйте локально переключиться на beta-канал (<code>rustup default beta</code>) или nightly-канал (<code>rustup default nightly</code>). Пожалуйста, <a href="https://github.com/rust-lang/rust/issues/new/choose" rel="noopener noreferrer nofollow">сообщайте</a> о любых найденных ошибках!</p> <a href="https://habr.com/ru/articles/1024620/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024620#habracut">Что вошло в стабильный 1.95.0</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:20:35 GMT</pubDate>
+      <dc:creator><![CDATA[RustLangRu]]></dc:creator>
+      
+      <category>перевод</category><category>новости технологий</category><category>cargo</category><category>clippy</category><category>rustc</category><category>rust</category><category>release</category><category>stable</category>
+    </item>
+  
+
+  
+
+    
+
+  
+
+  
+
+	
+  
+
+  
+    <item>
+      <title><![CDATA[[Перевод] Бюджетный Polaroid. Ну, почти]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/nmg/articles/989512/</guid>
+      <link>https://habr.com/ru/companies/nmg/articles/989512/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=989512</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/941/f90/61a/941f9061a8fd6da8b8ae05f30faaa937.jpg" /><p>Сразу сделаю оговорку — «Полароидом для бедняков» я эту штуку называю не потому, что она недорогая (ибо детали суммарно мне обошлись <strong>дороже</strong>, чем самый дешёвый полароид), а потому что это просто наколенночный проект. Который всё же работает. И при этом вышло, что в долгосрок это обходится дешевле — одна фотка на оригинальный полароид стоит около 1 евро, а на эту камеру —&nbsp;около цента (исходя из стоимости рулона термоленты).<br><br>Но мы не будем напрямую сравнивать полученные фото, потому что это совсем разные истории. Итак, давайте про эту поделку.</p><p>Де-факто у меня получилась моментальная камера, которая печатает фотографии с помощью термопринтера — как чеки на контрольно-кассовых терминалах. Само собой, качество фотографий <em>не такое высокое</em>, как у самопроявляющейся пленки Polaroid. Но своё, гм, очарование у этого тоже есть. <br><br>Так вот.</p> <a href="https://habr.com/ru/articles/989512/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=989512#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:20:26 GMT</pubDate>
+      <dc:creator><![CDATA[nmgtech (Национальная Медиа Группа)]]></dc:creator>
+      
+      <category>pasberry pi</category><category>polaroid</category><category>фотоаппарат</category><category>python</category>
+    </item>
+  
+
+  
+
+    
+
+  
+
+  
+
+	
+  
+
+  
+    <item>
+      <title><![CDATA[[Перевод] Async-background]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024614/</guid>
+      <link>https://habr.com/ru/articles/1024614/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024614</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/83c/a9d/1c2/83ca9d1c2fbfaed60960079862b9558c.png" /><p>У меня было Falcon-приложение на Async, и в нём накопились задачи, которые надо было выполнять где-то рядом: cron-задачи, интервалы, отложенные джобы. Классический ответ — Sidekiq + Redis. Но ради трёх задач в минуту тащить в проект Redis с отдельным контейнером, отдельным процессом и отдельной точкой отказа казалось перебором. А альтернативы либо тянули за собой Postgres (который в большинстве проектов уже занят бизнес-логикой и плохо реагирует, когда на него вешают ещё и очередь задач), либо не дружили с Async event loop.</p><p>Так родился <code>async-background</code> — лёгкий планировщик, у которого нет внешних зависимостей кроме SQLite, который живёт в том же event loop что и Falcon, и в котором я смог реализовать ещё одну важную для меня штуку — управляемую утилизацию воркеров: можно явно сказать «эти два воркера только cron, эти два только очередь», или прибить конкретную задачу к конкретному процессу, без переписывания кода.</p><p>В статье — история создания гема: какие альтернативы я смотрел и почему они не подошли, какие принципы я зафиксировал на берегу, какие технические находки получились по ходу (min-heap вместо тиков, две шкалы времени, CRC32-шардинг для multi-process safety, UNIX-сокеты для мгновенного wake-up очереди), и какие гочи я нашёл лбом — включая историю про то, как Docker overlay2 ел мою SQLite базу под нагрузкой на staging.</p><p><em>Это адаптация моей англоязычной статьи на </em><a href="https://medium.com/@romnhajdarov/building-a-lightweight-scheduler-for-ruby-on-async-bd8e40b99243" rel="noopener noreferrer nofollow"><em>Medium</em></a></p> <a href="https://habr.com/ru/articles/1024614/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024614#habracut">next</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:15:17 GMT</pubDate>
+      <dc:creator><![CDATA[RomanHaidarov]]></dc:creator>
+      
+      <category>ruby</category><category>async</category><category>background</category><category>concurrency</category><category>fiber</category><category>falcon</category><category>cron</category><category>sqlite</category><category>jobs</category><category>scheduler</category>
+    </item>
+  
+
+  
+
+    
+
+  
+
+  
+
+	
+  
+
+  
+    <item>
+      <title><![CDATA[[Перевод] Rust 1.94.0: метод array_windows у массива, ключ include в конфигурационных файлах, поддержка TOML 1.1]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024612/</guid>
+      <link>https://habr.com/ru/articles/1024612/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024612</link>
+      <description><![CDATA[<p>Команда Rust рада объявить о новом выпуске Rust 1.94.0. Rust — это язык программирования, который дает каждому возможность создавать надежное и эффективное программное обеспечение.</p><p>Если у вас уже установлена предыдущая версия Rust через <code>rustup</code>, вы можете получить 1.94.0 командой:</p><p><code>$ rustup update stable </code></p><p>Если у вас еще не установлен Rust, вы можете <a href="https://www.rust-lang.org/install.html" rel="noopener noreferrer nofollow">получить <code>rustup</code></a> на соответствующей странице нашего сайта, а также ознакомиться с <a href="https://doc.rust-lang.org/stable/releases.html#version-1940-2026-03-05" rel="noopener noreferrer nofollow">подробными примечаниями к выпуску 1.94.0</a>.</p><p>Если вы хотите помочь нам, тестируя будущие релизы, попробуйте локально переключиться на beta-канал (<code>rustup default beta</code>) или nightly-канал (<code>rustup default nightly</code>). Пожалуйста, <a href="https://github.com/rust-lang/rust/issues/new/choose" rel="noopener noreferrer nofollow">сообщайте</a> о любых найденных ошибках!</p> <a href="https://habr.com/ru/articles/1024612/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024612#habracut">Что вошло в стабильный 1.94.0</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:14:59 GMT</pubDate>
+      <dc:creator><![CDATA[RustLangRu]]></dc:creator>
+      
+      <category>перевод</category><category>новости технологий</category><category>clippy</category><category>cargo</category><category>rustc</category><category>release</category><category>stable</category>
+    </item>
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Как я дообучал модель на своих текстах после провала статьи на Хабре]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024610/</guid>
+      <link>https://habr.com/ru/articles/1024610/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024610</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/bee/c84/31a/beec8431a7141c7bab2c7ca55478c860.png" /><p>Привет, Хабр.</p><p>Это будет не типичная статья в стиле «10 причин, почему ИИ уже заменил копирайтеров», а история фэйла с человеческим лицом.</p><p>Не так давно я выпустил на Хабре статью и вполне заслуженно собрал минусов и комментов, которые были очень в точку.&nbsp;</p> <a href="https://habr.com/ru/articles/1024610/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024610#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:08:09 GMT</pubDate>
+      <dc:creator><![CDATA[NagaevDen]]></dc:creator>
+      
+      <category><![CDATA[fine-tuning]]></category><category><![CDATA[дообучение модели]]></category><category><![CDATA[llm]]></category><category><![CDATA[llm-модели]]></category><category><![CDATA[нейросети]]></category><category><![CDATA[генерация текста]]></category><category><![CDATA[accuracy]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Как мы сократили подготовку к тестированию на 70% с помощью AI-агентов]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/svoi_ru/articles/1024608/</guid>
+      <link>https://habr.com/ru/companies/svoi_ru/articles/1024608/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024608</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/fe8/efa/e6f/fe8efae6fe2aacd6f9c778c4f0591c82.png" /><p>За последние пару лет AI начал постепенно проникать в инженерные процессы разработки. Сначала это были генераторы кода, затем инструменты анализа логов, а сейчас всё чаще появляются решения, которые помогают автоматизировать аналитическую работу.</p><p>В QA эта проблема особенно заметна. Многие думают, что тестирование — это в основном запуск тестов и поиск багов. На практике значительная часть времени уходит на совсем другие вещи: чтение требований, сбор информации из разных источников, попытки понять реальную бизнес-логику и подготовку тестовой документации. Мы решили посмотреть на эту проблему системно и попробовать оптимизировать часть этой работы с помощью AI.</p> <a href="https://habr.com/ru/articles/1024608/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024608#habracut">Что мы сделали</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:06:33 GMT</pubDate>
+      <dc:creator><![CDATA[ValeraIDF (Финтех-группа «Свой»)]]></dc:creator>
+      
+      <category><![CDATA[ai]]></category><category><![CDATA[qa]]></category><category><![CDATA[ai-агенты]]></category><category><![CDATA[ai-агенты в работе]]></category><category><![CDATA[ии]]></category><category><![CDATA[ии-агенты]]></category><category><![CDATA[ии-модель]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Оперативка в 2026 году подорожает еще больше. Сейчас – еще дёшево]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/x-com/articles/1024606/</guid>
+      <link>https://habr.com/ru/companies/x-com/articles/1024606/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024606</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/499/32e/039/49932e039aaaeb79b33c5bb2b94f84d7.jpg" /><p>Когда в экономике случается что-то действительно неприятное, сначала все делают вид, что ничего страшного. Потом выходит какой-нибудь производитель и прямо говорит: ребята, расслабьтесь, дешевле не будет. Именно так сейчас развивается история с оперативной памятью. На фоне недавней коррекции розничных цен на DDR5 в Китае многие уже выдохнули и решили, что самое страшное позади. А тут тайваньская Transcend берет и заявляет, что с начала года <strong>подняла цену на DDR5 еще на 40–50%</strong>, и это еще не предел.</p> <a href="https://habr.com/ru/articles/1024606/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024606#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:05:03 GMT</pubDate>
+      <dc:creator><![CDATA[Xcom-shop (Группа компаний X-Com)]]></dc:creator>
+      
+      <category><![CDATA[xcom-shop]]></category><category><![CDATA[ram]]></category><category><![CDATA[цены на оперативку]]></category><category><![CDATA[ddr5]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Метрики упали в лужу]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024380/</guid>
+      <link>https://habr.com/ru/articles/1024380/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024380</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/f98/a7d/c3d/f98a7dc3d747b4a640a8fbd9925e3a4a.png" /><p>Метрики могут «упасть» даже если вы ничего не меняли в модели.<br>Разбираемся, как распознать distribution shift и что с ним делать в продакшене.</p> <a href="https://habr.com/ru/articles/1024380/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024380#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 11:04:14 GMT</pubDate>
+      <dc:creator><![CDATA[natalia_ostapenko]]></dc:creator>
+      
+      <category><![CDATA[eda]]></category><category><![CDATA[анализ данных]]></category><category><![CDATA[мониторинг]]></category><category><![CDATA[статистика]]></category><category><![CDATA[предобработка данных]]></category><category><![CDATA[pandas]]></category><category><![CDATA[data science]]></category><category><![CDATA[machine learning]]></category><category><![CDATA[data analysis]]></category><category><![CDATA[production]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[О современной научной картине мира]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024598/</guid>
+      <link>https://habr.com/ru/articles/1024598/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024598</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/15e/e67/960/15ee6796034e0a095a940ced9a3cd4b6.png" /><p><em>В рамках данной статьи мы поговорим не только о физике, но скорее о современной научной картине в целом с точки зрения прежде всего естественных наук. Но именно на физику мы сделаем наибольший акцент и упор, так как физика считается фундаментальной по отношению ко всем остальным естественным наукам. Наш обзор этой научной картины мира мы построим не по тому богомерзкому принципу, по которому строятся большинство статей подобной тематики (то есть посредством простого перечисления разрозненных кусков знания), а философски (то есть так, чтоб одно из другого системно проистекало, а вся эта система была взята не только как целое, но и как развивающееся целое). А поможет нам построить такой цельный философский обзор современной научной картины мира метод декомпозиции слоев реальности. Мы будем осуществлять наше путешествие к глубинам реальности, собирая знания, с одной стороны как бы с полного нуля, словно мы ничего не знаем о мире, с другой стороны - диалектически обогащая то, к чему мы пришли философски через справочную информация о конкретных деталях того или иного явления, подробно изученного наукой. </em></p> <a href="https://habr.com/ru/articles/1024598/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024598#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:51:03 GMT</pubDate>
+      <dc:creator><![CDATA[edstar]]></dc:creator>
+      
+      <category><![CDATA[наука]]></category><category><![CDATA[научно-популярное]]></category><category><![CDATA[научпоп]]></category><category><![CDATA[философия]]></category><category><![CDATA[философия науки]]></category><category><![CDATA[физика]]></category><category><![CDATA[естествознание]]></category><category><![CDATA[диалектика]]></category><category><![CDATA[диалектическая логика]]></category><category><![CDATA[гегель]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Анатомия User Plane в 5G: разбираемся, как все устроено]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/yadro/articles/1024588/</guid>
+      <link>https://habr.com/ru/companies/yadro/articles/1024588/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024588</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/695/710/320/6957103202797ef6a5cd9bed15b07723.png" /><p>Привет всем! Меня зовут Саша Иргер, я эксперт по разработке ПО в департаменте проектирования и разработки пакетного ядра сети в YADRO. Вчера мой коллега опубликовал на Хабре <a href="https://habr.com/ru/companies/yadro/articles/1023672/">статью про Policy Control</a>: как и зачем классифицировать трафик в сотовой сети. Сегодня продолжу тему и разберу, как конкретно работает User Plane. По сути, он организован так, чтобы удовлетворить требования от Policy Control. Давайте посмотрим, что здесь интересного.</p> <a href="https://habr.com/ru/articles/1024588/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024588#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:44:37 GMT</pubDate>
+      <dc:creator><![CDATA[yadro_team (YADRO)]]></dc:creator>
+      
+      <category><![CDATA[телекоммуникации]]></category><category><![CDATA[сотовая связь]]></category><category><![CDATA[сетевые технологии]]></category><category><![CDATA[сетевое оборудование]]></category><category><![CDATA[системы связи]]></category><category><![CDATA[стандарты связи]]></category><category><![CDATA[беспроводные сети]]></category><category><![CDATA[беспроводные технологии]]></category><category><![CDATA[телеком]]></category><category><![CDATA[3gpp]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[От правил корреляции к когнитивному ассистенту: что меняется в архитектуре SOC с приходом ИИ]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/innostage/articles/1024464/</guid>
+      <link>https://habr.com/ru/companies/innostage/articles/1024464/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024464</link>
+      <description><![CDATA[<p><strong>Почему правил корреляции больше недостаточно?</strong></p><p>Долгое время ядром любого центра мониторинга и реагирования на киберугрозы (далее по тексту – SOC) оставался корреляционный движок, то есть набор правил для автоматизированного поиска паттернов атак, например "5 неудачных входов" + "успешный вход" + "активность в БД" = подозрение на компрометацию" типа 5 failed logins = brute force (5 неудачных попыток входа в систему = метод перебора паролей).</p><p>Сегодня этот подход напоминает попытку поймать искусного шпиона с помощью крика: "Стой! Кто идет?!". Современные атаки стали тихими, целевыми и изощренно-адаптивными. Злоумышленники используют легитимные инструменты (Living-off-the-Land — “живой” взлом), имитируют нормальную активность пользователей и растягивают шаги задуманной цепочки кибератак на месяцы.</p><p>Статистика выглядит удручающе: среднестатистический SOC обрабатывает до 10⁷ событий в сутки, из которых после фильтрации остается от 10³ до 10⁴ алертов. Но 70–90% из них — ложные срабатывания, требующие ручной проверки. Это порождает так называемое Alert fatigue — профессиональное выгорание аналитиков, которые превращаются в операторов по нажатию кнопки Close false positive (“Закрыть ложноположительный результат”).</p><p>На этом фоне большие языковые модели и алгоритмы машинного обучения перешли из категории "экспериментальных технологий" в разряд операционных инструментов кибербезопасности. При этом важно отметить ключевой&nbsp; принцип: искусственный интеллект (ИИ) не заменяет аналитика, а усиливает его&nbsp; возможности через снижение когнитивной нагрузки и ускорение обработки рутинных задач.</p> <a href="https://habr.com/ru/articles/1024464/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024464#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:36:11 GMT</pubDate>
+      <dc:creator><![CDATA[Innostage (Innostage)]]></dc:creator>
+      
+      <category><![CDATA[soc]]></category><category><![CDATA[искусственный интеллект]]></category><category><![CDATA[машинное обучение]]></category><category><![CDATA[ml]]></category><category><![CDATA[кибербезопасность]]></category><category><![CDATA[siem]]></category><category><![CDATA[ueba]]></category><category><![CDATA[soar]]></category><category><![CDATA[xdr]]></category><category><![CDATA[ai]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Персональная монополия: почему удержание «незаменимых» не спасает бизнес, а лишает его управляемости]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024594/</guid>
+      <link>https://habr.com/ru/articles/1024594/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024594</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/afa/390/911/afa3909114b9b8db3e69ef663a6c89a6.png" /><p>Любая сложная организация содержит зоны технологической неопределенности: историческое наследие, размытые зоны ответственности, провальные проекты, нестабильные IT‑решения,&nbsp;быстро растущие направления бизнеса и так далее.</p><p>Когда подобные зоны не&nbsp;стабилизируются через архитектуру процессов, в&nbsp;них почти неизбежно появляются персональные центры удержания системы&nbsp;— «незаменимые сотрудники». В&nbsp;корпоративной мифологии их образ окружен романтическим ореолом.</p><p>На&nbsp;фоне перманентного кадрового голода и операционного хаоса такой сотрудник кажется не&nbsp;просто удачей, а&nbsp;ультимативным конкурентным преимуществом. В&nbsp;благодарность за&nbsp;свое спасение бизнес прощает ему нарушение регламентов, закрывает глаза на «звездную болезнь» и платит бонусы сверх сетки. Ему делегируют сначала локальные задачи, а&nbsp;затем&nbsp;— целые узлы управления.</p><p>Индустрия десятилетиями продает концепцию «войны за&nbsp;таланты». Считается, что&nbsp;удержание любой ценой&nbsp;— главная задача, а «незаменимые люди»&nbsp;— это фундаментальный актив. </p><p>Но&nbsp;если посмотреть на&nbsp;эту конструкцию через оптику риск‑менеджмента и бизнес‑систем, картина меняется кардинально. «Незаменимый»&nbsp;— это не&nbsp;бизнес‑актив, а&nbsp;критическая проблема, которую система создала сама, чтобы компенсировать собственную архитектурную недостаточность.</p><p>Так, если предсказуемость и качество работы зависят от&nbsp;состояния, здоровья или&nbsp;настроения одного человека, значит, бизнес‑система деградировала до&nbsp;инфраструктуры по&nbsp;обслуживанию чужих интересов.</p><p>Поначалу такая зависимость кажется бизнесу весьма выгодной, и на&nbsp;это есть условно‑объективная причина: «незаменимый» лояльно и инициативно, без&nbsp;дополнительных ресурсов, в&nbsp;моменте решает критический пул проблем (до того, как&nbsp;они успевают институционализироваться). При&nbsp;этом компания, получая&nbsp;лишь иллюзию контроля, как&nbsp;будто&nbsp;бы забывает или&nbsp;осознанно игнорирует, что&nbsp;у&nbsp;их нового «несущего узла»:</p> <a href="https://habr.com/ru/articles/1024594/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024594#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:32:10 GMT</pubDate>
+      <dc:creator><![CDATA[Nabokova_AV]]></dc:creator>
+      
+      <category><![CDATA[проектирование систем управления]]></category><category><![CDATA[управление процессами]]></category><category><![CDATA[бизнес-процессы]]></category><category><![CDATA[бизнес-анализ]]></category><category><![CDATA[управление командой]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Запрет Steam в РФ, дата выхода HoMM Olden Era, геймплей «Таркова в космосе»: новости игропрома]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/ggsel/articles/1024590/</guid>
+      <link>https://habr.com/ru/companies/ggsel/articles/1024590/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024590</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/cb4/7fa/a98/cb47faa98c7b8da926dd8feefa9c139e.png" /><p>Рассказываем, как прошла первая половина апреля 2026 года в русскоговорящей игровой индустрии. В нашем дайджесте вас, как всегда, ждут свежие анонсы, подробности о новых проектах, а также важная информация из пресс-релизов ожидаемых игр.</p> <a href="https://habr.com/ru/articles/1024590/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024590#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:24:54 GMT</pubDate>
+      <dc:creator><![CDATA[ggsel (ggsel.net)]]></dc:creator>
+      
+      <category><![CDATA[геймдев]]></category><category><![CDATA[игропром]]></category><category><![CDATA[русские игры]]></category><category><![CDATA[дайджесты]]></category><category><![CDATA[новости игр]]></category><category><![CDATA[новости игровой индустрии]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Чат GPT (ChatGPT) для фото и генерации изображений: Как создавать и редактировать любые изображения с чатом ГПТ?]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/ranvik/articles/1023922/</guid>
+      <link>https://habr.com/ru/companies/ranvik/articles/1023922/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023922</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/237/47f/b02/23747fb025a490539928486fd5ff6d55.png" /><p>Эпоха, когда для создания качественного визуала требовалось владение сложными графическими редакторами или бюджет на услуги профессиональных дизайнеров, официально уступила место эре доступного ИИ. Сегодня <strong><a href="https://ranvik.ru/image">чат GPT генерация изображений</a></strong> — это полноценная творческая студия, способная генерировать уникальные изображения и редактировать фото в режиме реального времени.</p> <a href="https://habr.com/ru/articles/1023922/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023922#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:22:18 GMT</pubDate>
+      <dc:creator><![CDATA[alaskayoung (Ranvik)]]></dc:creator>
+      
+      <category><![CDATA[чат gpt на русском]]></category><category><![CDATA[генерация изображений]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Персональная вакцина от рака: зачем я пишу координационный слой с открытым исходным кодом для mRNA-терапии]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024586/</guid>
+      <link>https://habr.com/ru/articles/1024586/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024586</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/d2d/97b/84c/d2d97b84cba0bbbb0e876767c32c728e.jpg" /><p>Я помню момент, когда это перестало быть абстракцией.</p><p>Январь 2024 года. Команда Moderna и Merck публикует обновленные данные по KEYNOTE-942: в первичном анализе персонализированная mRNA-вакцина V940 в комбинации с пембролизумабом показала снижение риска рецидива меланомы на 44% (HR 0.561; 95% CI 0.309-1.017; двустороннее p=0.053), то есть результат на границе статистической значимости. Публикация в Lancet, 157 пациентов. Это не пресс-релиз с конференции и не слайд из инвесторской презентации, а рецензируемая статья в одном из самых строгих медицинских журналов. Потом картина стала только убедительнее: в 3-летнем наблюдении (ASCO 2024, абстракт LBA9512) сообщалось о 49% снижении риска рецидива или смерти (HR 0.510; 95% CI 0.288-0.906; двустороннее номинальное описательное p=0.019). В 5-летнем обновлении, опубликованном как корпоративное сообщение Moderna, эффект тоже описывался как сохраняющийся; в сообщении приводилось одностороннее номинальное p=0.0075.</p><p>А дальше все пошло быстро. К моменту публикации статьи в Lancet Moderna уже запустила третью фазу испытаний INTerpath-001. По записи <a href="http://ClinicalTrials.gov" rel="noopener noreferrer nofollow">ClinicalTrials.gov</a> у исследования NCT05933577 дата первой публикации в реестре - 6 июля 2023 года; это фиксирует запуск уже в июле 2023-го. В протоколе - 1089 пациентов и, по данным запуска программы, 38 центров в 14 странах. Исследование по коду NCT05933577 находится сразу; статус - “active, not recruiting”. Параллельно Genentech вместе с BioNTech двигают вторую фазу autogene cevumeran по раку поджелудочной, NCT05968326, в комбинации с атезолизумабом и mFOLFIRINOX. Это заболевание, где пятилетняя выживаемость по срезу SEER для всей категории рака поджелудочной составляет 13.3% (интервал 2015-2021), а для PDAC профиль риска обычно еще хуже. В расширенном наблюдении первой фазы по раку поджелудочной (Sethna, Guasp et al., Nature, 2025; полный текст по платной подписке) у пациентов-респондеров на вакцину медиана выживаемости без рецидива не была достигнута при медиане наблюдения 3.2 года - против 13.4 месяца у нереспондеров (p = 0.007).</p> <a href="https://habr.com/ru/articles/1024586/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024586#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:21:50 GMT</pubDate>
+      <dc:creator><![CDATA[KonkovaElena]]></dc:creator>
+      
+      <category><![CDATA[мрнк]]></category><category><![CDATA[биоинформатика]]></category><category><![CDATA[биотехнологии]]></category><category><![CDATA[медицина]]></category><category><![CDATA[анализ данных]]></category><category><![CDATA[open source]]></category><category><![CDATA[node.js]]></category><category><![CDATA[typescript]]></category><category><![CDATA[клинические исследования]]></category><category><![CDATA[персонализированная медицина]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Безошибочная работа с Kafka из Node js. Часть 2 Консьюмер]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/904932/</guid>
+      <link>https://habr.com/ru/articles/904932/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=904932</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/ea7/7d0/a18/ea77d0a184afc54339e9bb6f4be43588.png" /><p>Если <a href="https://habr.com/ru/articles/1012066/" rel="noopener noreferrer nofollow">предыдущая часть</a> была посвящена аспектам, связанным с публикацией сообщений, то в этой части основное внимание уделено обработке сообщений, проектированию консьюмеров и проблеме ребаланса в консьюмер группе. </p> <a href="https://habr.com/ru/articles/904932/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=904932#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:17:50 GMT</pubDate>
+      <dc:creator><![CDATA[mitya_k]]></dc:creator>
+      
+      <category><![CDATA[kafka]]></category><category><![CDATA[nodejs]]></category><category><![CDATA[брокеры сообщений]]></category><category><![CDATA[apache kafka]]></category><category><![CDATA[consumer]]></category><category><![CDATA[message-broker]]></category><category><![CDATA[message brokers.]]></category><category><![CDATA[kafka consumer]]></category><category><![CDATA[kafka apache]]></category><category><![CDATA[apache]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Фотограф-программист или, как я печатал цветные фотографии с помощью ZX-Spectrum]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024584/</guid>
+      <link>https://habr.com/ru/articles/1024584/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024584</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/e1b/a14/7a1/e1ba147a1f32677f77387bf34c2827b3.jpeg" /><p>Печать качественных цветных фотографий в наше время не проблема. Не надо заморачиваться с реактивами, фотопечатью при синем цвете, и прочим оборудованием – красота. Но, когда на дворе был конец 90-х годов, это была совсем другая технология. К тому времени уже достаточно широкое распространение получили мини-фотолаборатории. Отдаешь пленку и через час получаешь готовые фотографии. Удобно? Конечно! Ну а, кому нужно кадрирование, печать больших или наоборот еще меньших форматов – ищите профессиональные фотоателье, там сделают. А если ты сам фотограф, знаешь, как это сделать, но денег на профессиональную химию и нужный фотоувеличитель нет? И то, и другое на тот момент стоило хороших денег.  </p> <a href="https://habr.com/ru/articles/1024584/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024584#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:16:03 GMT</pubDate>
+      <dc:creator><![CDATA[Doc_Prog]]></dc:creator>
+      
+      <category><![CDATA[фотография]]></category><category><![CDATA[фототехника]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Как мы продавали компьютеры в 90-х. Шум в нужную сторону]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024580/</guid>
+      <link>https://habr.com/ru/articles/1024580/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024580</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/4cd/6a3/84a/4cd6a384a476ffa4e2d8ddb36613d5f4.jpeg" /><p><strong>Краткая предыстория. Когда мой бизнес стал вставать на ноги, мои приятели решили конкурировать, я нашёл решение и выиграл. В этой части - о том, как решение получило самое неожиданное продолжение.</strong></p><p>Самое предстижное мероприятие в любой индустрии – выставки. Всё самое лучшее на самые лучшие позиции, на самых лучших витринах в самых лучших залах.</p><p>В городе были две компании, которые устраивали выставки, между ними была жёсткая конкуренция, проходили они с небольшим интервалом. Назовём эти выставки «Экспо» и «Демо»</p><p>В первые два года моя фирма&nbsp; не представляла интереса для устроителей выставок, а я, занятый развитием своего дела, понимал – сейчас я вместо своей значимости предъявлю свою, как раз, незначимость – и проскакивал мимо них. Это был такой взаимный игнор.</p><p>Со временем всё чаще стали звучать вопросы – от клиентов, от коллег:<br>- Вы на «Экспо» будете?<br>- А чего вы на «Демо» не участвовали?</p> <a href="https://habr.com/ru/articles/1024580/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024580#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:03:35 GMT</pubDate>
+      <dc:creator><![CDATA[HappyTalkie]]></dc:creator>
+      
+      <category><![CDATA[бизнес]]></category><category><![CDATA[выставки]]></category><category><![CDATA[оригинальность]]></category><category><![CDATA[триз]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Когда код уходит вместе с человеком. Как корпоративный IT-конфликт может закончиться сразу в двух судах]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024578/</guid>
+      <link>https://habr.com/ru/articles/1024578/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024578</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/92a/66c/6be/92a66c6bed0297d2ed38b9a9034fc5fe.png" /><p>Эта статья навеяна реальной судебной историей, но детали изменены. Имена, суммы, количество участников и часть обстоятельств собирательные. Сюжет намеренно переписан так, чтобы по нему нельзя было восстановить ни одну конкретную сторону. Нас интересует не разбор чьих-то действий, а механика того, как корпоративный спор из-за прав на программное обеспечение может одновременно оказаться в арбитраже и в уголовном суде, и почему это ставит компанию в странное процессуальное положение.</p> <a href="https://habr.com/ru/articles/1024578/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024578#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:02:51 GMT</pubDate>
+      <dc:creator><![CDATA[Bizdroblenie]]></dc:creator>
+      
+      <category><![CDATA[Корпоративный конфликт в IT]]></category><category><![CDATA[права на программное обеспечение]]></category><category><![CDATA[Суд по интеллектуальным правам]]></category><category><![CDATA[обеспечительные меры]]></category><category><![CDATA[регистрация программы в Роспатенте]]></category><category><![CDATA[технический сооснователь]]></category><category><![CDATA[трудовой договор разработчика]]></category><category><![CDATA[должностная инструкция]]></category><category><![CDATA[авторское вознаграждение]]></category><category><![CDATA[изъятие серверов]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Как я почти пошла за RTX 5090 из-за Resident Evil — и почему не пошла]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/sportmaster_lab/articles/1024330/</guid>
+      <link>https://habr.com/ru/companies/sportmaster_lab/articles/1024330/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024330</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/e80/a66/0a9/e80a660a9167ddd1b8db811f1f93d080.png" /><p>Resident Evil чуть не заставил меня обновить RTX 4090 до 5090. Но вместо покупки получился разбор: почему даже топовое железо не тянет Path Tracing в 4K и где на самом деле проходит предел современных GPU. </p> <a href="https://habr.com/ru/articles/1024330/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024330#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:01:27 GMT</pubDate>
+      <dc:creator><![CDATA[Reverie_moon (SM Lab)]]></dc:creator>
+      
+      <category><![CDATA[rtx 4090]]></category><category><![CDATA[rtx 4090 vs rtx 5090]]></category><category><![CDATA[path tracing]]></category><category><![CDATA[ray tracing]]></category><category><![CDATA[fps]]></category><category><![CDATA[gpu]]></category><category><![CDATA[видеоигры]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Правда все: Убьет ли ИИ достоверность в онлайне?]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/studyai/articles/1023724/</guid>
+      <link>https://habr.com/ru/companies/studyai/articles/1023724/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023724</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/728/a61/644/728a616443cc2a001e11b205d4e303fc.png" /><p>Дипфейком уже никого не удивить. И слава Богу мы научились более-менее отличать их от реальности. Возможно в игру здесь вступил какой-то пока еще не открытый, может принципиально новый механизм эволюции.</p><p>Но AI продолжает тренироваться с упорством олимпийского фехтовальщика. И некоторые виды AI-медиа для экспертизы невооруженным глазом (или ухом) фактически уже потеряны. Особенно это касается текста.</p><p>Что же нас ждет в недалеком будущем такими темпами?</p> <a href="https://habr.com/ru/articles/1023724/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023724#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:00:56 GMT</pubDate>
+      <dc:creator><![CDATA[DimaIam (StudyAI)]]></dc:creator>
+      
+      <category><![CDATA[ии]]></category><category><![CDATA[ai]]></category><category><![CDATA[дипфейк]]></category><category><![CDATA[фейк ньюс]]></category><category><![CDATA[информационная безопасность]]></category><category><![CDATA[научпоп]]></category><category><![CDATA[социология]]></category><category><![CDATA[спасите]]></category><category><![CDATA[спаситепомогите]]></category><category><![CDATA[спасите полимеры]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Про Телемост]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1021034/</guid>
+      <link>https://habr.com/ru/articles/1021034/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1021034</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/928/1b9/85b/9281b985b3933f869775b66873c75596.png" /><p>Я написал на Хабре <a href="https://habr.com/ru/articles/1009472/" rel="noopener noreferrer nofollow">“Почему Яндекс.Мессенджер”</a> и получил в комментариях ожидаемое “ну и зачем нам ещё один мессенджер”. Но жизнь внесла коррективы, и я снова здесь с обзором продукта из экосистемы Яндекса.</p><p>Телемостом я пользуюсь каждый день по работе. Долгое время это была просто видеозвонилка по ссылке и ничего больше. А потом в какой-то момент там появились чаты, контакты, каналы.</p> <a href="https://habr.com/ru/articles/1021034/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1021034#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 10:00:49 GMT</pubDate>
+      <dc:creator><![CDATA[comerc]]></dc:creator>
+      
+      <category><![CDATA[вискас]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Гибридный кэш на базе Redis в серверной разработке]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/cloud_x/articles/1024574/</guid>
+      <link>https://habr.com/ru/companies/cloud_x/articles/1024574/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024574</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/3b4/6fd/2d9/3b46fd2d9962b66b2963e5f40d3c098f.jpg" /><p>В серверной разработке кэш влияет не только на скорость ответа. От него напрямую зависят стоимость обработки запроса, нагрузка на базу, поведение системы под пиком и предсказуемость масштабирования. Именно поэтому практика кэширования имеет сегодня столько нюансов и разновидностей, если вы хотите реализовать что-то особенное или применить сложную схему кэширования, от ваших специалистов потребуются специальные навыки и умения. Под катом — рассказ о том, как мы ушли от кастомного кода к использованию гибридного кэша из .Net Framework, с какими сложностями столкнулись на этапе масштабирования системы, и как решали вопросы инвалидации кэша в процессе развития нашего <a href="https://apihub.cldx.ru/">проекта API Hub</a>.  </p> <a href="https://habr.com/ru/articles/1024574/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024574#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:55:37 GMT</pubDate>
+      <dc:creator><![CDATA[Sentsov_CloudX (Cloud X)]]></dc:creator>
+      
+      <category><![CDATA[cloud x group]]></category><category><![CDATA[redis]]></category><category><![CDATA[кэш]]></category><category><![CDATA[cache]]></category><category><![CDATA[гибридный кэш]]></category><category><![CDATA[кейс]]></category><category><![CDATA[оптимизация запросов]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Claude Opus 4.7: Что нового? Как использовать нейросеть в России]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/studyai/articles/1024566/</guid>
+      <link>https://habr.com/ru/companies/studyai/articles/1024566/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024566</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/f2c/669/08b/f2c66908bcba1145c74fb93e3ad7c718.png" /><p>Детальный обзор новой нейросети Claude Opus 4.7 от Anthropic. Разбираем реальные тесты программистов, официальные бенчмарки, скрытые лимиты на токены и рабочие способы оплаты подписки из РФ без зарубежных карт.</p> <a href="https://habr.com/ru/articles/1024566/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024566#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:48:34 GMT</pubDate>
+      <dc:creator><![CDATA[FlyAI (StudyAI)]]></dc:creator>
+      
+      <category><![CDATA[claude]]></category><category><![CDATA[claude-opus-4]]></category><category><![CDATA[claude opus 4.7]]></category><category><![CDATA[ии для программирования]]></category><category><![CDATA[нейросети]]></category><category><![CDATA[ии]]></category><category><![CDATA[claude opus]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Квантовая криптография: принципы, протоколы, сети]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/cloud4y/articles/1024562/</guid>
+      <link>https://habr.com/ru/companies/cloud4y/articles/1024562/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024562</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/736/544/bb0/736544bb09c7fbfa4a466270a003bb89.jpg" /><p>Ваши пароли, TLS, блокчейны — всё под ударом. Единственный щит, который не взломать даже квантовым алгоритмом, спрятан внутри фотона. Добро пожаловать в мир, где законы физики важнее вычислительной мощности.  </p> <a href="https://habr.com/ru/articles/1024562/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024562#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:47:24 GMT</pubDate>
+      <dc:creator><![CDATA[Cloud4Y (Cloud4Y)]]></dc:creator>
+      
+      <category><![CDATA[шифрование]]></category><category><![CDATA[криптография]]></category><category><![CDATA[квантовая криптография]]></category><category><![CDATA[информационные технологии]]></category><category><![CDATA[информационная безопасность]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Мониторинг сотрудников без управленческой модели только усиливает хаос]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024554/</guid>
+      <link>https://habr.com/ru/articles/1024554/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024554</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/3dc/1bf/020/3dc1bf0201ef5d891f8ce4d1f16cc9f6.jpeg" /><p>Системы мониторинга сотрудников всё чаще подаются как инструмент повышения эффективности. Но на практике сами по себе метрики времени, активности и поведения почти ничего не объясняют: они показывают, что происходит, но не отвечают на вопрос почему. Разбираем, почему без нормальной HR-аналитики мониторинг начинает работать против компании, усиливает недоверие и приводит к управленческим ошибкам.</p> <a href="https://habr.com/ru/articles/1024554/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024554#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:37:42 GMT</pubDate>
+      <dc:creator><![CDATA[Kodolov_Artem]]></dc:creator>
+      
+      <category><![CDATA[hr система]]></category><category><![CDATA[hr платформа]]></category><category><![CDATA[hr tech]]></category><category><![CDATA[оценка компетенций персонала]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[3 года мы не можем вытащить данные из машины для боулинга]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024552/</guid>
+      <link>https://habr.com/ru/articles/1024552/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024552</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/377/9a7/3e6/3779a73e68972f37e9bf66d0a0659ee7.jpg" /><p>Обычная машина для боулинга — механическая, очень напоминающая аппарат для автоматической зарядки снарядов в танке. Вы попадаете мячом по кеглям, срабатывает оптический датчик прохождения мяча (если там пройдёт что-то другое, он тоже сработает), туда опускается измерительная рамка с дырками. Если ли внутри дырки кегля проверяется фотодиодом или контактным ощупыванием.</p><p>Потом эти данные отправляются на архаичный сервер Dell OptiPlex 3020 (примерно 2014 года), времён ещё когда Делл был Деллом. Мы их до сих пор закупаем, кстати, для всех 12 Бруклин Боулов. </p><p>И вот нам очень хочется выгружать данные с кегельной машины (пинсеттера) в приложение на телефоне игрока. </p><p>Мы сделали 3 разных подхода к этому и упёрлись в то, что просто физически не можем снять данные с легаси железа. Мы не айтишники, но приходили разные команды ковыряться. </p><p>В итоге мы закончили реверс-инжинирингом блока, который оцифровывает показания датичков, и, фактически, собираемся пересобрать кусок машины. Это не самое элегантное инженерное решение. И не самое умное. Но оно точно работает. </p><p>Сейчас расскажу, в чём мы застряли) </p> <a href="https://habr.com/ru/articles/1024552/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024552#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:37:18 GMT</pubDate>
+      <dc:creator><![CDATA[Artem_Rakhmeev]]></dc:creator>
+      
+      <category><![CDATA[боулинг]]></category><category><![CDATA[пинсеттер]]></category><category><![CDATA[старое железо]]></category><category><![CDATA[инженерия]]></category><category><![CDATA[реверс-инжиниринг]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[SIEM: когда он нужен, правила пользования и как выявить его эффективность]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024550/</guid>
+      <link>https://habr.com/ru/articles/1024550/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024550</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/e51/c5a/31f/e51c5a31f804b5842c7ef90e2d9d9c42.png" /><p>В современной ИТ-инфраструктуре источники событий разрознены: firewall, серверы, АРМ, облако – все они формируют собственные потоки данных. Уже на их основе можно создать единую картину киберинцендента. Для этой задачи подойдет SIEM-система (Security Information and Event Management). Она помогает объединять логи в единое окно контроля, коррелировать разрозненные события и выявлять скрытые атаки, которые невозможно заметить при изолированном анализе. В итоге вместо хаотичных данных команда получает основу для оперативного реагирования и соблюдения регуляторных требований.</p><p>Однако нередко после внедрения SIEM превращается в дорогостоящее хранилище логов, которое не подвергается анализу со стороны командой. В этом материале ответим на несколько вопросов о данном типе решений: кому и зачем оно нужно, как правильно настроить систему и как определить ее эффективность. Подробнее расскажет Илья Куриленко, заместитель генерального директора по развитию компании «Анлим», центра компетенций по информационной безопасности.</p> <a href="https://habr.com/ru/articles/1024550/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024550#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:29:38 GMT</pubDate>
+      <dc:creator><![CDATA[unlimgroup]]></dc:creator>
+      
+      <category><![CDATA[siem]]></category><category><![CDATA[средства защиты]]></category><category><![CDATA[инфраструктура]]></category><category><![CDATA[информационная безопасность]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Процесс приемки товара на складе: как организовать прием товаров без потерь и расхождений]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/intekey/articles/1024548/</guid>
+      <link>https://habr.com/ru/companies/intekey/articles/1024548/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024548</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/781/75a/de9/78175ade9314b5a7034509fa01fd0cc8.png" /><p>Приемка товара — это первый и самый уязвимый контрольный рубеж склада. Все, что пройдет через него с ошибкой, будет сказываться месяцами: пересортица в остатках, претензии без доказательной базы, списания без понятной причины.&nbsp;</p><p>Компании, которые выстроили процесс приема товаров как управляемую операцию, получают не просто порядок на входе — они получают управляемость всей цепочки поставок.</p> <a href="https://habr.com/ru/articles/1024548/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024548#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:29:05 GMT</pubDate>
+      <dc:creator><![CDATA[intekey_ceo (INTEKEY)]]></dc:creator>
+      
+      <category><![CDATA[приемка]]></category><category><![CDATA[склад]]></category><category><![CDATA[логистика склада]]></category><category><![CDATA[wms-системы]]></category><category><![CDATA[wms]]></category><category><![CDATA[intekey]]></category><category><![CDATA[автоматизация бизнес-процессов]]></category><category><![CDATA[производительность труда]]></category><category><![CDATA[окупаемость проекта]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Ваш любимый ИИ не умеет считать. Что ещё скрывает текстовая модель?]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024542/</guid>
+      <link>https://habr.com/ru/articles/1024542/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024542</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/4fe/84d/873/4fe84d8735fde9d6f3cbc5ac9db9b753.png" /><p>В этой статье мы:</p><p>Сначала рассмотрим два базовых заблуждения относительно LLM “умеют что-то кроме текста” и “учатся от разговоров с пользователем”.</p><p>Потом после минимального погружения в технологию самой LLM рассмотрим её возможности, ограничения и особенности и типовые инструменты для расширения функций.</p><p>Эти знания дадут нам ракурс для углубленного понимания что такое ИИ-агенты и Цифровой двойник с ИИ.</p><p>И в заключение пробежим по типовым слоганам и возражениям.</p> <a href="https://habr.com/ru/articles/1024542/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024542#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:15:41 GMT</pubDate>
+      <dc:creator><![CDATA[OlegArchi]]></dc:creator>
+      
+      <category><![CDATA[LLM]]></category><category><![CDATA[языковые модели]]></category><category><![CDATA[искусственный интеллект]]></category><category><![CDATA[нейросети]]></category><category><![CDATA[агенты]]></category><category><![CDATA[RAG]]></category><category><![CDATA[function calling]]></category><category><![CDATA[трансформер]]></category><category><![CDATA[RLHF]]></category><category><![CDATA[цифровой двойник]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[ИИ фотосессия по фото — ТОП лучших нейросетей для генерации картинок по фото, как сделать нейрофотосессию бесплатно]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/studyai/articles/1024540/</guid>
+      <link>https://habr.com/ru/companies/studyai/articles/1024540/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024540</link>
+      <description><![CDATA[<p><em>Как сделать нейрофото по своей фотографии бесплатно, какие нейросети для генерации изображений лучше работают в апреле 2026 года, готовые промты для ИИ фотосессии, советы по выбору и пошаговые инструкции — всё в одном материале.</em></p><p>Ещё два года назад ИИ фотосессия по фото — это было дорого, сложно и с кривыми лицами. Сейчас это нормальный способ сходить на «фотосессию» не выходя из дома: загружаете свои снимки, выбираете стиль или пишете промт — и нейросеть за несколько секунд отдаёт вам серию кадров уровня студийной съёмки. Многие сервисы позволяют сделать нейрофотосессию бесплатно онлайн по фото, без регистрации карты и без фотографа.В этой статье разберём, что такое нейрофотосессия и как она работает, какие нейросети для генерации фото дают лучший результат в 2026 году, как правильно составить промт и чего избегать. Плюс — готовые промты для разных типов фотосессий. </p><p>В качестве примера мы разобрали восемь, на наш взгляд, актуальных нейросетей для генерации ИИ фото и фотосессий —&nbsp;<strong>Nano Banana Pro</strong>,&nbsp;<strong>Higgslied Soul</strong>,&nbsp;<strong>Seedream 5.0</strong>,&nbsp;<strong>Nano Banana 2</strong>, &nbsp;<strong>FLUX, Midjourney, Grok, Leonardo AI</strong>&nbsp;— и честно рассказали, что каждая из них умеет, а где проваливается. Все нейросети будем тестировать через агрегатор нейросетей&nbsp;<strong><a href="https://eduforms.org/?rid=77c404186b895544&amp;ulp=https%3A%2F%2Fstudy24.ai">Study</a></strong>, который доступен в России без VPN.</p><p><strong>В каждой из 8 нейросетей мы сгенерировали для сравнения результатов фото по такому промпту:</strong></p> <a href="https://habr.com/ru/articles/1024540/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024540#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:15:24 GMT</pubDate>
+      <dc:creator><![CDATA[mrpromter (StudyAI)]]></dc:creator>
+      
+      <category><![CDATA[фотосессия ии]]></category><category><![CDATA[ии фотосессия по фото бесплатно]]></category><category><![CDATA[нейрофотосессия]]></category><category><![CDATA[нейрофото онлайн]]></category><category><![CDATA[нейросеть фотосессия]]></category><category><![CDATA[нейрофото]]></category><category><![CDATA[ии фотосессия нейросеть]]></category><category><![CDATA[фотосессия с помощью нейросети]]></category><category><![CDATA[как сделать ии фотосессию]]></category><category><![CDATA[нейросеть для генерации изображений]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Я тоже хочу MVP за 2 дня. Но давайте без иллюзий в энтерпрайзе]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024532/</guid>
+      <link>https://habr.com/ru/articles/1024532/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024532</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/07a/076/c8d/07a076c8d502d690d13a3d0d0a6ef60e.JPG" /><p>Я давно работаю в крупных нефтегазовых компаниях, поэтому мой взгляд — изнутри энтерпрайза, где 5000+ сотрудников и любое изменение - это не «сделали и забыли», а «сделали, согласовали, интегрировали в инфраструктуру и в процессы».</p><p>Когда-то все дружно начали «цифровизироваться»: аджайл, продуктовый подход, спринты, канвасы, MVP - сначала как заклинания, потом как рабочие инструменты. За этими словами всегда стояли вполне конкретные смыслы. И сегодня я хочу поговорить про MVP. Но не в вакууме стартапа, а в реальности крупного предприятия.</p><p>Корректные и наиболее полные определения можно прочитать в респектабельных методологиях, а простыми словами: </p><p>MVP — это:<br> 1) минимально достаточная версия продукта ⚙️ (критерий 1),<br> 2) позволяющая получить обратную связь от реальных пользователей 👥 (критерий 2),<br> 3) дающая бизнесу 💼  и пользователям ценность 🙌 (критерий 3).<br> <br>Раньше многие команды заявляли об успешном MVP, разработанном за 2-3 месяца. Быстрый time-to-market был очень важной характеристикой и КПЭ. Сейчас с внедрением ИИ агентов продакты начали вайбкодить и заявляют о кратном сокращении сроков – MVP за 2-3 дня.</p><p>Сидя и читая такие заявления с другой стороны экрана меня одолевают очень разные чувства. Порой мне кажется, что я работаю в отстающей отрасли, и как 🦖  динозавр юрского периода смотрю со стороны на далекие инновации 🚀. Ведь на внедрение первых работающих версии у нас уходило по 5 месяцев (в случае, если мы использовали имеющиеся платформы/технологии в компании), и по 12 месяцев для совершенно нового цифрового продукта. Да какие 12, иногда и больше, но я не буду писать ужасающие цифры :).</p> <a href="https://habr.com/ru/articles/1024532/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024532#habracut">Посмотрим на реальный пример</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:04:22 GMT</pubDate>
+      <dc:creator><![CDATA[Panf_9]]></dc:creator>
+      
+      <category><![CDATA[mvp]]></category><category><![CDATA[mvp vs project]]></category><category><![CDATA[энтерпрайз]]></category><category><![CDATA[цифровизация промышленности]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[ИИ вместо РОПа? Как автоматизация контроля изменила работу отдела продаж]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024530/</guid>
+      <link>https://habr.com/ru/articles/1024530/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024530</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/892/5bf/7e0/8925bf7e035c02d9f5ed98247445365b.jpg" /><p>Как мы внедрили ИИ для контроля демовстреч и отказались от ручного просмотра записей. Система сама анализирует диалоги, выявляет ошибки менеджеров и дает рекомендации по улучшению продаж.</p> <a href="https://habr.com/ru/articles/1024530/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024530#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:02:02 GMT</pubDate>
+      <dc:creator><![CDATA[vasya_project]]></dc:creator>
+      
+      <category><![CDATA[ИИ в продажах]]></category><category><![CDATA[автоматизация отдела продаж]]></category><category><![CDATA[контроль звонков]]></category><category><![CDATA[анализ встреч с клиентами]]></category><category><![CDATA[демовстречи]]></category><category><![CDATA[контроль качества продаж]]></category><category><![CDATA[AI в CRM]]></category><category><![CDATA[оценка менеджеров по продажам]]></category><category><![CDATA[чеклист продаж]]></category><category><![CDATA[речевая аналитика]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Лабораторный откачной пост своими руками. Часть 1. Каркас, нагревательная печь]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/ruvds/articles/1020452/</guid>
+      <link>https://habr.com/ru/companies/ruvds/articles/1020452/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1020452</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/4d9/898/7a6/4d98987a67976c4cd5395856b52cf0fd.jpg" /><p>Речь об установке для вакуумной обработки самодельных ламп в любительской лаборатории-мастерской. Выделение впитанных в материалы электровакуумных приборов (стекло, металлы, слюда) газов при нагреве и понижении давления в колбе прибора [1], заставляет принимать меры для их&nbsp;<em>обезгаживания</em>,&nbsp;среди прочих мероприятий, это и внешний нагрев электровакуумного прибора (ЭВП) во время откачки. Здесь — отчёт о сборке каркаса&nbsp;<em>откачного поста</em>&nbsp;и такой нагревательной технологической электропечи — лёгкой, мобильной, точной, удобной, экономной. Из простых доступных материалов и компонентов, своими руками. Печи, пригодной и для снятия внутренних напряжений в стекле (<em>отжига</em>) [2] после изготовления деталей на горелке [3], печи, годящейся для горячей формовки стекла (<em>моллирования</em>), изготовления стеклянных витражей в технике&nbsp;<em>фьюзинг</em>&nbsp;[4], сушки, нагрева, прокаливания и тому подобных&nbsp;процессов с температурой до ~800&nbsp;<sup>о</sup>С. Печь управляется программируемым ПИД&nbsp;термоконтроллером,&nbsp;ремонтопригодна, имеет рабочую камеру объёмом 24 л, при мощности нагревателей 2.3 кВт, может включаться в однофазную или трёхфазную сеть.</p> <a href="https://habr.com/ru/articles/1020452/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1020452#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:01:36 GMT</pubDate>
+      <dc:creator><![CDATA[BabayMazay (RUVDS.com)]]></dc:creator>
+      
+      <category><![CDATA[самодельные радиолампы]]></category><category><![CDATA[печи]]></category><category><![CDATA[вакуум]]></category><category><![CDATA[хобби и развлечения гиков]]></category><category><![CDATA[ruvds_статьи]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[У нас есть органы-на-чипе, цифровые двойники и ИИ. Почему лекарства до сих пор испытывают на мышах?]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/first/articles/1024430/</guid>
+      <link>https://habr.com/ru/companies/first/articles/1024430/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024430</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/d37/ab8/b12/d37ab8b12482e3a107babbb054859e9a.png" /><p>Привет, Хабр!&nbsp;</p><p>Сегодня разработка нового препарата — это <a href="https://www.kommersant.ru/doc/7266829">годы работы, миллиарды долларов и куча рисков.</a> Можно годами кормить гвардию ученых и инженеров, испытывать множество мышей на токсикологии и в итоге получить красивый провал. Зоозащитники в шоке, инвесторы тоже, лекарства как не было, так и нет.</p><p>Цифровые двойники и органы-на-чипе уже сейчас меняют правила игры. Они позволяют тестировать лекарства на человеческих клетках в микрофлюидных чипах, предсказывать токсичность и поведение веществ в виртуальной копии органа и сокращают количество провалов на доклинической стадии.&nbsp;</p><p>В статье расскажем, как устроены цифровые двойники, как выращивают органы-на-чипе и про мозг-на-чипе, который научился играть в Doom. А главное — почему мыши пока никуда не денутся, а вся эта красивая технология еще очень далека от волшебной таблетки.<br></p> <a href="https://habr.com/ru/articles/1024430/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024430#habracut">Поехали под кат.</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:00:33 GMT</pubDate>
+      <dc:creator><![CDATA[anastasiamrr (FirstVDS)]]></dc:creator>
+      
+      <category><![CDATA[цифровые двойники]]></category><category><![CDATA[биология]]></category><category><![CDATA[технологии будущего]]></category><category><![CDATA[технологии]]></category><category><![CDATA[научно-популярное]]></category><category><![CDATA[медицина]]></category><category><![CDATA[медицина будущего]]></category><category><![CDATA[цифровизация]]></category><category><![CDATA[цифровой двойник]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Продолжаем приручать ИИ: рефлексия агента, интервью пользователя, God agent]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/wildberries/articles/1023828/</guid>
+      <link>https://habr.com/ru/companies/wildberries/articles/1023828/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023828</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/091/fa3/db2/091fa3db2642380a1ce50c5719d0cdd9.jpg" /><p><br>В последнее время в нашем любимом ИТ всё меняется слишком быстро. Причина тому — генеративные языковые модели. Новые знания становятся deprecated спустя несколько месяцев. Вчерашние революционные подходы сегодня выглядят как рудимент. Есть один большой плюс такой тенденции: если вы вдруг проспали старт ИИ-гонки, наверстать упущенное и догнать лидеров можно достаточно быстро.<br><br>В данной статье я хочу рассмотреть несколько приёмов, которые помогут выстроить рабочую систему или повысить эффективность уже существующих практик работы с ИИ. Обсудим как базовые моменты вроде context engineering и формирования файлов для агентов, так и не столь очевидные практики: как научить агента задавать вопросы о ТЗ, делать рефлексию после выполненного задания и использовать её для улучшения агентов.</p> <a href="https://habr.com/ru/articles/1023828/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1023828#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 09:00:32 GMT</pubDate>
+      <dc:creator><![CDATA[Ales_Ivanov (Wildberries & Russ)]]></dc:creator>
+      
+      <category><![CDATA[искусственный интеллект]]></category><category><![CDATA[ии-агенты]]></category><category><![CDATA[мобильная разработка]]></category><category><![CDATA[ai]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Axios и проблема зависимостей]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024520/</guid>
+      <link>https://habr.com/ru/articles/1024520/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024520</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/d9f/9ca/8c3/d9f9ca8c360641ab7e1483b8de241550.png" /><p>Как взлом одного npm-аккаунта за 3 часа распространил RAT на 174 000 пакетов и почему стандартные инструменты вроде NPM Audit это не поймали. Разбираем инцидент с Axios: механику атаки, слепые пятна в CI/CD и то, что реально работает. </p> <a href="https://habr.com/ru/articles/1024520/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024520#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 08:55:42 GMT</pubDate>
+      <dc:creator><![CDATA[gitinsky]]></dc:creator>
+      
+      <category><![CDATA[безопасность]]></category><category><![CDATA[ит-инфраструктура]]></category><category><![CDATA[базы данных]]></category><category><![CDATA[cicd]]></category><category><![CDATA[devsecops]]></category><category><![CDATA[devops]]></category><category><![CDATA[системное администрирование]]></category><category><![CDATA[open source]]></category><category><![CDATA[разбор инцидентов]]></category><category><![CDATA[безопасность зависимостей]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[ИсВКлючить нельзя исВКлючать, или пролетая над гнездом VK…]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/articles/1024524/</guid>
+      <link>https://habr.com/ru/articles/1024524/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024524</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/968/0de/44a/9680de44ac634b817608667d690460dd.jpg" /><p>История о том, как социальная сеть ВКонтакте, без суда и следствия, по велению алгоритмов, фактически уничтожила аккаунт с 20-летней историей, обнулила многолетний авторский контент и заблокировала владельцу вход, удерживая у себя в заложниках его персональные данные в течение уже пары лет.</p> <a href="https://habr.com/ru/articles/1024524/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024524#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 08:52:55 GMT</pubDate>
+      <dc:creator><![CDATA[thenonsense]]></dc:creator>
+      
+      <category><![CDATA[личный опыт]]></category><category><![CDATA[персональные данные]]></category><category><![CDATA[vk]]></category><category><![CDATA[вконтакте]]></category><category><![CDATA[блокировка]]></category><category><![CDATA[ркн]]></category><category><![CDATA[авторизация пользователя]]></category><category><![CDATA[авторский контент]]></category><category><![CDATA[ограничение прав]]></category><category><![CDATA[алгоритмы]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+    
+    <item>
+      <title><![CDATA[Зачем нужны языки квантового программирования и какие открытые проекты развиваются в этой области уже сейчас]]></title>
+      <guid isPermaLink="true">https://habr.com/ru/companies/beeline_cloud/articles/1024318/</guid>
+      <link>https://habr.com/ru/companies/beeline_cloud/articles/1024318/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024318</link>
+      <description><![CDATA[<img src="https://habrastorage.org/getpro/habr/upload_files/7ab/84c/d16/7ab84cd16b645f4be18eb963a5fbb99f.jpg" /><p>ИТ-компании продолжают <a href="https://habr.com/ru/companies/beeline_cloud/articles/902520/">выпускать</a> чипы со все большим количеством кубитов в надежде прийти к полнофункциональному квантовому компьютеру. Однако работа с таким железом требует особого подхода, поэтому появляются специализированные языки квантового программирования. Сегодня мы в <a href="https://cloud.beeline.ru/?utm_source=owned_media&amp;utm_medium=habr&amp;utm_campaign=beeline_cloud&amp;utm_term=qunatum">Beeline Cloud</a> расскажем о нескольких таких проектах: Qrisp, Silq, Qutes, cQASM и Quantica — и зачем они нужны.</p> <a href="https://habr.com/ru/articles/1024318/?utm_source=habrahabr&amp;utm_medium=rss&amp;utm_campaign=1024318#habracut">Читать далее</a>]]></description>
+      
+      <pubDate>Fri, 17 Apr 2026 08:48:20 GMT</pubDate>
+      <dc:creator><![CDATA[beeline_cloud (Beeline Cloud)]]></dc:creator>
+      
+      <category><![CDATA[beeline cloud]]></category><category><![CDATA[квантовое программирование]]></category><category><![CDATA[Qrisp]]></category><category><![CDATA[Silq]]></category><category><![CDATA[Qutes]]></category><category><![CDATA[cQASM]]></category><category><![CDATA[Quantica]]></category>
+    </item>
+  
+
+  
+
+  
+
+	
+  
+
+  
+
+  
+
+      
+
+      
+
+      
+
+    
+  </channel>
+</rss>

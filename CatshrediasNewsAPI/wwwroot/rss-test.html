@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>RSS — тестовая страница</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* ── Шапка ── */
+        header {
+            background: #1a1d27;
+            border-bottom: 1px solid #2a2d3a;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        header h1 { font-size: 20px; font-weight: 700; color: #fff; }
+        .badge {
+            background: #5c6bc0;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        /* ── Основной контейнер ── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 32px; }
+
+        /* ── Карточки секций ── */
+        .card {
+            background: #1a1d27;
+            border: 1px solid #2a2d3a;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2d3a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-header h2 { font-size: 15px; font-weight: 600; color: #fff; }
+        .card-header .icon { font-size: 18px; }
+        .card-body { padding: 20px; }
+
+        /* ── Описание работы ── */
+        .how-it-works { display: flex; flex-direction: column; gap: 12px; }
+
+        .step {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .step-num {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #5c6bc0;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .step-body { flex: 1; }
+        .step-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .step-desc  { font-size: 13px; color: #888; line-height: 1.6; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .info-box {
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 8px;
+            padding: 12px 14px;
+        }
+        .info-box .label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+        .info-box .value { font-size: 13px; color: #e0e0e0; }
+
+        code {
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 12px;
+            color: #80cbc4;
+        }
+
+        /* ── Формы ── */
+        .form-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 180px; }
+        label { font-size: 12px; color: #888; }
+        input, select {
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+            padding: 8px 10px;
+            outline: none;
+            transition: border-color .2s;
+            width: 100%;
+        }
+        input:focus, select:focus { border-color: #5c6bc0; }
+
+        button {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s;
+            white-space: nowrap;
+        }
+        button:hover   { opacity: .85; }
+        button:disabled { opacity: .4; cursor: not-allowed; }
+        .btn-primary  { background: #5c6bc0; color: #fff; }
+        .btn-success  { background: #388e3c; color: #fff; }
+        .btn-warning  { background: #f57c00; color: #fff; }
+
+        /* ── Таблица источников ── */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #555;
+            border-bottom: 1px solid #2a2d3a;
+        }
+        td { padding: 10px 12px; border-bottom: 1px solid #1e2130; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1e2130; }
+
+        .tag-chip {
+            display: inline-block;
+            background: #2a2d3a;
+            color: #aaa;
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin: 2px 2px 2px 0;
+        }
+        .status-published  { color: #4caf50; font-weight: 600; }
+        .status-pending    { color: #ff9800; font-weight: 600; }
+        .status-other      { color: #888; }
+
+        .trusted-yes { color: #4caf50; }
+        .trusted-no  { color: #888; }
+
+        /* ── Лог ── */
+        #log {
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 12px;
+            font-family: 'Consolas', monospace;
+            max-height: 260px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .log-line { padding: 3px 0; border-bottom: 1px solid #1a1d27; }
+        .log-line:last-child { border-bottom: none; }
+        .log-info    { color: #80cbc4; }
+        .log-success { color: #4caf50; }
+        .log-error   { color: #f44336; }
+        .log-time    { color: #444; margin-right: 8px; }
+
+        /* ── Статьи ── */
+        .article-list { display: flex; flex-direction: column; gap: 12px; }
+        .article-item {
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 8px;
+            padding: 14px;
+        }
+        .article-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .article-title a { color: #7986cb; text-decoration: none; }
+        .article-title a:hover { text-decoration: underline; }
+        .article-meta { font-size: 12px; color: #555; margin-bottom: 8px; }
+        .article-preview { font-size: 13px; color: #888; line-height: 1.5; }
+
+        .empty { color: #555; font-size: 13px; text-align: center; padding: 20px; }
+
+        /* ── Маппинг тегов ── */
+        .mapping-grid { display: flex; flex-direction: column; gap: 8px; }
+        .mapping-row { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+        .mapping-tag { color: #7986cb; font-weight: 600; min-width: 110px; }
+        .mapping-keywords { color: #888; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>RSS — тестовая страница</h1>
+    <span class="badge">Dev Tool</span>
+</header>
+
+<div class="container">
+
+    <!-- ══════════════════════════════════════════════════════
+         КАК РАБОТАЕТ RSS-ИНТЕГРАЦИЯ
+    ══════════════════════════════════════════════════════ -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">📖</span>
+            <h2>Как работает RSS-интеграция</h2>
+        </div>
+        <div class="card-body">
+            <div class="how-it-works">
+
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <div class="step-title">Источники хранятся в БД</div>
+                        <div class="step-desc">
+                            Каждый RSS-источник — запись в таблице <code>RssSources</code>.
+                            Поле <code>IsTrusted</code> определяет, нужна ли модерация:
+                            доверенные источники сразу получают статус <code>Published</code>,
+                            остальные — <code>PendingReview</code>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <div class="step-title">Фоновый сервис запускается автоматически</div>
+                        <div class="step-desc">
+                            <code>RssFetcherService</code> — это <code>BackgroundService</code>,
+                            который стартует вместе с приложением и каждые
+                            <strong id="interval-val">15</strong> минут обходит все источники из БД.
+                            Интервал настраивается в <code>appsettings.json → RssFetcher:IntervalMinutes</code>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <div class="step-title">Парсинг фида через CodeHollow.FeedReader</div>
+                        <div class="step-desc">
+                            <code>RssParserService</code> скачивает XML-фид по URL и разбирает каждый <code>&lt;item&gt;</code>.
+                            Поля: <code>title</code>, <code>description</code> (HTML → очищается через HtmlAgilityPack),
+                            <code>pubDate</code>, <code>guid</code> (используется как <code>SourceUrl</code> для защиты от дублей),
+                            <code>category</code> (теги статьи).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-body">
+                        <div class="step-title">Защита от дублей</div>
+                        <div class="step-desc">
+                            Перед сохранением проверяется: есть ли в таблице <code>Articles</code>
+                            запись с таким же <code>SourceUrl</code> (= <code>guid</code> из RSS).
+                            Если есть — статья пропускается.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">5</div>
+                    <div class="step-body">
+                        <div class="step-title">Автоматическое присвоение тегов</div>
+                        <div class="step-desc">
+                            <code>TagMappingService</code> сравнивает RSS-категории статьи
+                            с ключевыми словами из <code>appsettings.json → RssFetcher:TagMappingRules</code>.
+                            Если категория содержит ключевое слово — статье присваивается соответствующий тег из БД.
+                            Правила маппинга ниже.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">6</div>
+                    <div class="step-body">
+                        <div class="step-title">Обновление LastFetchedAt</div>
+                        <div class="step-desc">
+                            После успешного парсинга поле <code>RssSource.LastFetchedAt</code>
+                            обновляется текущим временем UTC. Это позволяет отслеживать,
+                            когда источник был обработан последний раз.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Правила маппинга тегов -->
+            <div style="margin-top: 24px;">
+                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #555; margin-bottom: 12px;">
+                    Правила маппинга тегов (из appsettings.json)
+                </div>
+                <div class="mapping-grid" id="mapping-grid">
+                    <div class="empty">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         ПРЕДПРОСМОТР ФИДА (без сохранения в БД)
+    ══════════════════════════════════════════════════════ -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">🔍</span>
+            <h2>Предпросмотр фида (без сохранения в БД)</h2>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-row">
+                <div class="form-group" style="flex:3">
+                    <label>URL RSS-фида</label>
+                    <input type="url" id="preview-url" value="https://habr.com/ru/rss/articles/" placeholder="https://...">
+                </div>
+                <div class="form-group" style="flex:0;min-width:90px;">
+                    <label>Статей</label>
+                    <input type="number" id="preview-limit" value="5" min="1" max="50">
+                </div>
+                <button class="btn-primary" id="btn-preview">Загрузить</button>
+            </div>
+            <div id="preview-result"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         RSS-ИСТОЧНИКИ В БД
+    ══════════════════════════════════════════════════════ -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">📡</span>
+            <h2>RSS-источники в БД</h2>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-primary" id="btn-refresh-sources">Обновить список</button>
+            </div>
+            <div id="sources-table"><div class="empty">Нажмите «Обновить список»</div></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         ЗАПУСК ПАРСИНГА И РЕЗУЛЬТАТ
+    ══════════════════════════════════════════════════════ -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">⚙️</span>
+            <h2>Ручной запуск парсинга</h2>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Источник</label>
+                    <select id="fetch-source-id"><option value="">— выберите источник —</option></select>
+                </div>
+                <button class="btn-success" id="btn-fetch">▶ Запустить парсинг</button>
+            </div>
+            <div id="log"><div class="log-line log-info"><span class="log-time">—</span>Лог появится здесь после запуска.</div></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         ПОСЛЕДНИЕ СТАТЬИ ИЗ ИСТОЧНИКА
+    ══════════════════════════════════════════════════════ -->
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">📰</span>
+            <h2>Последние статьи из источника</h2>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Источник</label>
+                    <select id="articles-source-id"><option value="">— выберите источник —</option></select>
+                </div>
+                <div class="form-group" style="flex:0;min-width:90px;">
+                    <label>Показать</label>
+                    <input type="number" id="articles-limit" value="10" min="1" max="50">
+                </div>
+                <button class="btn-primary" id="btn-load-articles">Загрузить</button>
+            </div>
+            <div id="articles-result"><div class="empty">Выберите источник и нажмите «Загрузить»</div></div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<script>
+    // ── Маппинг тегов из appsettings (захардкожен для отображения) ──────────
+    const tagRules = {
+        'IT':          ['rust','c#','python','java','go','javascript','typescript','kotlin','swift','php','программирование','разработка','backend','frontend','devops','linux','docker','kubernetes'],
+        'Наука':       ['наука','физика','биология','химия','квантовые','астрономия','научпоп','исследования','математика'],
+        'Экономика':   ['экономика','финансы','банк','инвестиции','криптовалюта','биткоин','рынок','бизнес'],
+        'Политика':    ['политика','выборы','государство','законодательство','право'],
+        'Здоровье':    ['медицина','здоровье','биотехнологии','фармацевтика','лечение'],
+        'Спорт':       ['спорт','футбол','хоккей','баскетбол','теннис','олимпиада'],
+        'Технологии':  ['ai','ии','нейросети','llm','machine learning','искусственный интеллект','роботы','автоматизация','технологии']
+    };
+
+    const mappingGrid = document.getElementById('mapping-grid');
+    mappingGrid.innerHTML = Object.entries(tagRules).map(([tag, kw]) => `
+        <div class="mapping-row">
+            <span class="mapping-tag">${tag}</span>
+            <span class="mapping-keywords">${kw.map(k => `<code>${k}</code>`).join(' ')}</span>
+        </div>`).join('');
+
+    // ── Утилиты ──────────────────────────────────────────────────────────────
+    function now() { return new Date().toLocaleTimeString('ru-RU', { hour12: false }); }
+
+    function addLog(type, msg) {
+        const log = document.getElementById('log');
+        const line = document.createElement('div');
+        line.className = `log-line log-${type}`;
+        line.innerHTML = `<span class="log-time">${now()}</span>${msg}`;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function statusClass(s) {
+        if (s === 'Published')    return 'status-published';
+        if (s === 'PendingReview') return 'status-pending';
+        return 'status-other';
+    }
+
+    function formatDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleString('ru-RU');
+    }
+
+    // ── Загрузка источников ───────────────────────────────────────────────────
+    async function loadSources() {
+        const res  = await fetch('/api/rss-test/sources');
+        const data = await res.json();
+
+        const selFetch    = document.getElementById('fetch-source-id');
+        const selArticles = document.getElementById('articles-source-id');
+
+        [selFetch, selArticles].forEach(sel => {
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">— выберите источник —</option>'
+                + data.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            sel.value = cur;
+        });
+
+        const table = document.getElementById('sources-table');
+        if (data.length === 0) { table.innerHTML = '<div class="empty">Источники не найдены. Добавьте через POST /api/admin/sources</div>'; return; }
+
+        table.innerHTML = `
+            <table>
+                <thead><tr>
+                    <th>ID</th><th>Название</th><th>URL</th>
+                    <th>Доверенный</th><th>Статей</th><th>Последний парсинг</th>
+                </tr></thead>
+                <tbody>
+                ${data.map(s => `
+                    <tr>
+                        <td>${s.id}</td>
+                        <td>${s.name}</td>
+                        <td><a href="${s.url}" target="_blank" style="color:#7986cb;font-size:12px">${s.url}</a></td>
+                        <td class="${s.isTrusted ? 'trusted-yes' : 'trusted-no'}">${s.isTrusted ? '✔ Да' : '✘ Нет'}</td>
+                        <td>${s.articlesCount}</td>
+                        <td>${formatDate(s.lastFetchedAt)}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
+    }
+
+    document.getElementById('btn-refresh-sources').addEventListener('click', loadSources);
+
+    // ── Предпросмотр фида ─────────────────────────────────────────────────────
+    document.getElementById('btn-preview').addEventListener('click', async () => {
+        const url   = document.getElementById('preview-url').value.trim();
+        const limit = document.getElementById('preview-limit').value;
+        const box   = document.getElementById('preview-result');
+
+        if (!url) { box.innerHTML = '<div class="empty">Введите URL фида.</div>'; return; }
+        box.innerHTML = '<div class="empty">Загрузка...</div>';
+
+        const res  = await fetch(`/api/rss-test/preview?url=${encodeURIComponent(url)}&limit=${limit}`);
+        const data = await res.json();
+
+        if (!res.ok) { box.innerHTML = `<div class="empty" style="color:#f44336">Ошибка: ${data.error}</div>`; return; }
+
+        box.innerHTML = `
+            <div style="font-size:13px;color:#7986cb;margin-bottom:12px;font-weight:600">
+                📡 ${data.feedTitle} — ${data.items.length} статей
+            </div>
+            <div class="article-list">
+            ${data.items.map(i => `
+                <div class="article-item">
+                    <div class="article-title"><a href="${i.link}" target="_blank">${i.title || '(без заголовка)'}</a></div>
+                    <div class="article-meta">${formatDate(i.publishedAt)}</div>
+                    <div>${(i.categories || []).map(c => `<span class="tag-chip">${c}</span>`).join('')}</div>
+                </div>`).join('')}
+            </div>`;
+    });
+
+    // ── Ручной запуск парсинга ────────────────────────────────────────────────
+    document.getElementById('btn-fetch').addEventListener('click', async () => {
+        const id  = document.getElementById('fetch-source-id').value;
+        if (!id) { addLog('error', 'Выберите источник.'); return; }
+
+        const btn = document.getElementById('btn-fetch');
+        btn.disabled = true;
+        addLog('info', `Запуск парсинга источника Id=${id}...`);
+
+        const res  = await fetch(`/api/rss-test/fetch/${id}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok) {
+            addLog('success', data.message);
+            await loadSources();
+        } else {
+            addLog('error', data.message ?? JSON.stringify(data));
+        }
+        btn.disabled = false;
+    });
+
+    // ── Загрузка статей из источника ──────────────────────────────────────────
+    document.getElementById('btn-load-articles').addEventListener('click', async () => {
+        const id    = document.getElementById('articles-source-id').value;
+        const limit = document.getElementById('articles-limit').value;
+        const box   = document.getElementById('articles-result');
+
+        if (!id) { box.innerHTML = '<div class="empty">Выберите источник.</div>'; return; }
+        box.innerHTML = '<div class="empty">Загрузка...</div>';
+
+        const res  = await fetch(`/api/rss-test/articles/${id}?limit=${limit}`);
+        const data = await res.json();
+
+        if (data.length === 0) { box.innerHTML = '<div class="empty">Статей нет. Запустите парсинг.</div>'; return; }
+
+        box.innerHTML = `<div class="article-list">${data.map(a => `
+            <div class="article-item">
+                <div class="article-title">
+                    <a href="${a.sourceUrl}" target="_blank">${a.title}</a>
+                </div>
+                <div class="article-meta">
+                    ${formatDate(a.publishedAt)}
+                    &nbsp;·&nbsp;
+                    <span class="${statusClass(a.status)}">${a.status}</span>
+                </div>
+                <div style="margin-bottom:8px">${(a.tags || []).map(t => `<span class="tag-chip">${t}</span>`).join('')}</div>
+                <div class="article-preview">${a.contentPreview}</div>
+            </div>`).join('')}</div>`;
+    });
+
+    // ── Инициализация ─────────────────────────────────────────────────────────
+    loadSources();
+</script>
+</body>
+</html>

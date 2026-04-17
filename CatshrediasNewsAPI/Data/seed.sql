@@ -49,12 +49,12 @@ ON CONFLICT ("Id") DO NOTHING;
 -- -------------------------------------------------------------
 -- RssSources
 -- -------------------------------------------------------------
-INSERT INTO "RssSources" ("Id", "Name", "Url", "IsTrusted", "LastFetchedAt") VALUES
-    (1, 'Habr',        'https://habr.com/ru/rss/articles/',         true,  '2026-04-17 10:00:00+00'),
-    (2, 'РБК',         'https://rbc.ru/rss/news',                   true,  '2026-04-17 10:05:00+00'),
-    (3, 'Lenta.ru',    'https://lenta.ru/rss',                      true,  '2026-04-17 10:10:00+00'),
-    (4, 'Ведомости',   'https://vedomosti.ru/rss/news',             false, '2026-04-17 09:00:00+00'),
-    (5, 'TechCrunch',  'https://techcrunch.com/feed/',              false, null)
+INSERT INTO "RssSources" ("Id", "Name", "Url", "IsTrusted", "IsEnabled", "LastFetchedAt") VALUES
+    (1, 'Habr',        'https://habr.com/ru/rss/articles/',         true,  true,  '2026-04-17 10:00:00+00'),
+    (2, 'РБК',         'https://rbc.ru/rss/news',                   true,  true,  '2026-04-17 10:05:00+00'),
+    (3, 'Lenta.ru',    'https://lenta.ru/rss',                      true,  true,  '2026-04-17 10:10:00+00'),
+    (4, 'Ведомости',   'https://vedomosti.ru/rss/news',             false, true,  '2026-04-17 09:00:00+00'),
+    (5, 'Дзен',        'https://dzen.ru/rss',                       false, false, null)
 ON CONFLICT ("Id") DO NOTHING;
 
 -- -------------------------------------------------------------
@@ -91,7 +91,7 @@ INSERT INTO "Articles" ("Id", "Title", "Content", "SourceUrl", "PublishedAt", "C
 
     (4,  'Прорыв в квантовых вычислениях',
          'Учёные из MIT представили квантовый процессор с рекордным числом кубитов.',
-         'https://techcrunch.com/4',
+         'https://dzen.ru/news/4',
          '2026-04-13 14:00:00+00', '2026-04-13 14:00:00+00', 3, 5, null),
 
     (5,  'Новый метод лечения диабета',

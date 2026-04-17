@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CatshrediasNewsAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260417100507_InitialCreate")]
+    [Migration("20260417190859_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -319,6 +319,9 @@ namespace CatshrediasNewsAPI.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsTrusted")
                         .HasColumnType("boolean");
