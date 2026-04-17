@@ -1,0 +1,27 @@
+@inject NavigationManager Nav
+
+<nav class="app-sidebar-left">
+
+    <div class="sidebar-section">
+        <SidebarItem Href="/" Icon="bi-newspaper" Label="Лента" />
+        <SidebarItem Href="/saved" Icon="bi-bookmark" Label="Избранное" />
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Модерация</div>
+        <SidebarItem Href="/moderation/queue" Icon="bi-list-check" Label="Очередь" Badge="12" />
+        <SidebarItem Href="/moderation/reports" Icon="bi-flag" Label="Жалобы" Badge="3" />
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Администрирование</div>
+        <SidebarItem Href="/admin/rss" Icon="bi-rss" Label="Настройка RSS" />
+        <SidebarItem Href="/admin/tags" Icon="bi-tags" Label="Управление тегами" />
+        <SidebarItem Href="/admin/users" Icon="bi-people" Label="Пользователи" />
+    </div>
+
+</nav>

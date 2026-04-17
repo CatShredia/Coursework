@@ -1,0 +1,70 @@
+<header class="app-header">
+    <a href="/" class="header-logo">
+        <img src="logo_small.jpeg" alt="Runews" class="logo-img" />
+        Runews
+    </a>
+
+    <div class="header-actions">
+        <button class="btn-search-trigger" @onclick="OpenSearch" title="Поиск">
+            <i class="bi bi-search"></i>
+        </button>
+        <a href="/login">
+            <button class="btn-header btn-header-filled">Войти</button>
+        </a>
+    </div>
+</header>
+
+@if (_searchOpen)
+{
+    <div class="search-overlay" @onclick="CloseSearch">
+        <div class="search-modal" @onclick:stopPropagation="true">
+            <div class="search-modal-inner">
+                <i class="bi bi-search search-modal-icon"></i>
+                <input @ref="_searchInput"
+                       type="text"
+                       class="search-modal-input"
+                       placeholder="Поиск новостей..."
+                       @bind="_searchQuery"
+                       @bind:event="oninput"
+                       @onkeydown="OnSearchKeyDown" />
+                <button class="search-modal-close" @onclick="CloseSearch">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_searchQuery))
+            {
+                <div class="search-hint">
+                    Нажмите <kbd>Enter</kbd> для поиска по запросу «@_searchQuery»
+                </div>
+            }
+            else
+            {
+                <div class="search-hint">Начните вводить запрос...</div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool _searchOpen;
+    private string _searchQuery = "";
+    private ElementReference _searchInput;
+
+    private async Task OpenSearch()
+    {
+        _searchOpen = true;
+        await Task.Delay(50);
+        await _searchInput.FocusAsync();
+    }
+
+    private void CloseSearch()
+    {
+        _searchOpen = false;
+        _searchQuery = "";
+    }
+
+    private void OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") CloseSearch();
+    }
+}
