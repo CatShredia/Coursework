@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест CommentsHub</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: #1a1d27;
+            padding: 14px 24px;
+            border-bottom: 1px solid #2a2d3a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header h1 { font-size: 18px; font-weight: 600; color: #fff; }
+
+        #status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #555;
+            flex-shrink: 0;
+        }
+        #status-dot.connected { background: #4caf50; }
+        #status-dot.error     { background: #f44336; }
+
+        #status-text { font-size: 13px; color: #888; }
+
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── Левая панель: настройки ── */
+        aside {
+            width: 320px;
+            flex-shrink: 0;
+            background: #1a1d27;
+            border-right: 1px solid #2a2d3a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        label { font-size: 13px; color: #aaa; display: block; margin-bottom: 4px; }
+
+        input, textarea {
+            width: 100%;
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+            padding: 8px 10px;
+            outline: none;
+            transition: border-color .2s;
+        }
+        input:focus, textarea:focus { border-color: #5c6bc0; }
+        textarea { resize: vertical; min-height: 60px; }
+
+        button {
+            width: 100%;
+            padding: 9px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+        button:hover { opacity: .85; }
+        button:disabled { opacity: .4; cursor: not-allowed; }
+
+        .btn-primary   { background: #5c6bc0; color: #fff; }
+        .btn-success   { background: #388e3c; color: #fff; }
+        .btn-danger    { background: #c62828; color: #fff; }
+        .btn-secondary { background: #2a2d3a; color: #ccc; }
+
+        hr { border: none; border-top: 1px solid #2a2d3a; }
+
+        /* ── Правая панель: лог ── */
+        section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #log-header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #2a2d3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #log-header span { font-size: 13px; color: #888; }
+
+        #log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-entry {
+            background: #1a1d27;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            border-left: 3px solid #2a2d3a;
+        }
+        .log-entry.info    { border-color: #5c6bc0; }
+        .log-entry.success { border-color: #4caf50; }
+        .log-entry.error   { border-color: #f44336; }
+        .log-entry.event   { border-color: #ff9800; }
+
+        .log-time { font-size: 11px; color: #555; margin-bottom: 4px; }
+        .log-body { color: #e0e0e0; white-space: pre-wrap; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div id="status-dot"></div>
+    <h1>CommentsHub — тестовая страница</h1>
+    <span id="status-text">Не подключён</span>
+</header>
+
+<main>
+    <!-- ── Настройки ── -->
+    <aside>
+        <div>
+            <div class="section-title">Подключение</div>
+            <label>JWT-токен</label>
+            <textarea id="token" placeholder="Вставьте токен без слова Bearer"></textarea>
+            <br>
+            <button class="btn-primary" id="btn-connect">Подключиться</button>
+            <br><br>
+            <button class="btn-secondary" id="btn-disconnect" disabled>Отключиться</button>
+        </div>
+
+        <hr>
+
+        <div>
+            <div class="section-title">Группа статьи</div>
+            <label>ID статьи</label>
+            <input type="number" id="article-id" value="1" min="1">
+            <br>
+            <button class="btn-success" id="btn-join" disabled>Войти в группу (JoinArticle)</button>
+            <br><br>
+            <button class="btn-secondary" id="btn-leave" disabled>Выйти из группы (LeaveArticle)</button>
+        </div>
+
+        <hr>
+
+        <div>
+            <div class="section-title">Отправить комментарий (через REST)</div>
+            <label>Текст комментария</label>
+            <textarea id="comment-text" placeholder="Текст комментария..."></textarea>
+            <label>ParentCommentId (необязательно)</label>
+            <input type="number" id="parent-id" placeholder="пусто = корневой">
+            <br>
+            <button class="btn-success" id="btn-send" disabled>Отправить (POST /api/articles/{id}/comments)</button>
+        </div>
+
+        <hr>
+
+        <div>
+            <div class="section-title">Удалить комментарий (через REST)</div>
+            <label>ID комментария</label>
+            <input type="number" id="delete-comment-id" placeholder="ID комментария">
+            <br>
+            <button class="btn-danger" id="btn-delete" disabled>Удалить (DELETE)</button>
+        </div>
+    </aside>
+
+    <!-- ── Лог событий ── -->
+    <section>
+        <div id="log-header">
+            <span>Лог событий SignalR</span>
+            <button class="btn-secondary" style="width:auto;padding:5px 12px" id="btn-clear">Очистить</button>
+        </div>
+        <div id="log"></div>
+    </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    let connection = null;
+
+    const dot        = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const log        = document.getElementById('log');
+
+    const btnConnect    = document.getElementById('btn-connect');
+    const btnDisconnect = document.getElementById('btn-disconnect');
+    const btnJoin       = document.getElementById('btn-join');
+    const btnLeave      = document.getElementById('btn-leave');
+    const btnSend       = document.getElementById('btn-send');
+    const btnDelete     = document.getElementById('btn-delete');
+
+    // ── Утилиты ──────────────────────────────────────────────
+
+    function addLog(type, title, body) {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        const time = new Date().toLocaleTimeString('ru-RU', { hour12: false });
+        entry.innerHTML = `<div class="log-time">${time} — ${title}</div>`
+                        + `<div class="log-body">${typeof body === 'object' ? JSON.stringify(body, null, 2) : body}</div>`;
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function setConnected(connected) {
+        dot.className = connected ? 'connected' : '';
+        statusText.textContent = connected ? 'Подключён' : 'Не подключён';
+        btnConnect.disabled    = connected;
+        btnDisconnect.disabled = !connected;
+        btnJoin.disabled       = !connected;
+        btnLeave.disabled      = !connected;
+        btnSend.disabled       = !connected;
+        btnDelete.disabled     = !connected;
+    }
+
+    function getArticleId() {
+        return parseInt(document.getElementById('article-id').value);
+    }
+
+    function getToken() {
+        return document.getElementById('token').value.trim();
+    }
+
+    // ── Подключение ──────────────────────────────────────────
+
+    btnConnect.addEventListener('click', async () => {
+        const token = getToken();
+
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/comments', token ? { accessTokenFactory: () => token } : {})
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+
+        // Входящие события
+        connection.on('ReceiveComment', (comment) => {
+            addLog('event', '📨 ReceiveComment', comment);
+        });
+
+        connection.on('CommentDeleted', (commentId) => {
+            addLog('event', '🗑 CommentDeleted', `commentId: ${commentId}`);
+        });
+
+        connection.onreconnecting(() => {
+            dot.className = 'error';
+            statusText.textContent = 'Переподключение...';
+            addLog('error', 'SignalR', 'Соединение потеряно, переподключение...');
+        });
+
+        connection.onreconnected(() => {
+            setConnected(true);
+            addLog('success', 'SignalR', 'Переподключение успешно.');
+        });
+
+        connection.onclose(() => {
+            setConnected(false);
+            addLog('error', 'SignalR', 'Соединение закрыто.');
+        });
+
+        try {
+            await connection.start();
+            setConnected(true);
+            addLog('success', 'SignalR', `Подключён. ConnectionId: ${connection.connectionId}`);
+        } catch (e) {
+            dot.className = 'error';
+            addLog('error', 'Ошибка подключения', e.toString());
+        }
+    });
+
+    btnDisconnect.addEventListener('click', async () => {
+        await connection.stop();
+        setConnected(false);
+    });
+
+    // ── Группы ───────────────────────────────────────────────
+
+    btnJoin.addEventListener('click', async () => {
+        const id = getArticleId();
+        try {
+            await connection.invoke('JoinArticle', id);
+            addLog('info', 'JoinArticle', `Вошёл в группу article_${id}`);
+        } catch (e) {
+            addLog('error', 'JoinArticle', e.toString());
+        }
+    });
+
+    btnLeave.addEventListener('click', async () => {
+        const id = getArticleId();
+        try {
+            await connection.invoke('LeaveArticle', id);
+            addLog('info', 'LeaveArticle', `Вышел из группы article_${id}`);
+        } catch (e) {
+            addLog('error', 'LeaveArticle', e.toString());
+        }
+    });
+
+    // ── REST: создать комментарий ─────────────────────────────
+
+    btnSend.addEventListener('click', async () => {
+        const articleId = getArticleId();
+        const content   = document.getElementById('comment-text').value.trim();
+        const parentRaw = document.getElementById('parent-id').value.trim();
+        const token     = getToken();
+
+        if (!content) { addLog('error', 'Ошибка', 'Текст комментария не может быть пустым.'); return; }
+
+        const body = { content, parentCommentId: parentRaw ? parseInt(parentRaw) : null };
+
+        try {
+            const res = await fetch(`/api/articles/${articleId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                addLog('success', `POST /api/articles/${articleId}/comments → ${res.status}`, data);
+                document.getElementById('comment-text').value = '';
+            } else {
+                addLog('error', `POST → ${res.status}`, data);
+            }
+        } catch (e) {
+            addLog('error', 'Fetch error', e.toString());
+        }
+    });
+
+    // ── REST: удалить комментарий ─────────────────────────────
+
+    btnDelete.addEventListener('click', async () => {
+        const articleId  = getArticleId();
+        const commentId  = document.getElementById('delete-comment-id').value.trim();
+        const token      = getToken();
+
+        if (!commentId) { addLog('error', 'Ошибка', 'Укажите ID комментария.'); return; }
+
+        try {
+            const res = await fetch(`/api/articles/${articleId}/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+
+            if (res.ok) {
+                addLog('success', `DELETE /api/articles/${articleId}/comments/${commentId} → ${res.status}`, 'Комментарий удалён.');
+            } else {
+                addLog('error', `DELETE → ${res.status}`, await res.text());
+            }
+        } catch (e) {
+            addLog('error', 'Fetch error', e.toString());
+        }
+    });
+
+    // ── Очистить лог ─────────────────────────────────────────
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        log.innerHTML = '';
+    });
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 using System.Text;
 using CatshrediasNewsAPI.Data;
+using CatshrediasNewsAPI.Hubs;
 using CatshrediasNewsAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ArticleService>();
@@ -76,8 +78,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<CommentsHub>("/hubs/comments");
 
 app.Run();

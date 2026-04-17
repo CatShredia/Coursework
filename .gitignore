@@ -3,3 +3,5 @@
 **/wwwroot/*.png
 **.idea/**
 **.vscode/**
+
+~$*
