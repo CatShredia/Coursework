@@ -68,6 +68,9 @@ builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<RssSourceService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddSingleton<TagMappingService>();
+builder.Services.AddSingleton<RssParserService>();
+builder.Services.AddHostedService<RssFetcherService>();
 
 var app = builder.Build();
 
