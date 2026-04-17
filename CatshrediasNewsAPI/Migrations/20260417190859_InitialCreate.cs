@@ -62,6 +62,7 @@ namespace CatshrediasNewsAPI.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Url = table.Column<string>(type: "text", nullable: false),
                     IsTrusted = table.Column<bool>(type: "boolean", nullable: false),
+                    IsEnabled = table.Column<bool>(type: "boolean", nullable: false),
                     LastFetchedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>

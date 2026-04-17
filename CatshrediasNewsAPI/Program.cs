@@ -70,7 +70,8 @@ builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<TagMappingService>();
 builder.Services.AddSingleton<RssParserService>();
-builder.Services.AddHostedService<RssFetcherService>();
+builder.Services.AddSingleton<RssFetcherService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>());
 
 var app = builder.Build();
 

@@ -317,6 +317,9 @@ namespace CatshrediasNewsAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsTrusted")
                         .HasColumnType("boolean");
 
