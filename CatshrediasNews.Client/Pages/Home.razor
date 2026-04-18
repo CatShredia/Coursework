@@ -93,11 +93,10 @@ else
     <div class="feed-list">
         @foreach (var article in _paged)
         {
-            <div class="article-card" @onclick="() => OpenArticle(article)">
+            <div class="article-card" @onclick="() => GoToArticle(article.Id)">
                 <div class="article-card-header">
                     <div class="article-title">
-                        <a href="@article.SourceUrl" target="_blank"
-                           @onclick:stopPropagation="true">
+                        <a href="/articles/@article.Id" @onclick:stopPropagation="true">
                             @article.Title
                         </a>
                     </div>
@@ -308,12 +307,5 @@ else
     private void PrevPage() { if (_page > 1) _page--; }
     private void NextPage() { if (_page < _totalPages) _page++; }
     private void GoToPage(int p) => _page = p;
-
-    // ── Навигация ─────────────────────────────────────────────
-
-    private void OpenArticle(ArticleDto article)
-    {
-        if (!string.IsNullOrEmpty(article.SourceUrl))
-            Nav.NavigateTo(article.SourceUrl);
-    }
+    private void GoToArticle(int id) => Nav.NavigateTo("/articles/" + id);
 }

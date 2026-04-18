@@ -1,0 +1,130 @@
+@page "/articles/{Id:int}"
+@inject ArticleService ArticleSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>@(_article?.Title ?? "Статья") — Runews</PageTitle>
+
+@if (_loading)
+{
+    <div class="article-view-skeleton">
+        <div class="skeleton" style="height:32px;width:60%;margin-bottom:16px"></div>
+        <div class="skeleton" style="height:14px;width:30%;margin-bottom:24px"></div>
+        <div class="skeleton" style="height:14px;width:100%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:14px;width:95%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:14px;width:88%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:14px;width:92%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:14px;width:70%"></div>
+    </div>
+}
+else if (_article is null)
+{
+    <div class="feed-empty">
+        <i class="bi bi-file-earmark-x"></i>
+        <p>Статья не найдена или была удалена.</p>
+        <a href="/" style="color:var(--accent);margin-top:8px;display:inline-block">← Вернуться в ленту</a>
+    </div>
+}
+else
+{
+    <div class="article-view">
+
+        <!-- Кнопка назад -->
+        <button class="article-back" @onclick="() => Nav.NavigateTo(Nav.BaseUri)">
+            <i class="bi bi-arrow-left"></i> Назад
+        </button>
+
+        <!-- Заголовок -->
+        <h1 class="article-view-title">@_article.Title</h1>
+
+        <!-- Мета -->
+        <div class="article-view-meta">
+            <span><i class="bi bi-calendar3"></i> @_article.PublishedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("ru-RU"))</span>
+            @if (!string.IsNullOrEmpty(_article.Author))
+            {
+                <span><i class="bi bi-person"></i> @_article.Author</span>
+            }
+            <span><i class="bi bi-heart"></i> @_article.LikesCount</span>
+            @if (!string.IsNullOrEmpty(_article.SourceUrl))
+            {
+                <a href="@_article.SourceUrl" target="_blank" class="article-view-source">
+                    <i class="bi bi-box-arrow-up-right"></i> Источник
+                </a>
+            }
+        </div>
+
+        <!-- Теги -->
+        @if (_article.Tags.Any())
+        {
+            <div class="article-tags" style="margin-bottom:24px">
+                @foreach (var tag in _article.Tags)
+                {
+                    <span class="article-tag">@tag</span>
+                }
+            </div>
+        }
+
+        <!-- Контент -->
+        <div class="article-view-content">
+            @foreach (var paragraph in _paragraphs)
+            {
+                <p>@paragraph</p>
+            }
+        </div>
+
+        <!-- Действия -->
+        <div class="article-view-actions">
+            @if (Auth.IsAuthenticated)
+            {
+                <button class="article-like-btn @(_liked ? "liked" : "")" @onclick="ToggleLike">
+                    <i class="bi @(_liked ? "bi-heart-fill" : "bi-heart")"></i>
+                    @_article.LikesCount
+                </button>
+            }
+            else
+            {
+                <span class="article-meta"><i class="bi bi-heart"></i> @_article.LikesCount</span>
+            }
+            <button class="article-back" @onclick="() => Nav.NavigateTo(Nav.BaseUri)">
+                <i class="bi bi-arrow-left"></i> В ленту
+            </button>
+        </div>
+
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private ArticleDto? _article;
+    private bool _loading = true;
+    private bool _liked;
+    private List<string> _paragraphs = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _article = await ArticleSvc.GetByIdAsync(Id);
+
+        if (_article is not null)
+            _paragraphs = _article.Content
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .ToList();
+
+        _loading = false;
+    }
+
+    private async Task ToggleLike()
+    {
+        if (_article is null) return;
+        _liked = !_liked;
+        _article.LikesCount += _liked ? 1 : -1;
+        var ok = await ArticleSvc.ToggleLikeAsync(_article.Id);
+        if (!ok)
+        {
+            _liked = !_liked;
+            _article.LikesCount += _liked ? 1 : -1;
+        }
+    }
+}

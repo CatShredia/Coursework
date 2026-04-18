@@ -38,6 +38,13 @@ public class ArticleService(HttpClient http)
         return res.IsSuccessStatusCode;
     }
 
+    // ? GetByIdAsync : возвращает одну статью по Id
+    // вызывается из Pages/ArticleView.razor
+    public async Task<ArticleDto?> GetByIdAsync(int id)
+    {
+        return await http.GetFromJsonAsync<ArticleDto>($"api/articles/{id}");
+    }
+
     // ? ToggleLikeAsync : ставит или снимает лайк на статью
     // вызывается из Pages/Home.razor
     public async Task<bool> ToggleLikeAsync(int articleId)
