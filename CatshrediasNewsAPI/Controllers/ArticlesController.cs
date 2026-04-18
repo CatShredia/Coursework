@@ -10,6 +10,16 @@ namespace CatshrediasNewsAPI.Controllers;
 [Route("api/articles")]
 public class ArticlesController(ArticleService articleService) : ControllerBase
 {
+    // ? GetMyArticles : возвращает статьи текущего пользователя
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyArticles()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.GetByAuthorAsync(userId));
+    }
+
     // ? GetPublicFeed : возвращает хронологическую ленту опубликованных статей
     // вызывается клиентом (Public)
     [HttpGet]

@@ -111,6 +111,20 @@ public class ArticleService(AppDbContext db)
         return (await GetByIdAsync(article.Id))!;
     }
 
+    // ? GetByAuthorAsync : возвращает все статьи автора внезависимо от статуса
+    // вызывается из ArticlesController.GetMyArticles (Auth)
+    public async Task<List<ArticleDto>> GetByAuthorAsync(int authorId)
+    {
+        return await db.Articles
+            .Where(a => a.AuthorId == authorId)
+            .Include(a => a.Status)
+            .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
+            .Include(a => a.Likes)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => MapToDto(a))
+            .ToListAsync();
+    }
+
     // ? SoftDeleteAsync : soft delete статьи — устанавливает DeletedAt
     // вызывается из ArticlesController.Delete (Auth/Admin)
     public async Task<bool> SoftDeleteAsync(int articleId)

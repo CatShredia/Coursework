@@ -23,6 +23,21 @@ public class ArticleService(HttpClient http)
         return await http.GetFromJsonAsync<List<TagDto>>("api/tags") ?? [];
     }
 
+    // ? GetMyArticlesAsync : возвращает статьи текущего пользователя
+    // вызывается из Pages/Publicist/MyArticles.razor
+    public async Task<List<ArticleDto>> GetMyArticlesAsync()
+    {
+        return await http.GetFromJsonAsync<List<ArticleDto>>("api/articles/my") ?? [];
+    }
+
+    // ? DeleteArticleAsync : soft delete статьи
+    // вызывается из Pages/Publicist/MyArticles.razor
+    public async Task<bool> DeleteArticleAsync(int articleId)
+    {
+        var res = await http.DeleteAsync($"api/articles/{articleId}");
+        return res.IsSuccessStatusCode;
+    }
+
     // ? ToggleLikeAsync : ставит или снимает лайк на статью
     // вызывается из Pages/Home.razor
     public async Task<bool> ToggleLikeAsync(int articleId)

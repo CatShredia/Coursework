@@ -9,6 +9,16 @@
         <SidebarItem Href="/saved" Icon="bi-bookmark" Label="Избранное" />
     </div>
 
+    @if (Auth.CurrentUser?.Role is "Publicist" or "Moderator" or "Admin")
+    {
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Публицистика</div>
+            <SidebarItem Href="/publicist/create" Icon="bi-pencil-square" Label="Написать статью" />
+            <SidebarItem Href="/publicist/my-articles" Icon="bi-file-earmark-text" Label="Мои статьи" />
+        </div>
+    }
+
     @if (Auth.CurrentUser?.Role is "Moderator" or "Admin")
     {
         <div class="sidebar-divider"></div>

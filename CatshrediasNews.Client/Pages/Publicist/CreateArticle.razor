@@ -1,0 +1,17 @@
+@page "/publicist/create"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Написать статью — Runews</PageTitle>
+
+@if (Auth.CurrentUser?.Role is not ("Publicist" or "Moderator" or "Admin"))
+{
+    Nav.NavigateTo("/");
+    return;
+}
+
+<div class="page-title">Написать статью</div>
+
+<div class="card">
+    <p style="color:var(--text-secondary)">Страница в разработке.</p>
+</div>
