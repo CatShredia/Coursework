@@ -1,5 +1,6 @@
 @inject NavigationManager Nav
 @inject AuthService Auth
+@inject ModerationService ModerationSvc
 @implements IDisposable
 
 <nav class="app-sidebar-left">
@@ -24,8 +25,8 @@
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
             <div class="sidebar-section-title">Модерация</div>
-            <SidebarItem Href="/moderation/queue" Icon="bi-list-check" Label="Очередь" Badge="12" />
-            <SidebarItem Href="/moderation/reports" Icon="bi-flag" Label="Жалобы" Badge="3" />
+            <SidebarItem Href="/moderation/queue"   Icon="bi-list-check" Label="Очередь" Badge="@(_counts?.Queue   > 0 ? _counts.Queue.ToString()   : null)" />
+            <SidebarItem Href="/moderation/reports" Icon="bi-flag"       Label="Жалобы"  Badge="@(_counts?.Reports > 0 ? _counts.Reports.ToString() : null)" />
         </div>
     }
 
@@ -43,6 +44,38 @@
 </nav>
 
 @code {
-    protected override void OnInitialized() => Auth.OnChange += StateHasChanged;
-    public void Dispose() => Auth.OnChange -= StateHasChanged;
+    private ModerationCounts? _counts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.OnChange += OnAuthChange;
+        ModerationSvc.CountsChanged += OnCountsChanged;
+        await LoadCountsAsync();
+    }
+
+    private async void OnAuthChange()
+    {
+        await LoadCountsAsync();
+        StateHasChanged();
+    }
+
+    private async void OnCountsChanged()
+    {
+        await LoadCountsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadCountsAsync()
+    {
+        if (Auth.CurrentUser?.Role is "Moderator" or "Admin")
+            _counts = await ModerationSvc.GetCountsAsync();
+        else
+            _counts = null;
+    }
+
+    public void Dispose()
+    {
+        Auth.OnChange -= OnAuthChange;
+        ModerationSvc.CountsChanged -= OnCountsChanged;
+    }
 }

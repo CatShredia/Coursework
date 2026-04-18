@@ -4,15 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CatshrediasNewsAPI.Services;
 
-public class UserService(AppDbContext db)
+public class UserService(AppDbContext db, IWebHostEnvironment env)
 {
+    private string UploadsRoot => Path.Combine(env.ContentRootPath, "uploads");
     // ? GetAllAsync : возвращает список всех пользователей
     // вызывается из AdminController.GetUsers (Admin)
     public async Task<List<UserDto>> GetAllAsync()
     {
         return await db.Users
             .Include(u => u.Role)
-            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked))
+            .Select(u => Map(u))
             .ToListAsync();
     }
 
@@ -31,14 +32,11 @@ public class UserService(AppDbContext db)
     // вызывается из UsersController.GetById (Public)
     public async Task<UserDto?> GetByIdAsync(int id)
     {
-        return await db.Users
-            .Include(u => u.Role)
-            .Where(u => u.Id == id)
-            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked))
-            .FirstOrDefaultAsync();
+        var user = await db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == id);
+        return user is null ? null : Map(user);
     }
 
-    // ? UpdateAsync : обновляет username, email или пароль текущего пользователя
+    // ? UpdateAsync : обновляет username, email, пароль или цвет аватара
     // вызывается из UsersController.Update (Auth)
     public async Task<UserDto?> UpdateAsync(int userId, UpdateProfileDto dto)
     {
@@ -58,8 +56,59 @@ public class UserService(AppDbContext db)
         if (!string.IsNullOrWhiteSpace(dto.Password))
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+        if (!string.IsNullOrWhiteSpace(dto.AvatarColor))
+            user.AvatarColor = dto.AvatarColor;
+
         await db.SaveChangesAsync();
-        return new UserDto(user.Id, user.Username, user.Email, user.Role.Name, user.IsBlocked);
+        return Map(user);
+    }
+
+    // ? UploadAvatarAsync : сохраняет загруженный файл аватара и обновляет AvatarUrl
+    // вызывается из UsersController.UploadAvatar (Auth)
+    public async Task<UserDto?> UploadAvatarAsync(int userId, IFormFile file, string baseUrl)
+    {
+        var user = await db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null) return null;
+
+        var uploadsDir = Path.Combine(UploadsRoot, "avatars");
+        Directory.CreateDirectory(uploadsDir);
+
+        // Удаляем старый файл если был
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            var oldPath = Path.Combine(UploadsRoot, "avatars",
+                Path.GetFileName(user.AvatarUrl));
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+        }
+
+        var ext      = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var fileName = $"{userId}_{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+
+        await using var stream = File.Create(filePath);
+        await file.CopyToAsync(stream);
+
+        user.AvatarUrl = $"{baseUrl}/uploads/avatars/{fileName}";
+        await db.SaveChangesAsync();
+        return Map(user);
+    }
+
+    // ? DeleteAvatarAsync : удаляет файл аватара и сбрасывает AvatarUrl
+    // вызывается из UsersController.DeleteAvatar (Auth)
+    public async Task<UserDto?> DeleteAvatarAsync(int userId)
+    {
+        var user = await db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null) return null;
+
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            var oldPath = Path.Combine(UploadsRoot, "avatars", Path.GetFileName(user.AvatarUrl));
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+            user.AvatarUrl = null;
+            await db.SaveChangesAsync();
+        }
+
+        return Map(user);
     }
 
     // ? DeleteAsync : soft delete аккаунта пользователя — устанавливает DeletedAt
@@ -72,4 +121,7 @@ public class UserService(AppDbContext db)
         await db.SaveChangesAsync();
         return true;
     }
+
+    private static UserDto Map(Models.User u) =>
+        new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);
 }

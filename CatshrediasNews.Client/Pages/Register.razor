@@ -79,6 +79,28 @@
         }
     </div>
 
+    <div class="auth-field">
+        <label>Цвет аватара</label>
+        <div class="avatar-color-row">
+            @foreach (var color in _palette)
+            {
+                <button type="button"
+                        class="avatar-color-swatch @(_avatarColor == color ? "selected" : "")"
+                        style="background:@color"
+                        @onclick="() => _avatarColor = color">
+                    @if (_avatarColor == color)
+                    {
+                        <i class="bi bi-check-lg"></i>
+                    }
+                </button>
+            }
+        </div>
+        <div class="avatar-preview">
+            <i class="bi bi-person-circle" style="color:@_avatarColor"></i>
+            <span style="color:var(--text-muted);font-size:12px">Предпросмотр</span>
+        </div>
+    </div>
+
     <button class="auth-btn" @onclick="Submit" disabled="@_loading">
         @if (_loading) { <span class="auth-spinner"></span> }
         else { <span>Зарегистрироваться</span> }
@@ -91,8 +113,15 @@
 
 @code {
     private string _username = "", _email = "", _password = "", _confirm = "";
+    private string _avatarColor = "#1a73e8";
     private string? _error;
     private bool _loading, _showPassword, _emailInvalid, _passwordInvalid, _confirmInvalid;
+
+    private static readonly string[] _palette =
+    [
+        "#1a73e8", "#e53935", "#43a047", "#fb8c00",
+        "#8e24aa", "#00897b", "#f06292", "#546e7a"
+    ];
 
     private void ValidateEmail()
     {
@@ -125,7 +154,7 @@
         if (_emailInvalid || _passwordInvalid || _confirmInvalid) return;
 
         _loading = true; _error = null;
-        _error = await Auth.RegisterAsync(new() { Username = _username, Email = _email, Password = _password });
+        _error = await Auth.RegisterAsync(new() { Username = _username, Email = _email, Password = _password, AvatarColor = _avatarColor });
         _loading = false;
         if (_error is null) Nav.NavigateTo("/");
     }

@@ -7,6 +7,15 @@ namespace CatshrediasNewsAPI.Services;
 
 public class ModerationService(AppDbContext db)
 {
+    // ? GetCountsAsync : возвращает количество статей в очереди и активных жалоб
+    // вызывается из ModerationController.GetCounts (Moderator)
+    public async Task<object> GetCountsAsync()
+    {
+        var queue   = await db.Articles.CountAsync(a => a.Status.Name == "PendingReview");
+        var reports = await db.Reports.CountAsync();
+        return new { queue, reports };
+    }
+
     // ? GetQueueAsync : возвращает статьи со статусом PendingReview
     // вызывается из ModerationController.GetQueue (Moderator)
     public async Task<List<ArticleDto>> GetQueueAsync()
@@ -28,14 +37,17 @@ public class ModerationService(AppDbContext db)
         var article = await db.Articles.FindAsync(articleId);
         if (article is null) return false;
 
+        var moderatorExists = await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == moderatorId);
+        if (!moderatorExists) return false;
+
         var publishedStatus = await db.PublicationStatuses.FirstAsync(s => s.Name == "Published");
         article.StatusId = publishedStatus.Id;
 
         db.ModerationLogs.Add(new ModerationLog
         {
-            ArticleId = articleId,
+            ArticleId   = articleId,
             ModeratorId = moderatorId,
-            Action = "Approved"
+            Action      = "Approved"
         });
 
         await db.SaveChangesAsync();
@@ -49,15 +61,18 @@ public class ModerationService(AppDbContext db)
         var article = await db.Articles.FindAsync(articleId);
         if (article is null) return false;
 
+        var moderatorExists = await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == moderatorId);
+        if (!moderatorExists) return false;
+
         var rejectedStatus = await db.PublicationStatuses.FirstAsync(s => s.Name == "Rejected");
         article.StatusId = rejectedStatus.Id;
 
         db.ModerationLogs.Add(new ModerationLog
         {
-            ArticleId = articleId,
+            ArticleId   = articleId,
             ModeratorId = moderatorId,
-            Action = "Rejected",
-            Reason = dto.Reason
+            Action      = "Rejected",
+            Reason      = dto.Reason
         });
 
         await db.SaveChangesAsync();
@@ -105,7 +120,7 @@ public class ModerationService(AppDbContext db)
     private static ArticleDto MapToDto(Article a) => new(
         a.Id, a.Title, a.Content, a.ContentHtml, a.ImageUrl, a.RssAuthor,
         a.SourceUrl, a.PublishedAt,
-        a.Status.Name, a.Author?.Username,
+        a.Status.Name, a.AuthorId, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
         0, a.RssSource?.Name
     );

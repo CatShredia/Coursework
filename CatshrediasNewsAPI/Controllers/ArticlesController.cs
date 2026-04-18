@@ -10,6 +10,35 @@ namespace CatshrediasNewsAPI.Controllers;
 [Route("api/articles")]
 public class ArticlesController(ArticleService articleService) : ControllerBase
 {
+    // ? Search : поиск статей по заголовку и тексту
+    // вызывается клиентом (Public)
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string q)
+    {
+        return Ok(await articleService.SearchAsync(q));
+    }
+
+    // ? GetSaved : возвращает сохранённые статьи пользователя
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("saved")]
+    public async Task<IActionResult> GetSaved()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.GetSavedAsync(userId));
+    }
+
+    // ? ToggleSave : сохраняет или удаляет статью из избранного
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPost("{id:int}/save")]
+    public async Task<IActionResult> ToggleSave(int id)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var saved  = await articleService.ToggleSaveAsync(id, userId);
+        return Ok(new { saved });
+    }
+
     // ? GetMyArticles : возвращает статьи текущего пользователя
     // вызывается клиентом (Auth)
     [Authorize]
@@ -78,6 +107,30 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         var userId  = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var article = await articleService.UpdateAsync(id, userId, dto);
         return article is null ? NotFound() : Ok(article);
+    }
+
+    // ? UploadImage : загружает изображение для статьи и возвращает URL
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(IFormFile upload,
+        [FromServices] IWebHostEnvironment env)
+    {
+        if (upload is null || upload.Length == 0) return BadRequest("Файл не выбран.");
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        if (!allowed.Contains(Path.GetExtension(upload.FileName).ToLowerInvariant()))
+            return BadRequest("Допустимые форматы: jpg, png, webp, gif.");
+        if (upload.Length > 10 * 1024 * 1024) return BadRequest("Файл не должен превышать 10 МБ.");
+
+        var dir      = Path.Combine(env.ContentRootPath, "uploads", "articles");
+        Directory.CreateDirectory(dir);
+        var ext      = Path.GetExtension(upload.FileName).ToLowerInvariant();
+        var fileName = $"{Guid.NewGuid():N}{ext}";
+        await using var stream = System.IO.File.Create(Path.Combine(dir, fileName));
+        await upload.CopyToAsync(stream);
+
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        return Ok(new { url = $"{baseUrl}/uploads/articles/{fileName}" });
     }
 
     // ? Delete : soft delete статьи — устанавливает DeletedAt

@@ -192,6 +192,12 @@ else
                             <i class="bi @(_liked.Contains(article.Id) ? "bi-heart-fill" : "bi-heart")"></i>
                             @article.LikesCount
                         </button>
+                        <button class="article-save-btn @(_saved.Contains(article.Id) ? "saved" : "")"
+                                title="@(_saved.Contains(article.Id) ? "Убрать из избранного" : "Сохранить")"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => ToggleSave(article)">
+                            <i class="bi @(_saved.Contains(article.Id) ? "bi-bookmark-fill" : "bi-bookmark")"></i>
+                        </button>
                     }
                     else
                     {
@@ -232,6 +238,7 @@ else
     private List<ArticleDto> _articles = [];
     private List<TagDto> _tags = [];
     private HashSet<int> _liked = [];
+    private HashSet<int> _saved = [];
 
     private FeedSort _sort = FeedSort.Newest;
     private string? _activeTag = null;
@@ -383,6 +390,14 @@ else
     private void PrevPage()
     {
         if (_page > 1) _page--;
+    }
+
+    private async Task ToggleSave(ArticleDto article)
+    {
+        if (!Auth.IsAuthenticated) return;
+        if (_saved.Contains(article.Id)) _saved.Remove(article.Id);
+        else                             _saved.Add(article.Id);
+        await ArticleSvc.ToggleSaveAsync(article.Id);
     }
 
     private void NextPage()

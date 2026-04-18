@@ -1,0 +1,190 @@
+@page "/moderation/queue"
+@inject ModerationService ModerationSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Очередь модерации — Runews</PageTitle>
+
+@if (Auth.CurrentUser?.Role is not ("Moderator" or "Admin"))
+{
+    Nav.NavigateTo("/");
+    return;
+}
+
+<div class="admin-page">
+    <div class="admin-header">
+        <h1 class="page-title" style="margin:0">Очередь модерации</h1>
+        @if (!_loading)
+        {
+            <span class="admin-count">На проверке: @_queue.Count</span>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="@(_isError ? "auth-error" : "auth-success")" style="margin-bottom:4px">
+            <i class="bi @(_isError ? "bi-exclamation-circle" : "bi-check-circle")"></i>
+            @_message
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <div class="admin-loading">
+            <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+            Загрузка...
+        </div>
+    }
+    else if (!_queue.Any())
+    {
+        <div class="feed-empty">
+            <i class="bi bi-check2-all"></i>
+            <p>Очередь пуста — все статьи проверены.</p>
+        </div>
+    }
+    else
+    {
+        <div class="mod-queue">
+            @foreach (var article in _queue)
+            {
+                <div class="mod-card">
+                    @if (!string.IsNullOrEmpty(article.ImageUrl))
+                    {
+                        <img src="@article.ImageUrl" class="mod-card-img" alt="" />
+                    }
+                    <div class="mod-card-body">
+                        <div class="mod-card-meta">
+                            @if (!string.IsNullOrEmpty(article.SourceName))
+                            {
+                                <span class="mod-source">
+                                    <i class="bi bi-rss"></i> @article.SourceName
+                                </span>
+                            }
+                            else if (!string.IsNullOrEmpty(article.Author))
+                            {
+                                <span class="mod-source">
+                                    <i class="bi bi-person"></i> @article.Author
+                                </span>
+                            }
+                            <span class="mod-date">
+                                <i class="bi bi-calendar3"></i>
+                                @article.PublishedAt.ToString("dd.MM.yyyy HH:mm")
+                            </span>
+                        </div>
+
+                        <a href="/articles/@article.Id" target="_blank" class="mod-card-title">
+                            @article.Title
+                        </a>
+
+                        @if (article.Tags.Any())
+                        {
+                            <div class="mod-card-tags">
+                                @foreach (var tag in article.Tags)
+                                {
+                                    <span class="article-tag">@tag</span>
+                                }
+                            </div>
+                        }
+
+                        <p class="mod-card-preview">
+                            @(article.Content.Length > 220
+                                ? article.Content[..220] + "…"
+                                : article.Content)
+                        </p>
+
+                        <div class="mod-card-actions">
+                            <button class="mod-btn mod-btn-approve"
+                                    disabled="@(_busy == article.Id)"
+                                    @onclick="() => Approve(article)">
+                                <i class="bi bi-check-lg"></i> Одобрить
+                            </button>
+                            <button class="mod-btn mod-btn-reject"
+                                    disabled="@(_busy == article.Id)"
+                                    @onclick="() => OpenReject(article)">
+                                <i class="bi bi-x-lg"></i> Отклонить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Модалка отклонения -->
+@if (_rejectTarget is not null)
+{
+    <div class="modal-overlay" @onclick="CloseReject">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-icon" style="color:#e53935"><i class="bi bi-x-circle"></i></div>
+            <h3 class="modal-title">Отклонить статью?</h3>
+            <p class="modal-text" style="margin-bottom:12px">«@_rejectTarget.Title»</p>
+            <textarea class="mod-reason-input" placeholder="Причина отклонения (обязательно)"
+                      @bind="_rejectReason" rows="3"></textarea>
+            @if (_rejectError)
+            {
+                <p style="color:#e53935;font-size:12px;margin-top:4px">Укажите причину отклонения.</p>
+            }
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="CloseReject">Отмена</button>
+                <button class="modal-btn-confirm" style="background:#e53935"
+                        @onclick="ConfirmReject" disabled="@_actionLoading">
+                    @if (_actionLoading) { <span class="auth-spinner"></span> }
+                    else { <span>Отклонить</span> }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ArticleDto> _queue = [];
+    private bool _loading = true;
+    private int? _busy;
+    private string? _message;
+    private bool _isError, _actionLoading;
+
+    private ArticleDto? _rejectTarget;
+    private string _rejectReason = "";
+    private bool _rejectError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _queue   = await ModerationSvc.GetQueueAsync();
+        _loading = false;
+    }
+
+    private async Task Approve(ArticleDto article)
+    {
+        _busy = article.Id;
+        var ok = await ModerationSvc.ApproveAsync(article.Id);
+        if (ok) { _queue.Remove(article); ShowMsg("Статья опубликована.", false); }
+        else      ShowMsg("Ошибка при одобрении.", true);
+        _busy = null;
+    }
+
+    private void OpenReject(ArticleDto article)
+    {
+        _rejectTarget = article;
+        _rejectReason = "";
+        _rejectError  = false;
+    }
+
+    private void CloseReject()
+    {
+        _rejectTarget = null;
+        _rejectError  = false;
+    }
+
+    private async Task ConfirmReject()
+    {
+        if (string.IsNullOrWhiteSpace(_rejectReason)) { _rejectError = true; return; }
+        _actionLoading = true;
+        var ok = await ModerationSvc.RejectAsync(_rejectTarget!.Id, _rejectReason);
+        if (ok) { _queue.Remove(_rejectTarget!); ShowMsg("Статья отклонена.", false); CloseReject(); }
+        else      ShowMsg("Ошибка при отклонении.", true);
+        _actionLoading = false;
+    }
+
+    private void ShowMsg(string msg, bool isError) { _message = msg; _isError = isError; }
+}

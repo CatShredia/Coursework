@@ -10,6 +10,9 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
 
+    public string? AvatarUrl   { get; set; }
+    public string  AvatarColor { get; set; } = "#1a73e8";
+
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;
 

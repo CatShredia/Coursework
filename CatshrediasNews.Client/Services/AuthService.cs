@@ -24,20 +24,24 @@ public class AuthService
     // вызывается из Program.cs
     public async Task InitAsync()
     {
-        var token    = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_token");
-        var username = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_username");
-        var email    = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_email");
-        var role     = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_role");
-        var idStr    = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_id");
+        var token       = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_token");
+        var username    = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_username");
+        var email       = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_email");
+        var role        = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_role");
+        var idStr       = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_id");
+        var avatarUrl   = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_avatar_url");
+        var avatarColor = await _js.InvokeAsync<string?>("localStorage.getItem", "auth_avatar_color");
 
         if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(username))
         {
             CurrentUser = new UserInfo
             {
-                Id       = int.TryParse(idStr, out var id) ? id : 0,
-                Username = username,
-                Email    = email ?? "",
-                Role     = role ?? "User"
+                Id          = int.TryParse(idStr, out var id) ? id : 0,
+                Username    = username,
+                Email       = email ?? "",
+                Role        = role ?? "User",
+                AvatarUrl   = string.IsNullOrEmpty(avatarUrl) ? null : avatarUrl,
+                AvatarColor = avatarColor ?? "#1a73e8"
             };
             _http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -76,9 +80,9 @@ public class AuthService
 
     // ? UpdateProfileAsync : обновляет username, email или пароль текущего пользователя
     // вызывается из Pages/Profile.razor
-    public async Task<string?> UpdateProfileAsync(string? username, string? email, string? password)
+    public async Task<string?> UpdateProfileAsync(string? username, string? email, string? password, string? avatarColor = null)
     {
-        var payload  = new { username, email, password };
+        var payload  = new { username, email, password, avatarColor };
         var response = await _http.PutAsJsonAsync("api/users/me", payload);
         if (!response.IsSuccessStatusCode)
             return "Не удалось обновить профиль. Возможно, email уже занят.";
@@ -87,8 +91,40 @@ public class AuthService
         if (updated is null) return "Ошибка сервера.";
 
         CurrentUser = updated;
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_username", updated.Username);
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_email", updated.Email);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_username",     updated.Username);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_email",        updated.Email);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_color", updated.AvatarColor);
+        if (updated.AvatarUrl is not null)
+            await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url", updated.AvatarUrl);
+        OnChange?.Invoke();
+        return null;
+    }
+
+    public async Task<string?> UploadAvatarAsync(MultipartFormDataContent form)
+    {
+        var response = await _http.PostAsync("api/users/me/avatar", form);
+        if (!response.IsSuccessStatusCode)
+            return "Ошибка загрузки фото.";
+
+        var updated = await response.Content.ReadFromJsonAsync<UserInfo>();
+        if (updated is null) return "Ошибка сервера.";
+
+        CurrentUser = updated;
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url", updated.AvatarUrl ?? "");
+        OnChange?.Invoke();
+        return null;
+    }
+
+    public async Task<string?> DeleteAvatarAsync()
+    {
+        var response = await _http.DeleteAsync("api/users/me/avatar");
+        if (!response.IsSuccessStatusCode) return "Ошибка удаления фото.";
+
+        var updated = await response.Content.ReadFromJsonAsync<UserInfo>();
+        if (updated is null) return "Ошибка сервера.";
+
+        CurrentUser = updated;
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url", "");
         OnChange?.Invoke();
         return null;
     }
@@ -140,11 +176,13 @@ public class AuthService
         _http.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
 
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_token",    result.Token);
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_username",  result.User.Username);
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_email",     result.User.Email);
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_role",      result.User.Role);
-        await _js.InvokeVoidAsync("localStorage.setItem", "auth_id",        result.User.Id.ToString());
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_token",        result.Token);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_username",      result.User.Username);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_email",         result.User.Email);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_role",          result.User.Role);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_id",            result.User.Id.ToString());
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_color",  result.User.AvatarColor);
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url",    result.User.AvatarUrl ?? "");
         OnChange?.Invoke();
     }
 }

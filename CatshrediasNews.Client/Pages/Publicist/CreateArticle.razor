@@ -1,5 +1,6 @@
 @page "/publicist/create"
 @page "/publicist/create/{EditId:int}"
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @inject AuthService Auth
 @inject ArticleService ArticleSvc
@@ -42,6 +43,48 @@
     @if (!string.IsNullOrEmpty(_success))
     {
         <div class="auth-success"><i class="bi bi-check-circle"></i> @_success</div>
+    }
+
+    <!-- Обложка -->
+    <div class="editor-cover-row">
+        <div class="auth-field" style="flex:1">
+            <label>Обложка (ссылка)</label>
+            <div class="input-wrap">
+                <i class="bi bi-link-45deg"></i>
+                <input type="url" placeholder="https://example.com/image.jpg"
+                       @bind="_coverUrl" @bind:event="oninput" />
+            </div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+            <span style="color:var(--text-muted);font-size:13px;padding-bottom:10px">или</span>
+            <div>
+                <label class="editor-upload-btn">
+                    @if (_coverUploading)
+                    {
+                        <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-upload"></i>
+                        <span>Загрузить</span>
+                    }
+                    <InputFile style="display:none" accept="image/*" OnChange="OnCoverSelected" />
+                </label>
+            </div>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(_coverUrl))
+    {
+        <div class="editor-cover-preview">
+            <img src="@_coverUrl" alt="cover" />
+            <button class="editor-cover-remove" @onclick="() => _coverUrl = null" title="Удалить">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(_coverError))
+    {
+        <span class="field-error">@_coverError</span>
     }
 
     <!-- Поле заголовка -->
@@ -154,7 +197,9 @@
 
     private string _title   = "";
     private string _content = "";
-    private bool   _preview, _saving;
+    private string? _coverUrl;
+    private string? _coverError;
+    private bool   _preview, _saving, _coverUploading;
     private string? _error, _success;
     private List<TagDto> _tags = [];
     private HashSet<int> _selectedTags = [];
@@ -168,8 +213,9 @@
             var article = await ArticleSvc.GetByIdAsync(EditId.Value);
             if (article is not null)
             {
-                _title   = article.Title;
-                _content = article.Content;
+                _title    = article.Title;
+                _content  = article.Content;
+                _coverUrl = article.ImageUrl;
                 _selectedTags = _tags
                     .Where(t => article.Tags.Contains(t.Name))
                     .Select(t => t.Id)
@@ -195,7 +241,7 @@
         _saving = true; _error = null; _success = null;
 
         var (article, error) = await ArticleSvc.SaveArticleAsync(
-            EditId, _title.Trim(), _content, _selectedTags.ToList());
+            EditId, _title.Trim(), _content, _selectedTags.ToList(), _coverUrl);
 
         _saving = false;
 
@@ -207,6 +253,26 @@
 
         if (!EditId.HasValue && article is not null)
             Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
+    }
+
+    // ── Загрузка обложки ─────────────────────────────────────
+
+    private async Task OnCoverSelected(InputFileChangeEventArgs e)
+    {
+        _coverError = null;
+        var f = e.File;
+        if (f.Size > 10 * 1024 * 1024) { _coverError = "Файл не должен превышать 10 МБ."; return; }
+        _coverUploading = true;
+        using var ms    = new System.IO.MemoryStream();
+        await f.OpenReadStream(10 * 1024 * 1024).CopyToAsync(ms);
+        var content     = new ByteArrayContent(ms.ToArray());
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(f.ContentType);
+        var form        = new MultipartFormDataContent();
+        form.Add(content, "upload", f.Name);
+        var (url, err)  = await ArticleSvc.UploadImageAsync(form);
+        _coverUploading = false;
+        if (err is not null) { _coverError = err; return; }
+        _coverUrl = url;
     }
 
     // ── Горячие клавиши ──────────────────────────────────────

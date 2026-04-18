@@ -96,12 +96,13 @@ public class ArticleService(AppDbContext db)
 
         var article = new Article
         {
-            Title = dto.Title,
-            Content = dto.Content,
-            SourceUrl = dto.SourceUrl,
+            Title       = dto.Title,
+            Content     = dto.Content,
+            ImageUrl    = dto.ImageUrl,
+            SourceUrl   = dto.SourceUrl,
             PublishedAt = dto.PublishedAt,
-            AuthorId = authorId,
-            StatusId = pendingStatus.Id
+            AuthorId    = authorId,
+            StatusId    = pendingStatus.Id
         };
 
         db.Articles.Add(article);
@@ -146,6 +147,58 @@ public class ArticleService(AppDbContext db)
             .OrderByDescending(a => a.CreatedAt)
             .Select(a => MapToDto(a))
             .ToListAsync();
+    }
+
+    // ? SearchAsync : поиск опубликованных статей по заголовку и тексту
+    // вызывается из ArticlesController.Search (Public)
+    public async Task<List<ArticleDto>> SearchAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return [];
+        var q = query.ToLower();
+        return await db.Articles
+            .Where(a => a.Status.Name == "Published" &&
+                        (a.Title.ToLower().Contains(q) || a.Content.ToLower().Contains(q)))
+            .Include(a => a.Status)
+            .Include(a => a.Author)
+            .Include(a => a.RssSource)
+            .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
+            .Include(a => a.Likes)
+            .OrderByDescending(a => a.PublishedAt)
+            .Take(30)
+            .Select(a => MapToDto(a))
+            .ToListAsync();
+    }
+
+    // ? GetSavedAsync : возвращает сохранённые статьи пользователя
+    // вызывается из ArticlesController.GetSaved (Auth)
+    public async Task<List<ArticleDto>> GetSavedAsync(int userId)
+    {
+        return await db.SavedArticles
+            .Where(sa => sa.UserId == userId)
+            .OrderByDescending(sa => sa.SavedAt)
+            .Include(sa => sa.Article).ThenInclude(a => a.Status)
+            .Include(sa => sa.Article).ThenInclude(a => a.Author)
+            .Include(sa => sa.Article).ThenInclude(a => a.RssSource)
+            .Include(sa => sa.Article).ThenInclude(a => a.ArticleTags).ThenInclude(at => at.Tag)
+            .Include(sa => sa.Article).ThenInclude(a => a.Likes)
+            .Select(sa => MapToDto(sa.Article))
+            .ToListAsync();
+    }
+
+    // ? ToggleSaveAsync : добавляет или удаляет статью из избранного
+    // вызывается из ArticlesController.ToggleSave (Auth)
+    public async Task<bool> ToggleSaveAsync(int articleId, int userId)
+    {
+        var existing = await db.SavedArticles.FindAsync(userId, articleId);
+        if (existing is not null)
+        {
+            db.SavedArticles.Remove(existing);
+            await db.SaveChangesAsync();
+            return false;
+        }
+        db.SavedArticles.Add(new SavedArticle { ArticleId = articleId, UserId = userId });
+        await db.SaveChangesAsync();
+        return true;
     }
 
     // ? SoftDeleteAsync : soft delete статьи — устанавливает DeletedAt

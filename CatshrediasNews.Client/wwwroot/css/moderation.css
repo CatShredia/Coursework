@@ -1,0 +1,258 @@
+/* ══════════════════════════════════════════════
+   Moderation pages
+══════════════════════════════════════════════ */
+
+/* ── Очередь ── */
+.mod-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mod-card {
+    display: flex;
+    gap: 16px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+}
+
+.mod-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+
+.mod-card-img {
+    width: 160px;
+    min-width: 160px;
+    object-fit: cover;
+    align-self: stretch;
+}
+
+.mod-card-body {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mod-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.mod-source {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.mod-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mod-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.35;
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.mod-card-title:hover { color: var(--accent); }
+
+.mod-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mod-card-preview {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.mod-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.mod-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity var(--transition);
+}
+
+.mod-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.mod-btn-approve {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.mod-btn-approve:hover:not(:disabled) { background: #c8e6c9; }
+
+.mod-btn-reject {
+    background: #fdecea;
+    color: #e53935;
+}
+
+.mod-btn-reject:hover:not(:disabled) { background: #ffcdd2; }
+
+/* ── Жалобы ── */
+.mod-report-type {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mod-report-spam      { background: #fff3e0; color: #e65100; }
+.mod-report-hate      { background: #fce4ec; color: #c62828; }
+.mod-report-fake      { background: #f3e5f5; color: #6a1b9a; }
+.mod-report-violence  { background: #fdecea; color: #b71c1c; }
+.mod-report-copyright { background: #e8eaf6; color: #283593; }
+
+.mod-article-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mod-article-link:hover { text-decoration: underline; }
+
+.mod-report-desc {
+    max-width: 280px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* ── Textarea причины ── */
+.mod-reason-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.mod-reason-input:focus { border-color: var(--accent); }
+
+/* ── Кнопка "Пожаловаться" в ArticleView ── */
+.mod-report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.mod-report-btn:hover {
+    border-color: #f57c00;
+    color: #f57c00;
+    background: #fff3e0;
+}
+
+/* ── Модальные окна (общие) ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 16px;
+}
+
+.modal-box {
+    background: var(--bg-white);
+    border-radius: 16px;
+    padding: 28px 24px 24px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+
+.modal-icon { font-size: 32px; text-align: center; color: var(--accent); }
+.modal-title { font-size: 17px; font-weight: 700; text-align: center; }
+.modal-text  { font-size: 13px; color: var(--text-secondary); text-align: center; }
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.modal-btn-cancel {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.modal-btn-cancel:hover { background: var(--border); }
+
+.modal-btn-confirm {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity var(--transition);
+}
+
+.modal-btn-confirm:hover:not(:disabled) { opacity: .88; }
+.modal-btn-confirm:disabled { opacity: .5; cursor: not-allowed; }

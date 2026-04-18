@@ -25,3 +25,19 @@ public class TagDto
 }
 
 public enum FeedSort { Newest, Oldest, Popular }
+
+public class ModerationCounts
+{
+    public int Queue   { get; set; }
+    public int Reports { get; set; }
+}
+
+public class ReportDto
+{
+    public int      Id          { get; set; }
+    public string   ReportType  { get; set; } = "";
+    public string?  Description { get; set; }
+    public string   ReportedBy  { get; set; } = "";
+    public DateTime CreatedAt   { get; set; }
+    public int      ArticleId   { get; set; }
+}

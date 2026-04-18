@@ -1,11 +1,10 @@
 @inject AuthService Auth
+@inject ArticleService ArticleSvc
 @inject NavigationManager Nav
 @implements IDisposable
 
 <header class="app-header">
-    <a href="/" class="header-logo">
-        Runews
-    </a>
+    <a href="/" class="header-logo">Runews</a>
 
     <div class="header-actions">
         <button class="btn-search-trigger" @onclick="OpenSearch" title="Поиск">
@@ -15,7 +14,14 @@
         @if (Auth.IsAuthenticated)
         {
             <a href="/profile" class="header-profile-btn" title="@Auth.CurrentUser!.Username">
-                <i class="bi bi-person-circle"></i>
+                @if (!string.IsNullOrEmpty(Auth.CurrentUser.AvatarUrl))
+                {
+                    <img src="@Auth.CurrentUser.AvatarUrl" class="header-avatar-img" alt="avatar" />
+                }
+                else
+                {
+                    <i class="bi bi-person-circle" style="color:@Auth.CurrentUser.AvatarColor"></i>
+                }
                 <span class="header-profile-name">@Auth.CurrentUser.Username</span>
             </a>
         }
@@ -38,18 +44,52 @@
                        type="text"
                        class="search-modal-input"
                        placeholder="Поиск новостей..."
-                       @bind="_searchQuery"
-                       @bind:event="oninput"
+                       value="@_searchQuery"
+                       @oninput="OnInput"
                        @onkeydown="OnSearchKeyDown" />
+                @if (_searching)
+                {
+                    <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent);flex-shrink:0"></span>
+                }
                 <button class="search-modal-close" @onclick="CloseSearch">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-            @if (!string.IsNullOrWhiteSpace(_searchQuery))
+
+            @if (_results is not null)
             {
-                <div class="search-hint">
-                    Нажмите <kbd>Enter</kbd> для поиска по запросу «@_searchQuery»
-                </div>
+                @if (_results.Count == 0)
+                {
+                    <div class="search-hint">Ничего не найдено по запросу «@_searchQuery»</div>
+                }
+                else
+                {
+                    <div class="search-results">
+                        @foreach (var a in _results)
+                        {
+                            <a class="search-result-item" href="/articles/@a.Id" @onclick="CloseSearch">
+                                @if (!string.IsNullOrEmpty(a.ImageUrl))
+                                {
+                                    <img src="@a.ImageUrl" class="search-result-img" alt="" />
+                                }
+                                <div class="search-result-body">
+                                    <div class="search-result-title">@a.Title</div>
+                                    <div class="search-result-meta">
+                                        @a.PublishedAt.ToString("dd.MM.yyyy")
+                                        @if (!string.IsNullOrEmpty(a.SourceName))
+                                        {
+                                            <span> · @a.SourceName</span>
+                                        }
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(_searchQuery))
+            {
+                <div class="search-hint">Нажмите <kbd>Enter</kbd> для поиска по запросу «@_searchQuery»</div>
             }
             else
             {
@@ -63,21 +103,69 @@
     private bool _searchOpen;
     private string _searchQuery = "";
     private ElementReference _searchInput;
+    private List<ArticleDto>? _results;
+    private bool _searching;
+    private CancellationTokenSource? _cts;
 
     protected override void OnInitialized() => Auth.OnChange += StateHasChanged;
-    public void Dispose() => Auth.OnChange -= StateHasChanged;
+    public void Dispose()
+    {
+        Auth.OnChange -= StateHasChanged;
+        _cts?.Cancel();
+    }
 
     private async Task OpenSearch()
     {
         _searchOpen = true;
+        _results    = null;
+        _searchQuery = "";
         await Task.Delay(50);
         await _searchInput.FocusAsync();
     }
 
-    private void CloseSearch() { _searchOpen = false; _searchQuery = ""; }
+    private void CloseSearch()
+    {
+        _searchOpen  = false;
+        _searchQuery = "";
+        _results     = null;
+        _cts?.Cancel();
+    }
 
-    private void OnSearchKeyDown(KeyboardEventArgs e)
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        _searchQuery = e.Value?.ToString() ?? "";
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            _results = null;
+            return;
+        }
+
+        // debounce 350ms
+        try
+        {
+            await Task.Delay(350, token);
+            _searching = true;
+            StateHasChanged();
+            _results   = await ArticleSvc.SearchAsync(_searchQuery);
+            _searching = false;
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Escape") CloseSearch();
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            _cts?.Cancel();
+            _searching = true;
+            StateHasChanged();
+            _results   = await ArticleSvc.SearchAsync(_searchQuery);
+            _searching = false;
+        }
     }
 }

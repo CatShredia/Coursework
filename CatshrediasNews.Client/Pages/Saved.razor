@@ -1,0 +1,110 @@
+@page "/saved"
+@inject ArticleService ArticleSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Избранное — Runews</PageTitle>
+
+@if (!Auth.IsAuthenticated)
+{
+    Nav.NavigateTo("/login");
+    return;
+}
+
+<div class="feed-toolbar">
+    <span class="feed-toolbar-title">Избранное</span>
+    @if (!_loading)
+    {
+        <span style="font-size:13px;color:var(--text-muted)">@_articles.Count статей</span>
+    }
+</div>
+
+@if (_loading)
+{
+    @for (int i = 0; i < 4; i++)
+    {
+        <div class="skeleton-card" style="margin-bottom:12px">
+            <div class="skeleton" style="height:20px;width:70%"></div>
+            <div class="skeleton" style="height:14px;width:100%"></div>
+            <div class="skeleton" style="height:14px;width:50%"></div>
+        </div>
+    }
+}
+else if (!_articles.Any())
+{
+    <div class="feed-empty">
+        <i class="bi bi-bookmark"></i>
+        <p>Вы ещё ничего не сохранили.</p>
+        <a href="/" style="color:var(--accent);margin-top:8px;display:inline-block">← В ленту</a>
+    </div>
+}
+else
+{
+    <div class="feed-list">
+        @foreach (var article in _articles)
+        {
+            <div class="article-card" @onclick="() => GoTo(article.Id)">
+                <div class="article-card-header">
+                    <div class="article-title">
+                        <a href="/articles/@article.Id" @onclick:stopPropagation="true">@article.Title</a>
+                    </div>
+                </div>
+
+                <p class="article-preview">@article.Content</p>
+
+                @if (article.Tags.Any())
+                {
+                    <div class="article-tags">
+                        @foreach (var tag in article.Tags)
+                        {
+                            <span class="article-tag">@tag</span>
+                        }
+                    </div>
+                }
+
+                <div class="article-footer">
+                    <span class="article-meta">
+                        <i class="bi bi-calendar3"></i>
+                        @article.PublishedAt.ToString("dd.MM.yyyy")
+                    </span>
+                    @if (!string.IsNullOrEmpty(article.SourceName))
+                    {
+                        <span class="article-meta"><i class="bi bi-rss"></i> @article.SourceName</span>
+                    }
+                    else if (!string.IsNullOrEmpty(article.Author))
+                    {
+                        <span class="article-meta"><i class="bi bi-person"></i> @article.Author</span>
+                    }
+                    <span class="article-meta" style="margin-left:auto">
+                        <i class="bi bi-heart"></i> @article.LikesCount
+                    </span>
+                    <button class="article-save-btn saved"
+                            title="Убрать из избранного"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => Unsave(article)">
+                        <i class="bi bi-bookmark-fill"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ArticleDto> _articles = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _articles = await ArticleSvc.GetSavedAsync();
+        _loading  = false;
+    }
+
+    private void GoTo(int id) => Nav.NavigateTo("/articles/" + id);
+
+    private async Task Unsave(ArticleDto article)
+    {
+        await ArticleSvc.ToggleSaveAsync(article.Id);
+        _articles.Remove(article);
+    }
+}

@@ -242,6 +242,33 @@
 .header-profile-btn i { font-size: 20px; }
 .header-profile-btn:hover { background: #d2e3fc; }
 
+.header-avatar-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.profile-avatar-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    background: none;
+    border: 1.5px solid #e53935;
+    color: #e53935;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.profile-avatar-delete:hover { background: #fdecea; }
+.profile-avatar-delete:disabled { opacity: .5; cursor: not-allowed; }
+
 .header-profile-name {
     max-width: 120px;
     overflow: hidden;
@@ -337,6 +364,79 @@
     color: #e53935;
 }
 .auth-btn-delete:hover { background: #fdecea; }
+
+/* ── Аватар профиля ── */
+.profile-avatar-label {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.profile-avatar-label i.bi-person-circle {
+    font-size: 64px;
+    display: block;
+    line-height: 1;
+}
+
+.profile-avatar-img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.profile-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--transition);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+}
+
+.profile-avatar-label:hover .profile-avatar-overlay { opacity: 1; }
+
+/* ── Палитра цветов ── */
+.avatar-color-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.avatar-color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2.5px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    transition: transform var(--transition), border-color var(--transition);
+}
+
+.avatar-color-swatch:hover { transform: scale(1.15); }
+.avatar-color-swatch.selected { border-color: var(--text-primary); transform: scale(1.1); }
+
+.avatar-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.avatar-preview i { font-size: 36px; }
 
 /* ── Страница после удаления ── */
 .profile-deleted {

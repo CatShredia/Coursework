@@ -43,6 +43,34 @@ public class UsersController(UserService userService) : ControllerBase
         return Ok(result);
     }
 
+    // ? UploadAvatar : загружает фото профиля
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPost("me/avatar")]
+    public async Task<IActionResult> UploadAvatar(IFormFile upload)
+    {
+        if (upload is null || upload.Length == 0) return BadRequest("Файл не выбран.");
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        if (!allowed.Contains(Path.GetExtension(upload.FileName).ToLowerInvariant()))
+            return BadRequest("Допустимые форматы: jpg, png, webp, gif.");
+        if (upload.Length > 5 * 1024 * 1024) return BadRequest("Файл не должен превышать 5 МБ.");
+
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await userService.UploadAvatarAsync(userId, upload, $"{Request.Scheme}://{Request.Host}");
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    // ? DeleteAvatar : удаляет фото профиля
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpDelete("me/avatar")]
+    public async Task<IActionResult> DeleteAvatar()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await userService.DeleteAvatarAsync(userId);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     // ? Delete : удаляет аккаунт текущего пользователя
     // вызывается клиентом (Auth)
     [Authorize]

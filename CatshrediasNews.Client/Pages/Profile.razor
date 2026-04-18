@@ -1,4 +1,5 @@
 @page "/profile"
+@using Microsoft.AspNetCore.Components.Forms
 @inject AuthService Auth
 @inject NavigationManager Nav
 
@@ -19,12 +20,35 @@
 <div class="profile-wrap">
         <div class="profile-card">
             <div class="profile-avatar">
-                <i class="bi bi-person-circle"></i>
+                <label class="profile-avatar-label">
+                    @if (!string.IsNullOrEmpty(Auth.CurrentUser!.AvatarUrl))
+                    {
+                        <img src="@Auth.CurrentUser.AvatarUrl" class="profile-avatar-img" alt="avatar" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-circle" style="color:@Auth.CurrentUser!.AvatarColor"></i>
+                    }
+                    <div class="profile-avatar-overlay"><i class="bi bi-camera"></i></div>
+                    <InputFile style="display:none" accept="image/*" OnChange="OnAvatarSelected" />
+                </label>
             </div>
             <div class="profile-info">
                 <div class="profile-name">@Auth.CurrentUser!.Username</div>
                 <div class="profile-email">@Auth.CurrentUser.Email</div>
                 <span class="profile-role">@Auth.CurrentUser.Role</span>
+                @if (!string.IsNullOrEmpty(Auth.CurrentUser.AvatarUrl))
+                {
+                    <button class="profile-avatar-delete" @onclick="DeleteAvatar" disabled="@_avatarLoading">
+                        @if (_avatarLoading) { <span class="auth-spinner" style="width:14px;height:14px"></span> }
+                        else { <i class="bi bi-trash3"></i> }
+                        Удалить фото
+                    </button>
+                }
+                @if (!string.IsNullOrEmpty(_avatarError))
+                {
+                    <div class="auth-error" style="margin-top:8px;font-size:12px"><i class="bi bi-exclamation-circle"></i> @_avatarError</div>
+                }
             </div>
         </div>
 
@@ -100,6 +124,21 @@
                 }
             </div>
 
+            <div class="auth-field">
+                <label>Цвет аватара <span style="color:var(--text-muted);font-weight:400">(если нет фото)</span></label>
+                <div class="avatar-color-row">
+                    @foreach (var color in _palette)
+                    {
+                        <button type="button"
+                                class="avatar-color-swatch @(_avatarColor == color ? "selected" : "")"
+                                style="background:@color"
+                                @onclick="() => _avatarColor = color">
+                            @if (_avatarColor == color) { <i class="bi bi-check-lg"></i> }
+                        </button>
+                    }
+                </div>
+            </div>
+
             <div class="profile-actions">
                 <button class="auth-btn" style="max-width:200px" @onclick="Save" disabled="@_loading">
                     @if (_loading) { <span class="auth-spinner"></span> }
@@ -150,16 +189,24 @@
     private string _email = "";
     private string _password = "";
     private string _confirm = "";
-    private string? _error, _success, _deleteError;
-    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting;
+    private string _avatarColor = "#1a73e8";
+    private string? _error, _success, _deleteError, _avatarError;
+    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting, _avatarLoading;
     private bool _emailInvalid, _passwordInvalid, _confirmInvalid;
+
+    private static readonly string[] _palette =
+    [
+        "#1a73e8", "#e53935", "#43a047", "#fb8c00",
+        "#8e24aa", "#00897b", "#f06292", "#546e7a"
+    ];
 
     protected override void OnInitialized()
     {
         if (Auth.CurrentUser is not null)
         {
-            _username = Auth.CurrentUser.Username;
-            _email = Auth.CurrentUser.Email;
+            _username    = Auth.CurrentUser.Username;
+            _email       = Auth.CurrentUser.Email;
+            _avatarColor = Auth.CurrentUser.AvatarColor;
         }
     }
 
@@ -194,7 +241,7 @@
         var email    = string.IsNullOrWhiteSpace(_email)    ? null : _email;
         var password = string.IsNullOrWhiteSpace(_password) ? null : _password;
 
-        _error = await Auth.UpdateProfileAsync(username, email, password);
+        _error = await Auth.UpdateProfileAsync(username, email, password, _avatarColor);
         if (_error is null)
         {
             _success = "Профиль успешно обновлён.";
@@ -222,6 +269,29 @@
         {
             _deleting = false;
         }
+    }
+
+    private async Task OnAvatarSelected(InputFileChangeEventArgs e)
+    {
+        _avatarError = null;
+        var f = e.File;
+        if (f.Size > 5 * 1024 * 1024) { _avatarError = "Файл не должен превышать 5 МБ."; return; }
+        _avatarLoading = true;
+        using var ms      = new System.IO.MemoryStream();
+        await f.OpenReadStream(5 * 1024 * 1024).CopyToAsync(ms);
+        var content       = new ByteArrayContent(ms.ToArray());
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(f.ContentType);
+        var form          = new MultipartFormDataContent();
+        form.Add(content, "upload", f.Name);
+        _avatarError   = await Auth.UploadAvatarAsync(form);
+        _avatarLoading = false;
+    }
+
+    private async Task DeleteAvatar()
+    {
+        _avatarLoading = true;
+        _avatarError   = await Auth.DeleteAvatarAsync();
+        _avatarLoading = false;
     }
 
     private async Task Logout()

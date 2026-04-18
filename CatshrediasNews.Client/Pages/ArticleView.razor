@@ -1,5 +1,6 @@
 @page "/articles/{Id:int}"
 @inject ArticleService ArticleSvc
+@inject ModerationService ModerationSvc
 @inject AuthService Auth
 @inject NavigationManager Nav
 
@@ -102,6 +103,9 @@ else
                     <i class="bi @(_liked ? "bi-heart-fill" : "bi-heart")"></i>
                     @_article.LikesCount
                 </button>
+                <button class="mod-report-btn" @onclick="() => _showReport = true">
+                    <i class="bi bi-flag"></i> Пожаловаться
+                </button>
             }
             else
             {
@@ -115,6 +119,41 @@ else
     </div>
 }
 
+<!-- Модалка жалобы -->
+@if (_showReport && _article is not null)
+{
+    <div class="modal-overlay" @onclick="() => _showReport = false">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-icon" style="color:#f57c00"><i class="bi bi-flag"></i></div>
+            <h3 class="modal-title">Пожаловаться на статью</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;margin:12px 0">
+                <select class="admin-select" style="width:100%" @bind="_reportTypeId">
+                    <option value="1">Spam — спам</option>
+                    <option value="2">Hate — ненависть</option>
+                    <option value="3">Fake — ложь</option>
+                </select>
+                <textarea class="mod-reason-input" placeholder="Описание (необязательно)"
+                          @bind="_reportDesc" rows="3"></textarea>
+            </div>
+            @if (_reportSent)
+            {
+                <p style="color:#2e7d32;font-size:13px">Жалоба отправлена. Спасибо!</p>
+            }
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="() => _showReport = false">Отмена</button>
+                @if (!_reportSent)
+                {
+                    <button class="modal-btn-confirm" style="background:#f57c00"
+                            @onclick="SendReport" disabled="@_reportLoading">
+                        @if (_reportLoading) { <span class="auth-spinner"></span> }
+                        else { <span>Отправить</span> }
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public int Id { get; set; }
 
@@ -123,6 +162,11 @@ else
     private bool _liked;
     private List<string> _paragraphs = [];
     private bool _hasHtml => !string.IsNullOrEmpty(_article?.ContentHtml);
+
+    private bool _showReport;
+    private int _reportTypeId = 1;
+    private string? _reportDesc;
+    private bool _reportLoading, _reportSent;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -155,5 +199,14 @@ else
     {
         try { return new Uri(url).Host.Replace("www.", ""); }
         catch { return url; }
+    }
+
+    private async Task SendReport()
+    {
+        if (_article is null) return;
+        _reportLoading = true;
+        await ModerationSvc.CreateReportAsync(_article.Id, _reportTypeId, _reportDesc);
+        _reportSent    = true;
+        _reportLoading = false;
     }
 }

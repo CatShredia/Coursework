@@ -201,6 +201,23 @@
 .article-like-btn:hover { background: #fce4ec; color: #e91e63; }
 .article-like-btn.liked { color: #e91e63; }
 
+.article-save-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text-muted);
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all var(--transition);
+}
+
+.article-save-btn:hover { background: var(--accent-light); color: var(--accent); }
+.article-save-btn.saved { color: var(--accent); }
+
 /* ── Список статей ── */
 .feed-list {
     display: flex;
