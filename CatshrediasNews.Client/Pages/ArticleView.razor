@@ -40,9 +40,15 @@ else
         <!-- Мета -->
         <div class="article-view-meta">
             <span><i class="bi bi-calendar3"></i> @_article.PublishedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("ru-RU"))</span>
-            @if (!string.IsNullOrEmpty(_article.Author))
+            @if (!string.IsNullOrEmpty(_article.RssAuthor))
             {
-                <span><i class="bi bi-person"></i> @_article.Author</span>
+                <span><i class="bi bi-person"></i> @_article.RssAuthor</span>
+            }
+            else if (_article.AuthorId is not null && !string.IsNullOrEmpty(_article.Author))
+            {
+                <a href="/profile/@_article.AuthorId" class="article-view-author">
+                    <i class="bi bi-person-circle"></i> @_article.Author
+                </a>
             }
             <span><i class="bi bi-heart"></i> @_article.LikesCount</span>
             @if (!string.IsNullOrEmpty(_article.SourceUrl))
@@ -66,11 +72,27 @@ else
 
         <!-- Контент -->
         <div class="article-view-content">
-            @foreach (var paragraph in _paragraphs)
+            @if (!string.IsNullOrEmpty(_article.ContentHtml))
             {
-                <p>@paragraph</p>
+                @((MarkupString)_article.ContentHtml)
+            }
+            else
+            {
+                @foreach (var paragraph in _paragraphs)
+                {
+                    <p>@paragraph</p>
+                }
             }
         </div>
+
+        <!-- Читать полностью (только для RSS-статей) -->
+        @* @if (!string.IsNullOrEmpty(_article.SourceUrl) && _article.AuthorId is null)
+        {
+            <a href="@_article.SourceUrl" target="_blank" class="article-read-full">
+                <i class="bi bi-box-arrow-up-right"></i>
+                Читать полностью на @GetDomain(_article.SourceUrl)
+            </a>
+        } *@
 
         <!-- Действия -->
         <div class="article-view-actions">
@@ -100,6 +122,7 @@ else
     private bool _loading = true;
     private bool _liked;
     private List<string> _paragraphs = [];
+    private bool _hasHtml => !string.IsNullOrEmpty(_article?.ContentHtml);
 
     protected override async Task OnParametersSetAsync()
     {

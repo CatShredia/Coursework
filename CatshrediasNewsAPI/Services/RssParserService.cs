@@ -48,13 +48,18 @@ public class RssParserService(IServiceScopeFactory scopeFactory, TagMappingServi
                 .Where(t => matchedTagNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
+            var rawHtml   = item.Description ?? string.Empty;
+
             var article = new Article
             {
-                Title      = item.Title ?? "(без заголовка)",
-                Content    = TagMappingService.StripHtml(item.Description ?? string.Empty),
-                SourceUrl  = guid,
+                Title       = item.Title ?? "(без заголовка)",
+                Content     = TagMappingService.StripHtml(rawHtml),
+                ContentHtml = TagMappingService.SanitizeHtml(rawHtml),
+                ImageUrl    = TagMappingService.ExtractFirstImage(rawHtml),
+                RssAuthor   = item.Author,
+                SourceUrl   = guid,
                 PublishedAt = item.PublishingDate?.ToUniversalTime() ?? DateTime.UtcNow,
-                StatusId   = status.Id,
+                StatusId    = status.Id,
                 RssSourceId = source.Id
             };
 
