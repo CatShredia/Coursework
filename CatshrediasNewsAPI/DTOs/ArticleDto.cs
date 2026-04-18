@@ -21,6 +21,7 @@ public record CreateArticleDto(
     string Title,
     string Content,
     string? SourceUrl,
+    string? ImageUrl,
     DateTime PublishedAt,
     List<int> TagIds
 );

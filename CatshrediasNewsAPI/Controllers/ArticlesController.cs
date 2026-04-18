@@ -80,6 +80,30 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         return article is null ? NotFound() : Ok(article);
     }
 
+    // ? UploadImage : загружает изображение для статьи и возвращает URL
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(IFormFile upload,
+        [FromServices] IWebHostEnvironment env)
+    {
+        if (upload is null || upload.Length == 0) return BadRequest("Файл не выбран.");
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        if (!allowed.Contains(Path.GetExtension(upload.FileName).ToLowerInvariant()))
+            return BadRequest("Допустимые форматы: jpg, png, webp, gif.");
+        if (upload.Length > 10 * 1024 * 1024) return BadRequest("Файл не должен превышать 10 МБ.");
+
+        var dir      = Path.Combine(env.ContentRootPath, "uploads", "articles");
+        Directory.CreateDirectory(dir);
+        var ext      = Path.GetExtension(upload.FileName).ToLowerInvariant();
+        var fileName = $"{Guid.NewGuid():N}{ext}";
+        await using var stream = System.IO.File.Create(Path.Combine(dir, fileName));
+        await upload.CopyToAsync(stream);
+
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        return Ok(new { url = $"{baseUrl}/uploads/articles/{fileName}" });
+    }
+
     // ? Delete : soft delete статьи — устанавливает DeletedAt
     // вызывается клиентом (Auth)
     [Authorize]

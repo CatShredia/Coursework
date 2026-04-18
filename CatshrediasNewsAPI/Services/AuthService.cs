@@ -22,10 +22,11 @@ public class AuthService(AppDbContext db, IConfiguration config)
 
         var user = new User
         {
-            Username = dto.Username,
-            Email = dto.Email,
+            Username     = dto.Username,
+            Email        = dto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            RoleId = userRole.Id
+            RoleId       = userRole.Id,
+            AvatarColor  = string.IsNullOrWhiteSpace(dto.AvatarColor) ? "#1a73e8" : dto.AvatarColor
         };
 
         db.Users.Add(user);
@@ -74,5 +75,5 @@ public class AuthService(AppDbContext db, IConfiguration config)
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked);
+    private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);
 }

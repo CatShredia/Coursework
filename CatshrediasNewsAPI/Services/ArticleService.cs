@@ -96,12 +96,13 @@ public class ArticleService(AppDbContext db)
 
         var article = new Article
         {
-            Title = dto.Title,
-            Content = dto.Content,
-            SourceUrl = dto.SourceUrl,
+            Title       = dto.Title,
+            Content     = dto.Content,
+            ImageUrl    = dto.ImageUrl,
+            SourceUrl   = dto.SourceUrl,
             PublishedAt = dto.PublishedAt,
-            AuthorId = authorId,
-            StatusId = pendingStatus.Id
+            AuthorId    = authorId,
+            StatusId    = pendingStatus.Id
         };
 
         db.Articles.Add(article);

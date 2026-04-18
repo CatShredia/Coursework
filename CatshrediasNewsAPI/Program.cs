@@ -96,7 +96,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// Раздаём загруженные файлы из папки uploads рядом с проектом
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath  = "/uploads"
+});
+app.UseStaticFiles(); // wwwroot
 app.UseCors("BlazorClient");
 app.UseAuthentication();
 app.UseAuthorization();
