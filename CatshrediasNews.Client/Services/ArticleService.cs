@@ -3,6 +3,8 @@ using CatshrediasNews.Client.Models;
 
 namespace CatshrediasNews.Client.Services;
 
+file record UploadResult(string Url);
+
 public class ArticleService(HttpClient http)
 {
     // ? GetFeedAsync : возвращает персональную ленту (Auth) или общую (Public)
@@ -48,9 +50,9 @@ public class ArticleService(HttpClient http)
     // ? SaveArticleAsync : создаёт новую статью или обновляет существующую
     // вызывается из Pages/Publicist/CreateArticle.razor
     public async Task<(ArticleDto? article, string? error)> SaveArticleAsync(
-        int? id, string title, string content, List<int> tagIds)
+        int? id, string title, string content, List<int> tagIds, string? imageUrl = null)
     {
-        var payload = new { title, content, tagIds, publishedAt = DateTime.UtcNow, sourceUrl = (string?)null };
+        var payload = new { title, content, tagIds, publishedAt = DateTime.UtcNow, sourceUrl = (string?)null, imageUrl };
 
         if (id is null)
         {
@@ -74,5 +76,13 @@ public class ArticleService(HttpClient http)
     {
         var response = await http.PostAsync($"api/articles/{articleId}/like", null);
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<(string? url, string? error)> UploadImageAsync(MultipartFormDataContent form)
+    {
+        var res = await http.PostAsync("api/articles/upload-image", form);
+        if (!res.IsSuccessStatusCode) return (null, "Ошибка загрузки.");
+        var obj = await res.Content.ReadFromJsonAsync<UploadResult>();
+        return (obj?.Url, null);
     }
 }

@@ -2,11 +2,13 @@ namespace CatshrediasNews.Client.Models;
 
 public class UserInfo
 {
-    public int Id { get; set; }
-    public string Username { get; set; } = "";
-    public string Email { get; set; } = "";
-    public string Role { get; set; } = "";
-    public bool IsBlocked { get; set; }
+    public int    Id          { get; set; }
+    public string Username    { get; set; } = "";
+    public string Email       { get; set; } = "";
+    public string Role        { get; set; } = "";
+    public bool   IsBlocked   { get; set; }
+    public string? AvatarUrl  { get; set; }
+    public string AvatarColor { get; set; } = "#1a73e8";
 }
 
 public class AuthResponse
@@ -23,7 +25,8 @@ public class LoginRequest
 
 public class RegisterRequest
 {
-    public string Username { get; set; } = "";
-    public string Email { get; set; } = "";
-    public string Password { get; set; } = "";
+    public string Username    { get; set; } = "";
+    public string Email       { get; set; } = "";
+    public string Password    { get; set; } = "";
+    public string AvatarColor { get; set; } = "#1a73e8";
 }
