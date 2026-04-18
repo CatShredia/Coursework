@@ -6,6 +6,27 @@ namespace CatshrediasNewsAPI.Services;
 
 public class UserService(AppDbContext db)
 {
+    // ? GetAllAsync : возвращает список всех пользователей
+    // вызывается из AdminController.GetUsers (Admin)
+    public async Task<List<UserDto>> GetAllAsync()
+    {
+        return await db.Users
+            .Include(u => u.Role)
+            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked))
+            .ToListAsync();
+    }
+
+    // ? SetBlockedAsync : блокирует или разблокирует пользователя
+    // вызывается из AdminController.BlockUser / UnblockUser (Admin)
+    public async Task<bool> SetBlockedAsync(int userId, bool blocked)
+    {
+        var user = await db.Users.FindAsync(userId);
+        if (user is null) return false;
+        user.IsBlocked = blocked;
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     // ? GetByIdAsync : возвращает профиль пользователя по идентификатору
     // вызывается из UsersController.GetById (Public)
     public async Task<UserDto?> GetByIdAsync(int id)

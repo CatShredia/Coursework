@@ -1,0 +1,140 @@
+@page "/admin/tags"
+@inject AuthService Auth
+@inject AdminService AdminSvc
+@inject NavigationManager Nav
+
+<PageTitle>Теги — Runews</PageTitle>
+
+@if (Auth.CurrentUser?.Role != "Admin")
+{
+    Nav.NavigateTo("/");
+    return;
+}
+
+<div class="admin-page">
+    <div class="admin-header">
+        <h1 class="page-title" style="margin:0">Управление тегами</h1>
+        <span class="admin-count">Всего: @_tags.Count</span>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="@(_isError ? "auth-error" : "auth-success")" style="margin-bottom:16px">
+            <i class="bi @(_isError ? "bi-exclamation-circle" : "bi-check-circle")"></i>
+            @_message
+        </div>
+    }
+
+    <!-- Форма добавления -->
+    <div class="admin-add-form">
+        <div class="input-wrap" style="flex:1;max-width:320px">
+            <i class="bi bi-tag"></i>
+            <input type="text" placeholder="Название нового тега..."
+                   @bind="_newTagName" @bind:event="oninput"
+                   @onkeydown="OnKeyDown" />
+        </div>
+        <button class="auth-btn" style="width:auto;padding:9px 20px"
+                @onclick="CreateTag" disabled="@(string.IsNullOrWhiteSpace(_newTagName) || _actionLoading)">
+            @if (_actionLoading) { <span class="auth-spinner"></span> }
+            else { <i class="bi bi-plus-lg"></i> }
+            Добавить
+        </button>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="admin-loading"><span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span> Загрузка...</div>
+    }
+    else if (!_tags.Any())
+    {
+        <div class="feed-empty"><i class="bi bi-tags"></i><p>Теги не найдены.</p></div>
+    }
+    else
+    {
+        <div class="tags-grid">
+            @foreach (var tag in _tags)
+            {
+                <div class="tag-item">
+                    <span class="tag-item-name">
+                        <i class="bi bi-hash"></i> @tag.Name
+                    </span>
+                    <button class="action-btn action-btn-danger"
+                            title="Удалить тег"
+                            @onclick="() => AskDelete(tag)">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (_deleteTarget is not null)
+{
+    <div class="modal-overlay" @onclick="() => _deleteTarget = null">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <h3 class="modal-title">Удалить тег?</h3>
+            <p class="modal-text">
+                Тег <strong>#@_deleteTarget.Name</strong> будет удалён.
+                Все статьи потеряют этот тег.
+            </p>
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
+                <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_deleteLoading">
+                    @if (_deleteLoading) { <span class="auth-spinner"></span> }
+                    else { <span>Удалить</span> }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<TagDto> _tags = [];
+    private string _newTagName = "";
+    private string? _message;
+    private bool _isError, _loading = true, _actionLoading, _deleteLoading;
+    private TagDto? _deleteTarget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tags    = await AdminSvc.GetTagsAsync();
+        _loading = false;
+    }
+
+    private async Task CreateTag()
+    {
+        if (string.IsNullOrWhiteSpace(_newTagName)) return;
+        _actionLoading = true;
+        var tag = await AdminSvc.CreateTagAsync(_newTagName.Trim());
+        if (tag is not null)
+        {
+            _tags.Add(tag);
+            _newTagName = "";
+            ShowMsg($"Тег «{tag.Name}» создан.", false);
+        }
+        else ShowMsg("Ошибка при создании тега.", true);
+        _actionLoading = false;
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") _ = CreateTag();
+    }
+
+    private void AskDelete(TagDto tag) => _deleteTarget = tag;
+
+    private async Task ConfirmDelete()
+    {
+        if (_deleteTarget is null) return;
+        _deleteLoading = true;
+        var ok = await AdminSvc.DeleteTagAsync(_deleteTarget.Id);
+        if (ok) { _tags.Remove(_deleteTarget); ShowMsg($"Тег удалён.", false); }
+        else      ShowMsg("Ошибка при удалении.", true);
+        _deleteTarget  = null;
+        _deleteLoading = false;
+    }
+
+    private void ShowMsg(string msg, bool isError) { _message = msg; _isError = isError; }
+}
