@@ -90,6 +90,17 @@ public class ModerationService(AppDbContext db)
         await db.SaveChangesAsync();
     }
 
+    // ? DismissReportAsync : soft delete жалобы — устанавливает DeletedAt
+    // вызывается из ModerationController.DismissReport (Moderator)
+    public async Task<bool> DismissReportAsync(int reportId)
+    {
+        var report = await db.Reports.FindAsync(reportId);
+        if (report is null) return false;
+        report.DeletedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     private static ArticleDto MapToDto(Article a) => new(
         a.Id, a.Title, a.Content, a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.Author?.Username,

@@ -8,6 +8,7 @@ public class Article
     public string? SourceUrl { get; set; }
     public DateTime PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? DeletedAt { get; set; }
 
     public int StatusId { get; set; }
     public PublicationStatus Status { get; set; } = null!;

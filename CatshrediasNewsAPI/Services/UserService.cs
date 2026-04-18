@@ -62,13 +62,13 @@ public class UserService(AppDbContext db)
         return new UserDto(user.Id, user.Username, user.Email, user.Role.Name, user.IsBlocked);
     }
 
-    // ? DeleteAsync : удаляет аккаунт пользователя
-    // вызывается из UsersController.Delete (Auth)
+    // ? DeleteAsync : soft delete аккаунта пользователя — устанавливает DeletedAt
+    // вызывается из UsersController.Delete (Auth) и AdminController.DeleteUser (Admin)
     public async Task<bool> DeleteAsync(int userId)
     {
         var user = await db.Users.FindAsync(userId);
         if (user is null) return false;
-        db.Users.Remove(user);
+        user.DeletedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         return true;
     }

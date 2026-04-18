@@ -47,6 +47,15 @@ public class ModerationController(ModerationService moderationService) : Control
         return Ok(await moderationService.GetReportsAsync());
     }
 
+    // ? DismissReport : soft delete жалобы — устанавливает DeletedAt
+    // вызывается клиентом (Moderator)
+    [HttpDelete("reports/{id:int}")]
+    public async Task<IActionResult> DismissReport(int id)
+    {
+        var result = await moderationService.DismissReportAsync(id);
+        return result ? NoContent() : NotFound();
+    }
+
     // ? CreateReport : создаёт жалобу на статью
     // вызывается клиентом (Auth)
     [Authorize]

@@ -111,6 +111,17 @@ public class ArticleService(AppDbContext db)
         return (await GetByIdAsync(article.Id))!;
     }
 
+    // ? SoftDeleteAsync : soft delete статьи — устанавливает DeletedAt
+    // вызывается из ArticlesController.Delete (Auth/Admin)
+    public async Task<bool> SoftDeleteAsync(int articleId)
+    {
+        var article = await db.Articles.FindAsync(articleId);
+        if (article is null) return false;
+        article.DeletedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     // ? UpdateTagWeightsAsync : увеличивает или уменьшает вес тегов статьи для пользователя
     // вызывается из LikeAsync
     private async Task UpdateTagWeightsAsync(int articleId, int userId, float delta)

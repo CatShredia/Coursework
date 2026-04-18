@@ -26,6 +26,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasIndex(u => u.Email)
             .IsUnique();
 
+        // Глобальные фильтры soft delete — автоматически исключают удалённые записи из всех запросов
+        modelBuilder.Entity<User>().HasQueryFilter(u => u.DeletedAt == null);
+        modelBuilder.Entity<Article>().HasQueryFilter(a => a.DeletedAt == null);
+        modelBuilder.Entity<Report>().HasQueryFilter(r => r.DeletedAt == null);
+
         modelBuilder.Entity<ArticleTag>()
             .HasKey(at => new { at.ArticleId, at.TagId });
 
