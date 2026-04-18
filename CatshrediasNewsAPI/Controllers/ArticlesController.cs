@@ -58,4 +58,14 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         await articleService.LikeAsync(id, userId);
         return NoContent();
     }
+
+    // ? Delete : soft delete статьи — устанавливает DeletedAt
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var result = await articleService.SoftDeleteAsync(id);
+        return result ? NoContent() : NotFound();
+    }
 }

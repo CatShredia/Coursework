@@ -1,0 +1,389 @@
+/* ── App Shell ── */
+.app-body {
+    display: flex;
+    min-height: calc(100vh - var(--header-height));
+    margin-top: var(--header-height);
+}
+
+/* ── Header ── */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    z-index: 200;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -.5px;
+    user-select: none;
+    text-decoration: none;
+}
+
+.logo-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 11px 10px;
+}
+
+.header-search { display: none; }
+
+.btn-search-trigger {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), color var(--transition);
+}
+
+.btn-search-trigger:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.btn-header {
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background var(--transition), color var(--transition);
+}
+
+.btn-header-outline {
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+}
+
+.btn-header-outline:hover { background: var(--accent-light); }
+
+.btn-header-filled {
+    background: var(--accent);
+    color: #fff;
+}
+
+.btn-header-filled:hover { background: var(--accent-hover); }
+
+/* ── Search Modal ── */
+.search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+    animation: fadeIn .15s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.search-modal {
+    background: var(--bg-white);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    width: 100%;
+    max-width: 600px;
+    padding: 8px 8px 16px;
+    animation: slideDown .18s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.search-modal-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.search-modal-icon {
+    font-size: 18px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.search-modal-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    color: var(--text-primary);
+    background: transparent;
+    padding: 6px 0;
+}
+
+.search-modal-input::placeholder { color: var(--text-muted); }
+
+.search-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--transition);
+}
+
+.search-modal-close:hover { background: var(--border); }
+
+.search-hint {
+    padding: 10px 20px 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.search-hint kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    font-family: inherit;
+}
+
+/* ── Left Sidebar ── */
+.app-sidebar-left {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    position: sticky;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-section { margin-bottom: 4px; }
+
+.sidebar-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-muted);
+    padding: 8px 20px 4px;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    border-radius: 0 24px 24px 0;
+    margin-right: 12px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background var(--transition), color var(--transition);
+    user-select: none;
+}
+
+.sidebar-item:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.sidebar-item.active {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.sidebar-item .item-icon {
+    font-size: 18px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.sidebar-item .item-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 20px;
+}
+
+/* ── Main Content ── */
+.app-main {
+    flex: 1;
+    padding: 24px;
+    min-width: 0;
+}
+
+/* ── Right Sidebar ── */
+.app-sidebar-right {
+    width: var(--right-sidebar-width);
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--border);
+    padding: 20px 16px;
+    position: sticky;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+}
+
+/* ── Footer ── */
+.app-footer {
+    background: var(--text-primary);
+    color: #ccc;
+    padding: 40px 48px 24px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.footer-brand .footer-logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.5px;
+    margin-bottom: 10px;
+}
+
+.footer-brand p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #9aa0a6;
+    max-width: 260px;
+}
+
+.footer-col-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #fff;
+    margin-bottom: 14px;
+}
+
+.footer-links { display: flex; flex-direction: column; gap: 8px; }
+
+.footer-links a {
+    font-size: 13px;
+    color: #9aa0a6;
+    transition: color var(--transition);
+}
+
+.footer-links a:hover { color: #fff; }
+
+.footer-socials {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.social-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #ccc;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+}
+
+.social-btn:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #5f6368;
+}
+
+.footer-bottom a { color: #5f6368; transition: color var(--transition); }
+.footer-bottom a:hover { color: #fff; }
+
+.footer-edu {
+    text-align: center;
+    padding-top: 12px;
+    font-size: 11px;
+    color: #3d4147;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+    .app-sidebar-right { display: none; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 720px) {
+    .app-sidebar-left { display: none; }
+    .app-main { padding: 16px; }
+    .footer-grid { grid-template-columns: 1fr; }
+}

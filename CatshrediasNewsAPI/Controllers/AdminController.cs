@@ -8,7 +8,7 @@ namespace CatshrediasNewsAPI.Controllers;
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
-public class AdminController(RssSourceService rssSourceService, TagService tagService, RssFetcherService rssFetcher) : ControllerBase
+public class AdminController(RssSourceService rssSourceService, TagService tagService, RssFetcherService rssFetcher, UserService userService) : ControllerBase
 {
     // ? GetSources : возвращает список всех RSS-источников
     // вызывается клиентом (Admin)
@@ -88,6 +88,41 @@ public class AdminController(RssSourceService rssSourceService, TagService tagSe
     public IActionResult GetRssStatus()
     {
         return Ok(new { intervalMinutes = (int)rssFetcher.CurrentInterval.TotalMinutes });
+    }
+
+    // ? GetUsers : возвращает список всех пользователей
+    // вызывается клиентом (Admin)
+    [HttpGet("users")]
+    public async Task<IActionResult> GetUsers()
+    {
+        return Ok(await userService.GetAllAsync());
+    }
+
+    // ? BlockUser : блокирует пользователя
+    // вызывается клиентом (Admin)
+    [HttpPost("users/{id:int}/block")]
+    public async Task<IActionResult> BlockUser(int id)
+    {
+        var result = await userService.SetBlockedAsync(id, true);
+        return result ? NoContent() : NotFound();
+    }
+
+    // ? UnblockUser : разблокирует пользователя
+    // вызывается клиентом (Admin)
+    [HttpPost("users/{id:int}/unblock")]
+    public async Task<IActionResult> UnblockUser(int id)
+    {
+        var result = await userService.SetBlockedAsync(id, false);
+        return result ? NoContent() : NotFound();
+    }
+
+    // ? DeleteUser : удаляет пользователя по Id
+    // вызывается клиентом (Admin)
+    [HttpDelete("users/{id:int}")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        var result = await userService.DeleteAsync(id);
+        return result ? NoContent() : NotFound();
     }
 
     // ? GetTags : возвращает список всех тегов

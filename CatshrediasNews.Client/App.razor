@@ -1,0 +1,16 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Страница не найдена — Runews</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div style="text-align:center;padding:60px 20px;">
+                <div style="font-size:64px;margin-bottom:16px;">404</div>
+                <div style="font-size:20px;font-weight:700;margin-bottom:8px;">Страница не найдена</div>
+                <a href="/" style="color:var(--accent);">Вернуться на главную</a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

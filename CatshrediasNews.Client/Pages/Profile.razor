@@ -1,0 +1,227 @@
+@page "/profile"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Профиль — Runews</PageTitle>
+
+@if (!Auth.IsAuthenticated && !_deleting)
+{
+    Console.WriteLine($"[Profile] OnParametersSet: not authenticated, redirecting to /login");
+    Nav.NavigateTo("/login");
+    return;
+}
+
+<div class="profile-wrap">
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="profile-info">
+                <div class="profile-name">@Auth.CurrentUser!.Username</div>
+                <div class="profile-email">@Auth.CurrentUser.Email</div>
+                <span class="profile-role">@Auth.CurrentUser.Role</span>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h2 class="profile-section-title">Редактировать профиль</h2>
+
+            @if (!string.IsNullOrEmpty(_success))
+            {
+                <div class="auth-success"><i class="bi bi-check-circle"></i> @_success</div>
+            }
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="auth-error"><i class="bi bi-exclamation-circle"></i> @_error</div>
+            }
+
+            <div class="auth-field">
+                <label>Имя пользователя</label>
+                <div class="input-wrap">
+                    <i class="bi bi-person"></i>
+                    <input type="text" placeholder="Новое имя"
+                           @bind="_username" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label>Email</label>
+                <div class="input-wrap @(_emailInvalid ? "input-invalid" : "")">
+                    <i class="bi bi-envelope"></i>
+                    <input type="email" placeholder="you@example.com"
+                           @bind="_email" @bind:event="oninput"
+                           @onblur="ValidateEmail" />
+                </div>
+                @if (_emailInvalid)
+                {
+                    <span class="field-error">Введите корректный email (например: you@example.com)</span>
+                }
+            </div>
+
+            <div class="auth-field">
+                <label>Новый пароль <span style="color:var(--text-muted);font-weight:400">(оставьте пустым, чтобы не менять)</span></label>
+                <div class="input-wrap @(_passwordInvalid ? "input-invalid" : "")">
+                    <i class="bi bi-lock"></i>
+                    <input type="@(_showPassword ? "text" : "password")"
+                           placeholder="Новый пароль"
+                           @bind="_password" @bind:event="oninput"
+                           @onblur="ValidatePassword" />
+                    <button class="input-eye" type="button" @onclick="() => _showPassword = !_showPassword">
+                        <i class="bi @(_showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+                    </button>
+                </div>
+                @if (_passwordInvalid)
+                {
+                    <span class="field-error">Пароль должен содержать минимум 6 символов</span>
+                }
+            </div>
+
+            <div class="auth-field">
+                <label>Подтвердите пароль</label>
+                <div class="input-wrap @(_confirmInvalid ? "input-invalid" : "")">
+                    <i class="bi bi-lock-fill"></i>
+                    <input type="@(_showPassword ? "text" : "password")"
+                           placeholder="Повторите новый пароль"
+                           @bind="_confirm" @bind:event="oninput"
+                           @onblur="ValidateConfirm" />
+                </div>
+                @if (_confirmInvalid)
+                {
+                    <span class="field-error">
+                        @(string.IsNullOrWhiteSpace(_confirm)
+                            ? "Подтверждение пароля обязательно"
+                            : "Пароли не совпадают")
+                    </span>
+                }
+            </div>
+
+            <div class="profile-actions">
+                <button class="auth-btn" style="max-width:200px" @onclick="Save" disabled="@_loading">
+                    @if (_loading) { <span class="auth-spinner"></span> }
+                    else { <span>Сохранить</span> }
+                </button>
+                <button class="auth-btn auth-btn-danger" style="max-width:200px" @onclick="Logout">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </button>
+                <button class="auth-btn auth-btn-delete" style="max-width:200px" @onclick="() => _showDeleteModal = true">
+                    <i class="bi bi-trash3"></i> Удалить профиль
+                </button>
+            </div>
+        </div>
+    </div>
+
+@if (_showDeleteModal)
+{
+    <div class="modal-overlay" @onclick="() => _showDeleteModal = false">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h3 class="modal-title">Удалить аккаунт?</h3>
+            <p class="modal-text">
+                Это действие необратимо. Все ваши данные, комментарии и сохранённые статьи будут удалены безвозвратно.
+            </p>
+            @if (!string.IsNullOrEmpty(_deleteError))
+            {
+                <div class="auth-error" style="margin-bottom:12px">
+                    <i class="bi bi-exclamation-circle"></i> @_deleteError
+                </div>
+            }
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="() => _showDeleteModal = false">
+                    Отмена
+                </button>
+                <button class="modal-btn-confirm" @onclick="DeleteAccount" disabled="@_deleteLoading">
+                    @if (_deleteLoading) { <span class="auth-spinner"></span> }
+                    else { <span>Да, удалить</span> }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string _username = "";
+    private string _email = "";
+    private string _password = "";
+    private string _confirm = "";
+    private string? _error, _success, _deleteError;
+    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting;
+    private bool _emailInvalid, _passwordInvalid, _confirmInvalid;
+
+    protected override void OnInitialized()
+    {
+        if (Auth.CurrentUser is not null)
+        {
+            _username = Auth.CurrentUser.Username;
+            _email = Auth.CurrentUser.Email;
+        }
+    }
+
+    private void ValidateEmail()
+    {
+        _emailInvalid = !string.IsNullOrWhiteSpace(_email) &&
+                        !System.Text.RegularExpressions.Regex.IsMatch(_email,
+                            @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+    }
+
+    private void ValidatePassword()
+    {
+        _passwordInvalid = !string.IsNullOrWhiteSpace(_password) && _password.Length < 6;
+    }
+
+    private void ValidateConfirm()
+    {
+        _confirmInvalid = !string.IsNullOrWhiteSpace(_password) &&
+                          _confirm != _password;
+    }
+
+    private async Task Save()
+    {
+        ValidateEmail();
+        ValidatePassword();
+        ValidateConfirm();
+        if (_emailInvalid || _passwordInvalid || _confirmInvalid) return;
+
+        _loading = true; _error = null; _success = null;
+
+        var username = string.IsNullOrWhiteSpace(_username) ? null : _username;
+        var email    = string.IsNullOrWhiteSpace(_email)    ? null : _email;
+        var password = string.IsNullOrWhiteSpace(_password) ? null : _password;
+
+        _error = await Auth.UpdateProfileAsync(username, email, password);
+        if (_error is null)
+        {
+            _success = "Профиль успешно обновлён.";
+            _password = "";
+            _confirm = "";
+        }
+        _loading = false;
+    }
+
+    private async Task DeleteAccount()
+    {
+        _deleteLoading = true; _deleteError = null; _deleting = true;
+        Console.WriteLine("[Profile] DeleteAccount: start");
+        _deleteError = await Auth.DeleteAccountAsync();
+        Console.WriteLine($"[Profile] DeleteAccount: error={_deleteError}, IsAuthenticated={Auth.IsAuthenticated}");
+        _deleteLoading = false;
+        if (_deleteError is null)
+        {
+            _showDeleteModal = false;
+            Console.WriteLine("[Profile] Navigating to /?deleted=1");
+            Nav.NavigateTo("/?deleted=1");
+            Console.WriteLine("[Profile] NavigateTo called");
+        }
+        else
+        {
+            _deleting = false;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/");
+    }
+}

@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="CatshrediasNews.Client\CatshrediasNews.Client.csproj" Type="Classic C#" />
   <Project Path="CatshrediasNewsAPI/CatshrediasNewsAPI.csproj" />
 </Solution>

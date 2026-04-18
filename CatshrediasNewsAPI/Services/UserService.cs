@@ -6,6 +6,27 @@ namespace CatshrediasNewsAPI.Services;
 
 public class UserService(AppDbContext db)
 {
+    // ? GetAllAsync : возвращает список всех пользователей
+    // вызывается из AdminController.GetUsers (Admin)
+    public async Task<List<UserDto>> GetAllAsync()
+    {
+        return await db.Users
+            .Include(u => u.Role)
+            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked))
+            .ToListAsync();
+    }
+
+    // ? SetBlockedAsync : блокирует или разблокирует пользователя
+    // вызывается из AdminController.BlockUser / UnblockUser (Admin)
+    public async Task<bool> SetBlockedAsync(int userId, bool blocked)
+    {
+        var user = await db.Users.FindAsync(userId);
+        if (user is null) return false;
+        user.IsBlocked = blocked;
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     // ? GetByIdAsync : возвращает профиль пользователя по идентификатору
     // вызывается из UsersController.GetById (Public)
     public async Task<UserDto?> GetByIdAsync(int id)
@@ -41,13 +62,13 @@ public class UserService(AppDbContext db)
         return new UserDto(user.Id, user.Username, user.Email, user.Role.Name, user.IsBlocked);
     }
 
-    // ? DeleteAsync : удаляет аккаунт пользователя
-    // вызывается из UsersController.Delete (Auth)
+    // ? DeleteAsync : soft delete аккаунта пользователя — устанавливает DeletedAt
+    // вызывается из UsersController.Delete (Auth) и AdminController.DeleteUser (Admin)
     public async Task<bool> DeleteAsync(int userId)
     {
         var user = await db.Users.FindAsync(userId);
         if (user is null) return false;
-        db.Users.Remove(user);
+        user.DeletedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         return true;
     }

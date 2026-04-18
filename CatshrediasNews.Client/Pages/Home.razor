@@ -1,0 +1,319 @@
+@page "/"
+@inject NavigationManager Nav
+@inject AuthService Auth
+@inject ArticleService ArticleSvc
+@implements IDisposable
+
+<PageTitle>Лента — Runews</PageTitle>
+
+@if (_showDeletedMessage)
+{
+    <div class="auth-success" style="margin-bottom:20px;font-size:15px;padding:16px 20px">
+        <i class="bi bi-check-circle"></i>
+        <div><strong>Аккаунт удалён.</strong> Спасибо, что были с нами.</div>
+    </div>
+}
+
+<!-- Toolbar: заголовок + сортировка -->
+<div class="feed-toolbar">
+    <span class="feed-toolbar-title">
+        @if (Auth.IsAuthenticated)
+        {
+            <span>Для вас</span>
+        }
+        else
+        {
+            <span>Лента новостей</span>
+        }
+    </span>
+
+    <button class="feed-sort-btn @(_sort == FeedSort.Newest ? "active" : "")"
+            @onclick="() => SetSort(FeedSort.Newest)">
+        <i class="bi bi-clock"></i> Новые
+    </button>
+    <button class="feed-sort-btn @(_sort == FeedSort.Oldest ? "active" : "")"
+            @onclick="() => SetSort(FeedSort.Oldest)">
+        <i class="bi bi-clock-history"></i> Старые
+    </button>
+    <button class="feed-sort-btn @(_sort == FeedSort.Popular ? "active" : "")"
+            @onclick="() => SetSort(FeedSort.Popular)">
+        <i class="bi bi-fire"></i> Популярные
+    </button>
+</div>
+
+<!-- Баннер рекомендаций -->
+@if (Auth.IsAuthenticated && _articles.Any())
+{
+    <div class="feed-rec-banner">
+        <i class="bi bi-stars"></i>
+        Лента персонализирована на основе ваших интересов
+    </div>
+}
+
+<!-- Теги-фильтры -->
+@if (_tags.Any())
+{
+    <div class="feed-tags">
+        <button class="feed-tag-btn @(_activeTag == null ? "active" : "")"
+                @onclick="() => SetTag(null)">
+            Все
+        </button>
+        @foreach (var tag in _tags)
+        {
+            <button class="feed-tag-btn @(_activeTag == tag.Name ? "active" : "")"
+                    @onclick="() => SetTag(tag.Name)">
+                @tag.Name
+            </button>
+        }
+    </div>
+}
+
+<!-- Список статей -->
+@if (_loading)
+{
+    @for (int i = 0; i < 5; i++)
+    {
+        <div class="skeleton-card" style="margin-bottom:12px">
+            <div class="skeleton" style="height:20px;width:70%"></div>
+            <div class="skeleton" style="height:14px;width:100%"></div>
+            <div class="skeleton" style="height:14px;width:85%"></div>
+            <div class="skeleton" style="height:14px;width:40%"></div>
+        </div>
+    }
+}
+else if (!_filtered.Any())
+{
+    <div class="feed-empty">
+        <i class="bi bi-newspaper"></i>
+        <p>Статей не найдено. Попробуйте изменить фильтры.</p>
+    </div>
+}
+else
+{
+    <div class="feed-list">
+        @foreach (var article in _paged)
+        {
+            <div class="article-card" @onclick="() => OpenArticle(article)">
+                <div class="article-card-header">
+                    <div class="article-title">
+                        <a href="@article.SourceUrl" target="_blank"
+                           @onclick:stopPropagation="true">
+                            @article.Title
+                        </a>
+                    </div>
+                    @if (Auth.IsAuthenticated && IsRecommended(article))
+                    {
+                        <span class="article-rec-badge">
+                            <i class="bi bi-stars"></i> Рекомендовано
+                        </span>
+                    }
+                </div>
+
+                <p class="article-preview">@article.Content</p>
+
+                @if (article.Tags.Any())
+                {
+                    <div class="article-tags">
+                        @foreach (var tag in article.Tags)
+                        {
+                            <span class="article-tag @(_activeTag == tag ? "active" : "")"
+                                  @onclick:stopPropagation="true"
+                                  @onclick="() => SetTag(tag)">
+                                @tag
+                            </span>
+                        }
+                    </div>
+                }
+
+                <div class="article-footer">
+                    <span class="article-meta">
+                        <i class="bi bi-calendar3"></i>
+                        @article.PublishedAt.ToString("dd.MM.yyyy")
+                    </span>
+                    @if (!string.IsNullOrEmpty(article.Author))
+                    {
+                        <span class="article-meta">
+                            <i class="bi bi-person"></i> @article.Author
+                        </span>
+                    }
+                    @if (!string.IsNullOrEmpty(article.SourceUrl))
+                    {
+                        <span class="article-meta">
+                            <i class="bi bi-link-45deg"></i>
+                            <a href="@article.SourceUrl" target="_blank"
+                               @onclick:stopPropagation="true"
+                               style="color:var(--accent)">
+                                Источник
+                            </a>
+                        </span>
+                    }
+                    @if (Auth.IsAuthenticated)
+                    {
+                        <button class="article-like-btn @(_liked.Contains(article.Id) ? "liked" : "")"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => ToggleLike(article)">
+                            <i class="bi @(_liked.Contains(article.Id) ? "bi-heart-fill" : "bi-heart")"></i>
+                            @article.LikesCount
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="article-meta" style="margin-left:auto">
+                            <i class="bi bi-heart"></i> @article.LikesCount
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Пагинация -->
+    @if (_totalPages > 1)
+    {
+        <div class="feed-pagination">
+            <button class="page-btn" @onclick="PrevPage" disabled="@(_page == 1)">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            @for (int p = Math.Max(1, _page - 2); p <= Math.Min(_totalPages, _page + 2); p++)
+            {
+                var pg = p;
+                <button class="page-btn @(pg == _page ? "active" : "")"
+                        @onclick="() => GoToPage(pg)">
+                    @pg
+                </button>
+            }
+
+            <button class="page-btn" @onclick="NextPage" disabled="@(_page == _totalPages)">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    }
+}
+
+@code {
+    private List<ArticleDto> _articles = [];
+    private List<TagDto>     _tags     = [];
+    private HashSet<int>     _liked    = [];
+
+    private FeedSort _sort      = FeedSort.Newest;
+    private string?  _activeTag = null;
+    private int      _page      = 1;
+    private const int PageSize  = 10;
+    private bool     _loading   = true;
+    private bool     _showDeletedMessage;
+
+    // Отфильтрованные и отсортированные статьи
+    private List<ArticleDto> _filtered => ApplyFilter();
+    private List<ArticleDto> _paged    => _filtered.Skip((_page - 1) * PageSize).Take(PageSize).ToList();
+    private int _totalPages            => (int)Math.Ceiling(_filtered.Count / (double)PageSize);
+
+    protected override void OnInitialized()
+    {
+        var uri   = new Uri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        if (query["deleted"] == "1")
+        {
+            _showDeletedMessage = true;
+            Auth.NotifyChanged();
+        }
+        Auth.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    public void Dispose() => Auth.OnChange -= StateHasChanged;
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        var articlesTask = ArticleSvc.GetFeedAsync(Auth.IsAuthenticated, 1, 200);
+        var tagsTask     = ArticleSvc.GetTagsAsync();
+        await Task.WhenAll(articlesTask, tagsTask);
+
+        _articles = articlesTask.Result;
+        _tags     = tagsTask.Result;
+        _loading  = false;
+    }
+
+    // ── Фильтрация и сортировка ──────────────────────────────
+
+    private List<ArticleDto> ApplyFilter()
+    {
+        var result = _articles.AsEnumerable();
+
+        if (_activeTag is not null)
+            result = result.Where(a => a.Tags.Contains(_activeTag));
+
+        result = _sort switch
+        {
+            FeedSort.Newest  => result.OrderByDescending(a => a.PublishedAt),
+            FeedSort.Oldest  => result.OrderBy(a => a.PublishedAt),
+            FeedSort.Popular => result.OrderByDescending(a => a.LikesCount),
+            _                => result
+        };
+
+        return result.ToList();
+    }
+
+    private void SetSort(FeedSort sort)
+    {
+        _sort = sort;
+        _page = 1;
+    }
+
+    private void SetTag(string? tag)
+    {
+        _activeTag = _activeTag == tag ? null : tag;
+        _page = 1;
+    }
+
+    // ── Рекомендации ─────────────────────────────────────────
+    // Статья считается рекомендованной если она в первой трети
+    // персональной ленты (API уже отсортировал по весам тегов)
+
+    private bool IsRecommended(ArticleDto article)
+    {
+        if (!Auth.IsAuthenticated || _sort != FeedSort.Newest) return false;
+        var idx = _articles.IndexOf(article);
+        return idx >= 0 && idx < Math.Max(3, _articles.Count / 3);
+    }
+
+    // ── Лайки ────────────────────────────────────────────────
+
+    private async Task ToggleLike(ArticleDto article)
+    {
+        if (!Auth.IsAuthenticated) return;
+
+        var wasLiked = _liked.Contains(article.Id);
+        if (wasLiked) { _liked.Remove(article.Id); article.LikesCount--; }
+        else          { _liked.Add(article.Id);    article.LikesCount++; }
+
+        var ok = await ArticleSvc.ToggleLikeAsync(article.Id);
+        if (!ok)
+        {
+            // откат при ошибке
+            if (wasLiked) { _liked.Add(article.Id);    article.LikesCount++; }
+            else          { _liked.Remove(article.Id); article.LikesCount--; }
+        }
+    }
+
+    // ── Пагинация ─────────────────────────────────────────────
+
+    private void PrevPage() { if (_page > 1) _page--; }
+    private void NextPage() { if (_page < _totalPages) _page++; }
+    private void GoToPage(int p) => _page = p;
+
+    // ── Навигация ─────────────────────────────────────────────
+
+    private void OpenArticle(ArticleDto article)
+    {
+        if (!string.IsNullOrEmpty(article.SourceUrl))
+            Nav.NavigateTo(article.SourceUrl);
+    }
+}

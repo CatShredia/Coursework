@@ -8,6 +8,7 @@ public class User
     public string PasswordHash { get; set; } = null!;
     public bool IsBlocked { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? DeletedAt { get; set; }
 
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;

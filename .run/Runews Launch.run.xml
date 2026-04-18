@@ -1,0 +1,7 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Runews Launch" type="CompoundRunConfigurationType">
+    <toRun name="API" type="LaunchSettings" />
+    <toRun name="Blazor" type="LaunchSettings" />
+    <method v="2" />
+  </configuration>
+</component>
