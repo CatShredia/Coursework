@@ -1,0 +1,105 @@
+@page "/about"
+
+<PageTitle>О сервисе — Runews</PageTitle>
+
+<div class="info-page">
+    <h1 class="info-page-title">О сервисе Runews</h1>
+    <p class="info-page-subtitle">
+        Runews — новостной агрегатор нового поколения с персонализированной лентой,
+        системой модерации и возможностью публикации авторских статей.
+    </p>
+
+    <div class="about-features">
+
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="bi bi-newspaper"></i></div>
+            <div>
+                <h3>Агрегация новостей</h3>
+                <p>
+                    Runews автоматически собирает новости из RSS-источников — Habr, РБК, Lenta.ru, Дзен и других.
+                    Новые статьи появляются в ленте каждые 15 минут.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="bi bi-stars"></i></div>
+            <div>
+                <h3>Персональные рекомендации</h3>
+                <p>
+                    Алгоритм анализирует ваши лайки и подписки на теги, формируя
+                    персональную ленту «Для вас». Чем активнее вы взаимодействуете
+                    с контентом — тем точнее рекомендации.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="bi bi-pencil-square"></i></div>
+            <div>
+                <h3>Авторские статьи</h3>
+                <p>
+                    Пользователи с ролью <strong>Публицист</strong> могут писать собственные статьи
+                    в удобном Markdown-редакторе. Статьи проходят модерацию перед публикацией.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="bi bi-shield-check"></i></div>
+            <div>
+                <h3>Система модерации</h3>
+                <p>
+                    Все публикуемые материалы проверяются модераторами.
+                    Пользователи могут оставлять жалобы на контент — они рассматриваются
+                    командой модерации в приоритетном порядке.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="bi bi-chat-dots"></i></div>
+            <div>
+                <h3>Комментарии в реальном времени</h3>
+                <p>
+                    Комментарии к статьям обновляются мгновенно благодаря технологии SignalR.
+                    Поддерживаются древовидные ответы на комментарии.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="bi bi-tags"></i></div>
+            <div>
+                <h3>Гибкая система тегов</h3>
+                <p>
+                    Подписывайтесь на интересующие теги — IT, Наука, Экономика, Политика и другие.
+                    Статьи с любимыми тегами поднимаются выше в вашей ленте.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="about-roles">
+        <h2>Роли пользователей</h2>
+        <div class="roles-grid">
+            <div class="role-card">
+                <span class="role-badge role-user">User</span>
+                <p>Читает ленту, ставит лайки, комментирует, подписывается на теги</p>
+            </div>
+            <div class="role-card">
+                <span class="role-badge" style="background:#fff3e0;color:#e65100">Publicist</span>
+                <p>Пишет и публикует авторские статьи в Markdown-редакторе</p>
+            </div>
+            <div class="role-card">
+                <span class="role-badge role-moderator">Moderator</span>
+                <p>Проверяет статьи, рассматривает жалобы, управляет контентом</p>
+            </div>
+            <div class="role-card">
+                <span class="role-badge role-admin">Admin</span>
+                <p>Полный доступ: управление источниками RSS, тегами и пользователями</p>
+            </div>
+        </div>
+    </div>
+</div>

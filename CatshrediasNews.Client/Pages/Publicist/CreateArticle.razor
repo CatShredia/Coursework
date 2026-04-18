@@ -45,6 +45,11 @@
     }
 
     <!-- Поле заголовка -->
+    <a href="/editor-guide" class="editor-guide-link">
+        <i class="bi bi-question-circle"></i> Инструкция к редактору
+    </a>
+
+    <!-- Поле заголовка -->
     <input class="editor-title-input"
            type="text"
            placeholder="Заголовок статьи..."
@@ -126,10 +131,6 @@
                   @bind:event="oninput"
                   @onkeydown="OnKeyDown"
                   rows="24"></textarea>
-
-        <div class="editor-hint">
-            Поддерживается Markdown: **жирный**, *курсив*, # заголовок, [ссылка](url), ![картинка](url)
-        </div>
     }
     else
     {

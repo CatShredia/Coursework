@@ -1,0 +1,160 @@
+/* ══════════════════════════════════════════════
+   Info pages: About, EditorGuide
+══════════════════════════════════════════════ */
+
+.info-page {
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.info-page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.info-page-subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin: -16px 0 0;
+}
+
+/* ── Инструкция редактора ── */
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+}
+
+.guide-section {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.guide-section h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.guide-table { display: flex; flex-direction: column; gap: 10px; }
+
+.guide-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.guide-row code, .guide-row kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.guide-row kbd { color: var(--text-primary); }
+.guide-row span { color: var(--text-secondary); text-align: right; }
+
+.guide-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--accent-light);
+    border: 1px solid #c5d8fb;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--accent);
+    line-height: 1.6;
+}
+
+.guide-note i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── О сервисе ── */
+.about-features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.about-feature {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.about-feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.about-feature h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+}
+
+.about-feature p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.about-roles h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+}
+
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.role-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.role-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}

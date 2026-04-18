@@ -46,6 +46,19 @@
     flex-wrap: wrap;
 }
 
+.editor-guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity var(--transition);
+}
+
+.editor-guide-link:hover { opacity: .75; }
+
 /* ── Toolbar ── */
 .editor-toolbar {
     display: flex;
