@@ -37,6 +37,14 @@
                 <div class="profile-name">@Auth.CurrentUser!.Username</div>
                 <div class="profile-email">@Auth.CurrentUser.Email</div>
                 <span class="profile-role">@Auth.CurrentUser.Role</span>
+                @if (!string.IsNullOrEmpty(Auth.CurrentUser.AvatarUrl))
+                {
+                    <button class="profile-avatar-delete" @onclick="DeleteAvatar" disabled="@_avatarLoading">
+                        @if (_avatarLoading) { <span class="auth-spinner" style="width:14px;height:14px"></span> }
+                        else { <i class="bi bi-trash3"></i> }
+                        Удалить фото
+                    </button>
+                }
                 @if (!string.IsNullOrEmpty(_avatarError))
                 {
                     <div class="auth-error" style="margin-top:8px;font-size:12px"><i class="bi bi-exclamation-circle"></i> @_avatarError</div>
@@ -183,7 +191,7 @@
     private string _confirm = "";
     private string _avatarColor = "#1a73e8";
     private string? _error, _success, _deleteError, _avatarError;
-    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting;
+    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting, _avatarLoading;
     private bool _emailInvalid, _passwordInvalid, _confirmInvalid;
 
     private static readonly string[] _palette =
@@ -268,15 +276,22 @@
         _avatarError = null;
         var f = e.File;
         if (f.Size > 5 * 1024 * 1024) { _avatarError = "Файл не должен превышать 5 МБ."; return; }
-
+        _avatarLoading = true;
         using var ms      = new System.IO.MemoryStream();
         await f.OpenReadStream(5 * 1024 * 1024).CopyToAsync(ms);
         var content       = new ByteArrayContent(ms.ToArray());
         content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(f.ContentType);
         var form          = new MultipartFormDataContent();
         form.Add(content, "upload", f.Name);
+        _avatarError   = await Auth.UploadAvatarAsync(form);
+        _avatarLoading = false;
+    }
 
-        _avatarError = await Auth.UploadAvatarAsync(form);
+    private async Task DeleteAvatar()
+    {
+        _avatarLoading = true;
+        _avatarError   = await Auth.DeleteAvatarAsync();
+        _avatarLoading = false;
     }
 
     private async Task Logout()

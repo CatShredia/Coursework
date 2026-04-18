@@ -85,4 +85,22 @@ public class ArticleService(HttpClient http)
         var obj = await res.Content.ReadFromJsonAsync<UploadResult>();
         return (obj?.Url, null);
     }
+
+    public async Task<List<ArticleDto>> SearchAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return [];
+        return await http.GetFromJsonAsync<List<ArticleDto>>(
+            $"api/articles/search?q={Uri.EscapeDataString(query)}") ?? [];
+    }
+
+    public async Task<List<ArticleDto>> GetSavedAsync()
+    {
+        return await http.GetFromJsonAsync<List<ArticleDto>>("api/articles/saved") ?? [];
+    }
+
+    public async Task<bool> ToggleSaveAsync(int articleId)
+    {
+        var res = await http.PostAsync($"api/articles/{articleId}/save", null);
+        return res.IsSuccessStatusCode;
+    }
 }

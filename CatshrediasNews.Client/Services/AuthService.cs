@@ -115,6 +115,20 @@ public class AuthService
         return null;
     }
 
+    public async Task<string?> DeleteAvatarAsync()
+    {
+        var response = await _http.DeleteAsync("api/users/me/avatar");
+        if (!response.IsSuccessStatusCode) return "Ошибка удаления фото.";
+
+        var updated = await response.Content.ReadFromJsonAsync<UserInfo>();
+        if (updated is null) return "Ошибка сервера.";
+
+        CurrentUser = updated;
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url", "");
+        OnChange?.Invoke();
+        return null;
+    }
+
     // ? DeleteAccountAsync : удаляет аккаунт, очищает сессию БЕЗ вызова OnChange
     // OnChange вызывается позже из Home.razor через NotifyChanged()
     // вызывается из Pages/Profile.razor

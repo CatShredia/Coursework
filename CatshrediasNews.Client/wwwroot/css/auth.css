@@ -242,6 +242,33 @@
 .header-profile-btn i { font-size: 20px; }
 .header-profile-btn:hover { background: #d2e3fc; }
 
+.header-avatar-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.profile-avatar-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    background: none;
+    border: 1.5px solid #e53935;
+    color: #e53935;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.profile-avatar-delete:hover { background: #fdecea; }
+.profile-avatar-delete:disabled { opacity: .5; cursor: not-allowed; }
+
 .header-profile-name {
     max-width: 120px;
     overflow: hidden;
