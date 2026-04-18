@@ -9,7 +9,8 @@
 INSERT INTO "Roles" ("Id", "Name") VALUES
     (1, 'Admin'),
     (2, 'Moderator'),
-    (3, 'User')
+    (3, 'User'),
+    (4, 'Publicist')
 ON CONFLICT ("Id") DO NOTHING;
 
 -- -------------------------------------------------------------

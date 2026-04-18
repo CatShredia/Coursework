@@ -65,7 +65,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Role>().HasData(
             new Role { Id = 1, Name = "Admin" },
             new Role { Id = 2, Name = "Moderator" },
-            new Role { Id = 3, Name = "User" }
+            new Role { Id = 3, Name = "User" },
+            new Role { Id = 4, Name = "Publicist" }
         );
 
         modelBuilder.Entity<ReportType>().HasData(

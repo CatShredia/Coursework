@@ -1,0 +1,182 @@
+/* ══════════════════════════════════════════════
+   Markdown Editor
+══════════════════════════════════════════════ */
+
+.editor-page {
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.editor-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.editor-title-input {
+    width: 100%;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border: none;
+    border-bottom: 2px solid var(--border);
+    background: transparent;
+    padding: 8px 0;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.editor-title-input:focus { border-color: var(--accent); }
+.editor-title-input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+.editor-tags-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.editor-guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity var(--transition);
+}
+
+.editor-guide-link:hover { opacity: .75; }
+
+/* ── Toolbar ── */
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    padding: 6px 8px;
+}
+
+.editor-tool {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), color var(--transition);
+}
+
+.editor-tool:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.editor-tool-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+}
+
+/* ── Textarea ── */
+.editor-textarea {
+    width: 100%;
+    min-height: 480px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.editor-textarea:focus { border-color: var(--accent); }
+
+.editor-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ── Предпросмотр ── */
+.editor-preview {
+    min-height: 480px;
+    padding: 20px 24px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+.editor-preview h1 { font-size: 26px; font-weight: 800; margin: 0 0 12px; }
+.editor-preview h2 { font-size: 20px; font-weight: 700; margin: 20px 0 10px; }
+.editor-preview h3 { font-size: 17px; font-weight: 700; margin: 16px 0 8px; }
+.editor-preview p  { margin: 0 0 10px; }
+.editor-preview strong { font-weight: 700; }
+.editor-preview em     { font-style: italic; }
+.editor-preview del    { text-decoration: line-through; color: var(--text-muted); }
+.editor-preview a      { color: var(--accent); }
+.editor-preview code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+}
+.editor-preview pre {
+    background: #1a1d27;
+    color: #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+.editor-preview pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: 13px;
+}
+.editor-preview blockquote {
+    border-left: 4px solid var(--accent);
+    padding: 8px 16px;
+    margin: 12px 0;
+    background: var(--accent-light);
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+}
+.editor-preview hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+}
+.editor-preview li { margin-left: 20px; margin-bottom: 4px; }

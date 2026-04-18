@@ -33,4 +33,41 @@ public class TagMappingService(IConfiguration config)
         doc.LoadHtml(html);
         return doc.DocumentNode.InnerText.Trim();
     }
+
+    // ? ExtractFirstImage : извлекает src первого тега <img> из HTML
+    // вызывается из RssParserService.ParseSourceAsync
+    public static string? ExtractFirstImage(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return null;
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        var img = doc.DocumentNode.SelectSingleNode("//img[@src]");
+        return img?.GetAttributeValue("src", null);
+    }
+
+    // ? SanitizeHtml : оставляет только безопасные теги, убирает скрипты и атрибуты событий
+    // вызывается из RssParserService.ParseSourceAsync
+    public static string SanitizeHtml(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return string.Empty;
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+
+        // Удаляем script, style, iframe
+        foreach (var node in doc.DocumentNode
+                     .SelectNodes("//script|//style|//iframe") ?? Enumerable.Empty<HtmlNode>())
+            node.Remove();
+
+        // Удаляем on* атрибуты (onclick, onload и т.д.)
+        foreach (var node in doc.DocumentNode.DescendantsAndSelf())
+        {
+            var toRemove = node.Attributes
+                .Where(a => a.Name.StartsWith("on", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            foreach (var attr in toRemove)
+                node.Attributes.Remove(attr);
+        }
+
+        return doc.DocumentNode.InnerHtml.Trim();
+    }
 }

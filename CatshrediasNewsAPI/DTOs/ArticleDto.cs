@@ -4,12 +4,17 @@ public record ArticleDto(
     int Id,
     string Title,
     string Content,
+    string? ContentHtml,
+    string? ImageUrl,
+    string? RssAuthor,
     string? SourceUrl,
     DateTime PublishedAt,
     string Status,
+    int? AuthorId,
     string? Author,
     List<string> Tags,
-    int LikesCount
+    int LikesCount,
+    string? SourceName
 );
 
 public record CreateArticleDto(

@@ -15,6 +15,7 @@ public class ModerationService(AppDbContext db)
             .Where(a => a.Status.Name == "PendingReview")
             .Include(a => a.Status)
             .Include(a => a.Author)
+            .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Select(a => MapToDto(a))
             .ToListAsync();
@@ -102,9 +103,10 @@ public class ModerationService(AppDbContext db)
     }
 
     private static ArticleDto MapToDto(Article a) => new(
-        a.Id, a.Title, a.Content, a.SourceUrl, a.PublishedAt,
+        a.Id, a.Title, a.Content, a.ContentHtml, a.ImageUrl, a.RssAuthor,
+        a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
-        0
+        0, a.RssSource?.Name
     );
 }

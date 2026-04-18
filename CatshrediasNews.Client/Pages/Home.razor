@@ -68,6 +68,44 @@
     </div>
 }
 
+<!-- Фильтр по источникам -->
+@if (_sources.Any())
+{
+    <div class="feed-tags" style="margin-top:-8px">
+        <span style="
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+">
+            <i class="bi bi-rss"></i>
+        </span>
+        <button class="feed-tag-btn @(_activeSource == null ? "active" : "")"
+                @onclick="() => SetSource(null)">
+            Все источники
+        </button>
+        @if (_articles.Any(a => string.IsNullOrEmpty(a.SourceName)))
+        {
+            <button class="feed-tag-btn @(_activeSource == "__authors__" ? "active" : "")"
+                    @onclick='() => SetSource("__authors__")'>
+                <i class="bi bi-pencil-square"></i> Авторские
+            </button>
+        }
+        @foreach (var src in _sources)
+        {
+            <button class="feed-tag-btn @(_activeSource == src ? "active" : "")"
+                    @onclick="() => SetSource(src)">
+                @src
+            </button>
+        }
+    </div>
+}
+
 <!-- Список статей -->
 @if (_loading)
 {
@@ -93,11 +131,10 @@ else
     <div class="feed-list">
         @foreach (var article in _paged)
         {
-            <div class="article-card" @onclick="() => OpenArticle(article)">
+            <div class="article-card" @onclick="() => GoToArticle(article.Id)">
                 <div class="article-card-header">
                     <div class="article-title">
-                        <a href="@article.SourceUrl" target="_blank"
-                           @onclick:stopPropagation="true">
+                        <a href="/articles/@article.Id" @onclick:stopPropagation="true">
                             @article.Title
                         </a>
                     </div>
@@ -143,7 +180,7 @@ else
                             <a href="@article.SourceUrl" target="_blank"
                                @onclick:stopPropagation="true"
                                style="color:var(--accent)">
-                                Источник
+                                @GetDomain(article.SourceUrl)
                             </a>
                         </span>
                     }
@@ -193,30 +230,32 @@ else
 
 @code {
     private List<ArticleDto> _articles = [];
-    private List<TagDto>     _tags     = [];
-    private HashSet<int>     _liked    = [];
+    private List<TagDto> _tags = [];
+    private HashSet<int> _liked = [];
 
-    private FeedSort _sort      = FeedSort.Newest;
-    private string?  _activeTag = null;
-    private int      _page      = 1;
-    private const int PageSize  = 10;
-    private bool     _loading   = true;
-    private bool     _showDeletedMessage;
+    private FeedSort _sort = FeedSort.Newest;
+    private string? _activeTag = null;
+    private string? _activeSource = null;
+    private int _page = 1;
+    private const int PageSize = 10;
+    private bool _loading = true;
+    private bool _showDeletedMessage;
 
     // Отфильтрованные и отсортированные статьи
     private List<ArticleDto> _filtered => ApplyFilter();
-    private List<ArticleDto> _paged    => _filtered.Skip((_page - 1) * PageSize).Take(PageSize).ToList();
-    private int _totalPages            => (int)Math.Ceiling(_filtered.Count / (double)PageSize);
+    private List<ArticleDto> _paged => _filtered.Skip((_page - 1) * PageSize).Take(PageSize).ToList();
+    private int _totalPages => (int)Math.Ceiling(_filtered.Count / (double)PageSize);
 
     protected override void OnInitialized()
     {
-        var uri   = new Uri(Nav.Uri);
+        var uri = new Uri(Nav.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         if (query["deleted"] == "1")
         {
             _showDeletedMessage = true;
             Auth.NotifyChanged();
         }
+
         Auth.OnChange += StateHasChanged;
     }
 
@@ -233,13 +272,22 @@ else
         StateHasChanged();
 
         var articlesTask = ArticleSvc.GetFeedAsync(Auth.IsAuthenticated, 1, 200);
-        var tagsTask     = ArticleSvc.GetTagsAsync();
+        var tagsTask = ArticleSvc.GetTagsAsync();
         await Task.WhenAll(articlesTask, tagsTask);
 
         _articles = articlesTask.Result;
-        _tags     = tagsTask.Result;
-        _loading  = false;
+        _tags = tagsTask.Result;
+        _loading = false;
     }
+
+    // Список уникальных источников из загруженных статей
+    private List<string> _sources => _articles
+        .Select(a => a.SourceName)
+        .Where(s => !string.IsNullOrEmpty(s))
+        .Distinct()
+        .OrderBy(s => s)
+        .Select(s => s!)
+        .ToList();
 
     // ── Фильтрация и сортировка ──────────────────────────────
 
@@ -250,12 +298,17 @@ else
         if (_activeTag is not null)
             result = result.Where(a => a.Tags.Contains(_activeTag));
 
+        if (_activeSource is not null)
+            result = _activeSource == "__authors__"
+                ? result.Where(a => string.IsNullOrEmpty(a.SourceName))
+                : result.Where(a => a.SourceName == _activeSource);
+
         result = _sort switch
         {
-            FeedSort.Newest  => result.OrderByDescending(a => a.PublishedAt),
-            FeedSort.Oldest  => result.OrderBy(a => a.PublishedAt),
+            FeedSort.Newest => result.OrderByDescending(a => a.PublishedAt),
+            FeedSort.Oldest => result.OrderBy(a => a.PublishedAt),
             FeedSort.Popular => result.OrderByDescending(a => a.LikesCount),
-            _                => result
+            _ => result
         };
 
         return result.ToList();
@@ -270,6 +323,12 @@ else
     private void SetTag(string? tag)
     {
         _activeTag = _activeTag == tag ? null : tag;
+        _page = 1;
+    }
+
+    private void SetSource(string? source)
+    {
+        _activeSource = _activeSource == source ? null : source;
         _page = 1;
     }
 
@@ -291,29 +350,59 @@ else
         if (!Auth.IsAuthenticated) return;
 
         var wasLiked = _liked.Contains(article.Id);
-        if (wasLiked) { _liked.Remove(article.Id); article.LikesCount--; }
-        else          { _liked.Add(article.Id);    article.LikesCount++; }
+        if (wasLiked)
+        {
+            _liked.Remove(article.Id);
+            article.LikesCount--;
+        }
+        else
+        {
+            _liked.Add(article.Id);
+            article.LikesCount++;
+        }
 
         var ok = await ArticleSvc.ToggleLikeAsync(article.Id);
         if (!ok)
         {
             // откат при ошибке
-            if (wasLiked) { _liked.Add(article.Id);    article.LikesCount++; }
-            else          { _liked.Remove(article.Id); article.LikesCount--; }
+            if (wasLiked)
+            {
+                _liked.Add(article.Id);
+                article.LikesCount++;
+            }
+            else
+            {
+                _liked.Remove(article.Id);
+                article.LikesCount--;
+            }
         }
     }
 
     // ── Пагинация ─────────────────────────────────────────────
 
-    private void PrevPage() { if (_page > 1) _page--; }
-    private void NextPage() { if (_page < _totalPages) _page++; }
-    private void GoToPage(int p) => _page = p;
-
-    // ── Навигация ─────────────────────────────────────────────
-
-    private void OpenArticle(ArticleDto article)
+    private void PrevPage()
     {
-        if (!string.IsNullOrEmpty(article.SourceUrl))
-            Nav.NavigateTo(article.SourceUrl);
+        if (_page > 1) _page--;
     }
+
+    private void NextPage()
+    {
+        if (_page < _totalPages) _page++;
+    }
+
+    private void GoToPage(int p) => _page = p;
+    private void GoToArticle(int id) => Nav.NavigateTo("/articles/" + id);
+
+    private static string GetDomain(string url)
+    {
+        try
+        {
+            return new Uri(url).Host.Replace("www.", "");
+        }
+        catch
+        {
+            return url;
+        }
+    }
+
 }

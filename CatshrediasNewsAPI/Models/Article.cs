@@ -5,6 +5,9 @@ public class Article
     public int Id { get; set; }
     public string Title { get; set; } = null!;
     public string Content { get; set; } = null!;
+    public string? ContentHtml { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? RssAuthor { get; set; }
     public string? SourceUrl { get; set; }
     public DateTime PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

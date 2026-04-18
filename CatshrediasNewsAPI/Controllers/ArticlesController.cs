@@ -10,6 +10,16 @@ namespace CatshrediasNewsAPI.Controllers;
 [Route("api/articles")]
 public class ArticlesController(ArticleService articleService) : ControllerBase
 {
+    // ? GetMyArticles : возвращает статьи текущего пользователя
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMyArticles()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.GetByAuthorAsync(userId));
+    }
+
     // ? GetPublicFeed : возвращает хронологическую ленту опубликованных статей
     // вызывается клиентом (Public)
     [HttpGet]
@@ -57,6 +67,17 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         await articleService.LikeAsync(id, userId);
         return NoContent();
+    }
+
+    // ? Update : обновляет статью автора
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, UpdateArticleDto dto)
+    {
+        var userId  = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var article = await articleService.UpdateAsync(id, userId, dto);
+        return article is null ? NotFound() : Ok(article);
     }
 
     // ? Delete : soft delete статьи — устанавливает DeletedAt
