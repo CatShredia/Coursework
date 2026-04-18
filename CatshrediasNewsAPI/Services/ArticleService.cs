@@ -19,6 +19,7 @@ public class ArticleService(AppDbContext db)
             .Where(a => a.Status.Name == "Published")
             .Include(a => a.Status)
             .Include(a => a.Author)
+            .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
             .ToListAsync();
@@ -41,6 +42,7 @@ public class ArticleService(AppDbContext db)
             .Where(a => a.Status.Name == "Published")
             .Include(a => a.Status)
             .Include(a => a.Author)
+            .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
             .OrderByDescending(a => a.PublishedAt)
@@ -58,6 +60,7 @@ public class ArticleService(AppDbContext db)
             .Where(a => a.Id == id)
             .Include(a => a.Status)
             .Include(a => a.Author)
+            .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
             .FirstOrDefaultAsync();
@@ -137,6 +140,7 @@ public class ArticleService(AppDbContext db)
         return await db.Articles
             .Where(a => a.AuthorId == authorId)
             .Include(a => a.Status)
+            .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
             .OrderByDescending(a => a.CreatedAt)
@@ -178,6 +182,7 @@ public class ArticleService(AppDbContext db)
         a.Id, a.Title, a.Content, a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
-        a.Likes.Count
+        a.Likes.Count,
+        a.RssSource?.Name
     );
 }

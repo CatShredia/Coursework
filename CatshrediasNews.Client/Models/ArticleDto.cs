@@ -11,6 +11,7 @@ public class ArticleDto
     public string? Author { get; set; }
     public List<string> Tags { get; set; } = [];
     public int LikesCount { get; set; }
+    public string? SourceName { get; set; }
 }
 
 public class TagDto

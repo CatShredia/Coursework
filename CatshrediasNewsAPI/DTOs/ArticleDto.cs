@@ -9,7 +9,8 @@ public record ArticleDto(
     string Status,
     string? Author,
     List<string> Tags,
-    int LikesCount
+    int LikesCount,
+    string? SourceName
 );
 
 public record CreateArticleDto(
