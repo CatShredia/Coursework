@@ -60,6 +60,17 @@ public class UsersController(UserService userService) : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
+    // ? DeleteAvatar : удаляет фото профиля
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpDelete("me/avatar")]
+    public async Task<IActionResult> DeleteAvatar()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await userService.DeleteAvatarAsync(userId);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     // ? Delete : удаляет аккаунт текущего пользователя
     // вызывается клиентом (Auth)
     [Authorize]

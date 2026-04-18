@@ -93,6 +93,24 @@ public class UserService(AppDbContext db, IWebHostEnvironment env)
         return Map(user);
     }
 
+    // ? DeleteAvatarAsync : удаляет файл аватара и сбрасывает AvatarUrl
+    // вызывается из UsersController.DeleteAvatar (Auth)
+    public async Task<UserDto?> DeleteAvatarAsync(int userId)
+    {
+        var user = await db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null) return null;
+
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            var oldPath = Path.Combine(UploadsRoot, "avatars", Path.GetFileName(user.AvatarUrl));
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+            user.AvatarUrl = null;
+            await db.SaveChangesAsync();
+        }
+
+        return Map(user);
+    }
+
     // ? DeleteAsync : soft delete аккаунта пользователя — устанавливает DeletedAt
     // вызывается из UsersController.Delete (Auth) и AdminController.DeleteUser (Admin)
     public async Task<bool> DeleteAsync(int userId)

@@ -10,6 +10,35 @@ namespace CatshrediasNewsAPI.Controllers;
 [Route("api/articles")]
 public class ArticlesController(ArticleService articleService) : ControllerBase
 {
+    // ? Search : поиск статей по заголовку и тексту
+    // вызывается клиентом (Public)
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string q)
+    {
+        return Ok(await articleService.SearchAsync(q));
+    }
+
+    // ? GetSaved : возвращает сохранённые статьи пользователя
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("saved")]
+    public async Task<IActionResult> GetSaved()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.GetSavedAsync(userId));
+    }
+
+    // ? ToggleSave : сохраняет или удаляет статью из избранного
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPost("{id:int}/save")]
+    public async Task<IActionResult> ToggleSave(int id)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var saved  = await articleService.ToggleSaveAsync(id, userId);
+        return Ok(new { saved });
+    }
+
     // ? GetMyArticles : возвращает статьи текущего пользователя
     // вызывается клиентом (Auth)
     [Authorize]
