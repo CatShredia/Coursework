@@ -69,6 +69,17 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         return NoContent();
     }
 
+    // ? Update : обновляет статью автора
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, UpdateArticleDto dto)
+    {
+        var userId  = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var article = await articleService.UpdateAsync(id, userId, dto);
+        return article is null ? NotFound() : Ok(article);
+    }
+
     // ? Delete : soft delete статьи — устанавливает DeletedAt
     // вызывается клиентом (Auth)
     [Authorize]

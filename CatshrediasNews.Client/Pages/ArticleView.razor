@@ -48,7 +48,7 @@ else
             @if (!string.IsNullOrEmpty(_article.SourceUrl))
             {
                 <a href="@_article.SourceUrl" target="_blank" class="article-view-source">
-                    <i class="bi bi-box-arrow-up-right"></i> Источник
+                    <i class="bi bi-box-arrow-up-right"></i> @GetDomain(_article.SourceUrl)
                 </a>
             }
         </div>
@@ -126,5 +126,11 @@ else
             _liked = !_liked;
             _article.LikesCount += _liked ? 1 : -1;
         }
+    }
+
+    private static string GetDomain(string url)
+    {
+        try { return new Uri(url).Host.Replace("www.", ""); }
+        catch { return url; }
     }
 }

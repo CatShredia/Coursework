@@ -142,7 +142,7 @@ else
                             <a href="@article.SourceUrl" target="_blank"
                                @onclick:stopPropagation="true"
                                style="color:var(--accent)">
-                                Источник
+                                @GetDomain(article.SourceUrl)
                             </a>
                         </span>
                     }
@@ -308,4 +308,10 @@ else
     private void NextPage() { if (_page < _totalPages) _page++; }
     private void GoToPage(int p) => _page = p;
     private void GoToArticle(int id) => Nav.NavigateTo("/articles/" + id);
+
+    private static string GetDomain(string url)
+    {
+        try { return new Uri(url).Host.Replace("www.", ""); }
+        catch { return url; }
+    }
 }

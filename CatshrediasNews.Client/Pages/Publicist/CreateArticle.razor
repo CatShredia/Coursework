@@ -1,8 +1,12 @@
 @page "/publicist/create"
+@page "/publicist/create/{EditId:int}"
+@using Microsoft.JSInterop
 @inject AuthService Auth
+@inject ArticleService ArticleSvc
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
-<PageTitle>Написать статью — Runews</PageTitle>
+<PageTitle>@(EditId.HasValue ? "Редактировать статью" : "Написать статью") — Runews</PageTitle>
 
 @if (Auth.CurrentUser?.Role is not ("Publicist" or "Moderator" or "Admin"))
 {
@@ -10,8 +14,275 @@
     return;
 }
 
-<div class="page-title">Написать статью</div>
+<div class="editor-page">
 
-<div class="card">
-    <p style="color:var(--text-secondary)">Страница в разработке.</p>
+    <!-- Заголовок -->
+    <div class="editor-header">
+        <h1 class="page-title" style="margin:0">
+            @(EditId.HasValue ? "Редактировать статью" : "Написать статью")
+        </h1>
+        <div class="editor-header-actions">
+            <button class="feed-sort-btn @(_preview ? "active" : "")"
+                    @onclick="() => _preview = !_preview">
+                <i class="bi bi-eye"></i> @(_preview ? "Редактор" : "Предпросмотр")
+            </button>
+            <button class="auth-btn" style="width:auto;padding:8px 20px"
+                    @onclick="Save" disabled="@_saving">
+                @if (_saving) { <span class="auth-spinner"></span> }
+                else { <i class="bi bi-floppy"></i> }
+                Сохранить
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="auth-error"><i class="bi bi-exclamation-circle"></i> @_error</div>
+    }
+    @if (!string.IsNullOrEmpty(_success))
+    {
+        <div class="auth-success"><i class="bi bi-check-circle"></i> @_success</div>
+    }
+
+    <!-- Поле заголовка -->
+    <input class="editor-title-input"
+           type="text"
+           placeholder="Заголовок статьи..."
+           @bind="_title" @bind:event="oninput" />
+
+    <!-- Теги -->
+    @if (_tags.Any())
+    {
+        <div class="editor-tags-row">
+            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">Теги:</span>
+            @foreach (var tag in _tags)
+            {
+                <button class="feed-tag-btn @(_selectedTags.Contains(tag.Id) ? "active" : "")"
+                        @onclick="() => ToggleTag(tag.Id)">
+                    @tag.Name
+                </button>
+            }
+        </div>
+    }
+
+    @if (!_preview)
+    {
+        <!-- Панель инструментов -->
+        <div class="editor-toolbar">
+            <button class="editor-tool" title="Жирный (Ctrl+B)"      @onclick='() => Wrap("**", "**", "жирный текст")'>
+                <i class="bi bi-type-bold"></i>
+            </button>
+            <button class="editor-tool" title="Курсив (Ctrl+I)"      @onclick='() => Wrap("*", "*", "курсив")'>
+                <i class="bi bi-type-italic"></i>
+            </button>
+            <button class="editor-tool" title="Зачёркнутый"          @onclick='() => Wrap("~~", "~~", "текст")'>
+                <i class="bi bi-type-strikethrough"></i>
+            </button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Заголовок H1"         @onclick='() => LinePrefix("# ")'>
+                <i class="bi bi-type-h1"></i>
+            </button>
+            <button class="editor-tool" title="Заголовок H2"         @onclick='() => LinePrefix("## ")'>
+                <i class="bi bi-type-h2"></i>
+            </button>
+            <button class="editor-tool" title="Заголовок H3"         @onclick='() => LinePrefix("### ")'>
+                <i class="bi bi-type-h3"></i>
+            </button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Цитата"               @onclick='() => LinePrefix("> ")'>
+                <i class="bi bi-blockquote-left"></i>
+            </button>
+            <button class="editor-tool" title="Код"                  @onclick='() => Wrap("`", "`", "код")'>
+                <i class="bi bi-code"></i>
+            </button>
+            <button class="editor-tool" title="Блок кода"            @onclick='() => Wrap("```\n", "\n```", "код")'>
+                <i class="bi bi-code-square"></i>
+            </button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Маркированный список" @onclick='() => LinePrefix("- ")'>
+                <i class="bi bi-list-ul"></i>
+            </button>
+            <button class="editor-tool" title="Нумерованный список"  @onclick='() => LinePrefix("1. ")'>
+                <i class="bi bi-list-ol"></i>
+            </button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Гиперссылка"          @onclick="InsertLink">
+                <i class="bi bi-link-45deg"></i>
+            </button>
+            <button class="editor-tool" title="Изображение"          @onclick="InsertImage">
+                <i class="bi bi-image"></i>
+            </button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Горизонтальная линия" @onclick='() => Insert("\n---\n")'>
+                <i class="bi bi-dash-lg"></i>
+            </button>
+        </div>
+
+        <!-- Textarea редактора -->
+        <textarea id="md-editor"
+                  class="editor-textarea"
+                  placeholder="Начните писать статью в формате Markdown..."
+                  @bind="_content"
+                  @bind:event="oninput"
+                  @onkeydown="OnKeyDown"
+                  rows="24"></textarea>
+
+        <div class="editor-hint">
+            Поддерживается Markdown: **жирный**, *курсив*, # заголовок, [ссылка](url), ![картинка](url)
+        </div>
+    }
+    else
+    {
+        <!-- Предпросмотр -->
+        <div class="editor-preview">
+            @if (string.IsNullOrWhiteSpace(_content))
+            {
+                <p style="color:var(--text-muted)">Нет содержимого для предпросмотра.</p>
+            }
+            else
+            {
+                @((MarkupString)RenderMarkdown(_content))
+            }
+        </div>
+    }
+
 </div>
+
+@code {
+    [Parameter] public int? EditId { get; set; }
+
+    private string _title   = "";
+    private string _content = "";
+    private bool   _preview, _saving;
+    private string? _error, _success;
+    private List<TagDto> _tags = [];
+    private HashSet<int> _selectedTags = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tags = await ArticleSvc.GetTagsAsync();
+
+        if (EditId.HasValue)
+        {
+            var article = await ArticleSvc.GetByIdAsync(EditId.Value);
+            if (article is not null)
+            {
+                _title   = article.Title;
+                _content = article.Content;
+                _selectedTags = _tags
+                    .Where(t => article.Tags.Contains(t.Name))
+                    .Select(t => t.Id)
+                    .ToHashSet();
+            }
+        }
+    }
+
+    private void ToggleTag(int id)
+    {
+        if (!_selectedTags.Remove(id)) _selectedTags.Add(id);
+    }
+
+    // ── Сохранение ───────────────────────────────────────────
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_title))
+        { _error = "Введите заголовок."; return; }
+        if (string.IsNullOrWhiteSpace(_content))
+        { _error = "Статья не может быть пустой."; return; }
+
+        _saving = true; _error = null; _success = null;
+
+        var (article, error) = await ArticleSvc.SaveArticleAsync(
+            EditId, _title.Trim(), _content, _selectedTags.ToList());
+
+        _saving = false;
+
+        if (error is not null) { _error = error; return; }
+
+        _success = EditId.HasValue
+            ? "Статья обновлена и отправлена на модерацию."
+            : "Статья создана и отправлена на модерацию.";
+
+        if (!EditId.HasValue && article is not null)
+            Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
+    }
+
+    // ── Горячие клавиши ──────────────────────────────────────
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (!e.CtrlKey) return;
+        switch (e.Key)
+        {
+            case "b": await Wrap("**", "**", "жирный текст"); break;
+            case "i": await Wrap("*",  "*",  "курсив");       break;
+            case "k": await InsertLink();                      break;
+        }
+    }
+
+    // ── Операции с текстом через JS ──────────────────────────
+
+    private async Task Wrap(string before, string after, string placeholder)
+    {
+        _content = await JS.InvokeAsync<string>("mdEditor.wrap",
+            "md-editor", before, after, placeholder);
+    }
+
+    private async Task LinePrefix(string prefix)
+    {
+        _content = await JS.InvokeAsync<string>("mdEditor.linePrefix",
+            "md-editor", prefix);
+    }
+
+    private async Task Insert(string text)
+    {
+        _content = await JS.InvokeAsync<string>("mdEditor.insert",
+            "md-editor", text);
+    }
+
+    private async Task InsertLink()
+    {
+        _content = await JS.InvokeAsync<string>("mdEditor.wrap",
+            "md-editor", "[", "](https://)", "текст ссылки");
+    }
+
+    private async Task InsertImage()
+    {
+        _content = await JS.InvokeAsync<string>("mdEditor.wrap",
+            "md-editor", "![", "](https://)", "описание");
+    }
+
+    // ── Рендер Markdown ──────────────────────────────────────
+
+    private static string RenderMarkdown(string md)
+    {
+        // Заголовки
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",  "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",   "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        // Жирный, курсив, зачёркнутый
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");
+        // Код
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"```[\s\S]+?```", m =>
+            "<pre><code>" + m.Value.Trim('`').Trim() + "</code></pre>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`", "<code>$1</code>");
+        // Ссылки и изображения
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"!\[(.+?)\]\((.+?)\)", "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\[(.+?)\]\((.+?)\)",  "<a href=\"$2\" target=\"_blank\">$1</a>");
+        // Цитата
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^> (.+)$", "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        // Списки
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$","<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        // Горизонтальная линия
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$", "<hr>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        // Абзацы
+        md = string.Join("\n", md.Split('\n')
+            .Select(l => l.StartsWith('<') ? l : $"<p>{l}</p>"));
+
+        return md;
+    }
+}

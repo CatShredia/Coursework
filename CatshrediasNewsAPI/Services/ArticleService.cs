@@ -111,6 +111,25 @@ public class ArticleService(AppDbContext db)
         return (await GetByIdAsync(article.Id))!;
     }
 
+    // ? UpdateAsync : обновляет статью автора
+    // вызывается из ArticlesController.Update (Auth)
+    public async Task<ArticleDto?> UpdateAsync(int articleId, int authorId, UpdateArticleDto dto)
+    {
+        var article = await db.Articles
+            .Include(a => a.ArticleTags)
+            .FirstOrDefaultAsync(a => a.Id == articleId && a.AuthorId == authorId);
+        if (article is null) return null;
+
+        article.Title   = dto.Title;
+        article.Content = dto.Content;
+
+        db.ArticleTags.RemoveRange(article.ArticleTags);
+        db.ArticleTags.AddRange(dto.TagIds.Select(t => new ArticleTag { ArticleId = article.Id, TagId = t }));
+
+        await db.SaveChangesAsync();
+        return await GetByIdAsync(article.Id);
+    }
+
     // ? GetByAuthorAsync : возвращает все статьи автора внезависимо от статуса
     // вызывается из ArticlesController.GetMyArticles (Auth)
     public async Task<List<ArticleDto>> GetByAuthorAsync(int authorId)

@@ -45,6 +45,29 @@ public class ArticleService(HttpClient http)
         return await http.GetFromJsonAsync<ArticleDto>($"api/articles/{id}");
     }
 
+    // ? SaveArticleAsync : создаёт новую статью или обновляет существующую
+    // вызывается из Pages/Publicist/CreateArticle.razor
+    public async Task<(ArticleDto? article, string? error)> SaveArticleAsync(
+        int? id, string title, string content, List<int> tagIds)
+    {
+        var payload = new { title, content, tagIds, publishedAt = DateTime.UtcNow, sourceUrl = (string?)null };
+
+        if (id is null)
+        {
+            var res = await http.PostAsJsonAsync("api/articles", payload);
+            if (!res.IsSuccessStatusCode) return (null, "Ошибка при сохранении.");
+            var dto = await res.Content.ReadFromJsonAsync<ArticleDto>();
+            return (dto, null);
+        }
+        else
+        {
+            var res = await http.PutAsJsonAsync($"api/articles/{id}", payload);
+            if (!res.IsSuccessStatusCode) return (null, "Ошибка при обновлении.");
+            var dto = await res.Content.ReadFromJsonAsync<ArticleDto>();
+            return (dto, null);
+        }
+    }
+
     // ? ToggleLikeAsync : ставит или снимает лайк на статью
     // вызывается из Pages/Home.razor
     public async Task<bool> ToggleLikeAsync(int articleId)
