@@ -1,0 +1,271 @@
+/* ══════════════════════════════════════════════
+   Feed — лента новостей
+══════════════════════════════════════════════ */
+
+/* ── Toolbar ── */
+.feed-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.feed-toolbar-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-right: auto;
+}
+
+.feed-sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.feed-sort-btn:hover,
+.feed-sort-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+/* ── Теги-фильтры ── */
+.feed-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.feed-tag-btn {
+    padding: 5px 14px;
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.feed-tag-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.feed-tag-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+/* ── Баннер рекомендаций ── */
+.feed-rec-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent-light);
+    border: 1px solid #c5d8fb;
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+
+/* ── Карточка статьи ── */
+.article-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: box-shadow var(--transition), border-color var(--transition);
+    cursor: pointer;
+}
+
+.article-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    border-color: #c5d8fb;
+}
+
+.article-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.article-rec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.article-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.4;
+    flex: 1;
+}
+
+.article-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.article-title a:hover { color: var(--accent); }
+
+.article-preview {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.article-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.article-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.article-tag:hover,
+.article-tag.active {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.article-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.article-meta { display: flex; align-items: center; gap: 4px; }
+
+.article-like-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all var(--transition);
+    margin-left: auto;
+}
+
+.article-like-btn:hover { background: #fce4ec; color: #e91e63; }
+.article-like-btn.liked { color: #e91e63; }
+
+/* ── Список статей ── */
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ── Скелетон загрузки ── */
+.skeleton {
+    background: linear-gradient(90deg, var(--border) 25%, #f0f0f0 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+    border-radius: 6px;
+}
+
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.skeleton-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ── Пагинация ── */
+.feed-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.page-btn:hover { border-color: var(--accent); color: var(--accent); }
+.page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── Пустая лента ── */
+.feed-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.feed-empty i { font-size: 48px; margin-bottom: 12px; display: block; }
+.feed-empty p { font-size: 15px; }

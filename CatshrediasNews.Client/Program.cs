@@ -13,6 +13,7 @@ builder.Services.AddScoped(_ => new HttpClient
 });
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ArticleService>();
 
 var host = builder.Build();
 
