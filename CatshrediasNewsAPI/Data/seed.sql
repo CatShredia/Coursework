@@ -63,13 +63,14 @@ ON CONFLICT ("Id") DO NOTHING;
 -- Пароли захешированы BCrypt (значение: "password123")
 -- -------------------------------------------------------------
 INSERT INTO "Users" ("Id", "Username", "Email", "PasswordHash", "IsBlocked", "CreatedAt", "RoleId") VALUES
-    (1, 'admin',      'admin@catshredias.ru',    '$2a$11$xMBqMDnJMhMBWFAFkFkFkOQZQZQZQZQZQZQZQZQZQZQZQZQZQZQZQ', false, '2026-01-01 00:00:00+00', 1),
-    (2, 'moderator1', 'moder1@catshredias.ru',   '$2a$11$xMBqMDnJMhMBWFAFkFkFkOQZQZQZQZQZQZQZQZQZQZQZQZQZQZQZQ', false, '2026-01-05 00:00:00+00', 2),
-    (3, 'moderator2', 'moder2@catshredias.ru',   '$2a$11$xMBqMDnJMhMBWFAFkFkFkOQZQZQZQZQZQZQZQZQZQZQZQZQZQZQZQ', false, '2026-01-06 00:00:00+00', 2),
-    (4, 'user_alex',  'alex@example.com',        '$2a$11$xMBqMDnJMhMBWFAFkFkFkOQZQZQZQZQZQZQZQZQZQZQZQZQZQZQZQ', false, '2026-02-10 00:00:00+00', 3),
-    (5, 'user_maria', 'maria@example.com',       '$2a$11$xMBqMDnJMhMBWFAFkFkFkOQZQZQZQZQZQZQZQZQZQZQZQZQZQZQZQ', false, '2026-02-15 00:00:00+00', 3),
-    (6, 'user_ivan',  'ivan@example.com',        '$2a$11$xMBqMDnJMhMBWFAFkFkFkOQZQZQZQZQZQZQZQZQZQZQZQZQZQZQZQ', true,  '2026-03-01 00:00:00+00', 3)
-ON CONFLICT ("Id") DO NOTHING;
+    (1, 'admin',      'admin@catshredias.ru',    '$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', false, '2026-01-01 00:00:00+00', 1),
+    (2, 'moderator1', 'moder1@catshredias.ru',   '$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', false, '2026-01-05 00:00:00+00', 2),
+    (3, 'moderator2', 'moder2@catshredias.ru',   '$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', false, '2026-01-06 00:00:00+00', 2),
+    (4, 'user_alex',  'alex@example.com',        '$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', false, '2026-02-10 00:00:00+00', 3),
+    (5, 'user_maria', 'maria@example.com',       '$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', false, '2026-02-15 00:00:00+00', 3),
+    (6, 'user_ivan',  'ivan@example.com',        '$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', true,  '2026-03-01 00:00:00+00', 3)
+ON CONFLICT ("Id") DO UPDATE SET
+    "PasswordHash" = EXCLUDED."PasswordHash";
 
 -- -------------------------------------------------------------
 -- Articles

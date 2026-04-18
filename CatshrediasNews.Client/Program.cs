@@ -15,6 +15,7 @@ builder.Services.AddScoped(_ => new HttpClient
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<ModerationService>();
 
 var host = builder.Build();
 

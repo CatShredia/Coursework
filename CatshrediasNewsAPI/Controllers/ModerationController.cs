@@ -11,6 +11,14 @@ namespace CatshrediasNewsAPI.Controllers;
 [Authorize(Roles = "Moderator,Admin")]
 public class ModerationController(ModerationService moderationService) : ControllerBase
 {
+    // ? GetCounts : возвращает количество статей в очереди и активных жалоб
+    // вызывается клиентом для отображения бейджей в сайдбаре
+    [HttpGet("counts")]
+    public async Task<IActionResult> GetCounts()
+    {
+        return Ok(await moderationService.GetCountsAsync());
+    }
+
     // ? GetQueue : возвращает очередь статей на проверку
     // вызывается клиентом (Moderator)
     [HttpGet("queue")]

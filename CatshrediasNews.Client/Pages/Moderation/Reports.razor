@@ -1,0 +1,119 @@
+@page "/moderation/reports"
+@inject ModerationService ModerationSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Жалобы — Runews</PageTitle>
+
+@if (Auth.CurrentUser?.Role is not ("Moderator" or "Admin"))
+{
+    Nav.NavigateTo("/");
+    return;
+}
+
+<div class="admin-page">
+    <div class="admin-header">
+        <h1 class="page-title" style="margin:0">Жалобы</h1>
+        @if (!_loading)
+        {
+            <span class="admin-count">Активных: @_reports.Count</span>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="@(_isError ? "auth-error" : "auth-success")" style="margin-bottom:4px">
+            <i class="bi @(_isError ? "bi-exclamation-circle" : "bi-check-circle")"></i>
+            @_message
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <div class="admin-loading">
+            <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+            Загрузка...
+        </div>
+    }
+    else if (!_reports.Any())
+    {
+        <div class="feed-empty">
+            <i class="bi bi-flag"></i>
+            <p>Жалоб нет.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Тип</th>
+                        <th>Статья</th>
+                        <th>От кого</th>
+                        <th>Описание</th>
+                        <th>Дата</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in _reports)
+                    {
+                        <tr>
+                            <td>
+                                <span class="mod-report-type mod-report-@r.ReportType.ToLower()">
+                                    @r.ReportType
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/articles/@r.ArticleId" target="_blank" class="mod-article-link">
+                                    #@r.ArticleId <i class="bi bi-box-arrow-up-right" style="font-size:11px"></i>
+                                </a>
+                            </td>
+                            <td class="td-email">@r.ReportedBy</td>
+                            <td class="mod-report-desc">
+                                @(string.IsNullOrEmpty(r.Description) ? "—" : r.Description)
+                            </td>
+                            <td style="white-space:nowrap;color:var(--text-muted)">
+                                @r.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                            </td>
+                            <td>
+                                <button class="action-btn action-btn-success"
+                                        title="Отклонить жалобу"
+                                        disabled="@(_busy == r.Id)"
+                                        @onclick="() => Dismiss(r)">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ReportDto> _reports = [];
+    private bool _loading = true;
+    private int? _busy;
+    private string? _message;
+    private bool _isError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _reports = await ModerationSvc.GetReportsAsync();
+        _loading = false;
+    }
+
+    private async Task Dismiss(ReportDto report)
+    {
+        _busy = report.Id;
+        var ok = await ModerationSvc.DismissReportAsync(report.Id);
+        if (ok) { _reports.Remove(report); ShowMsg("Жалоба отклонена.", false); }
+        else      ShowMsg("Ошибка.", true);
+        _busy = null;
+    }
+
+    private void ShowMsg(string msg, bool isError) { _message = msg; _isError = isError; }
+}
