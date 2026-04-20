@@ -75,6 +75,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
 
+builder.Services.AddHttpClient(); 
+
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<TagService>();
@@ -83,6 +85,7 @@ builder.Services.AddScoped<RssSourceService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<TagMappingService>();
+builder.Services.AddScoped<IGigaChatService, GigaChatService>();
 builder.Services.AddSingleton<RssParserService>();
 builder.Services.AddSingleton<RssFetcherService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>());
