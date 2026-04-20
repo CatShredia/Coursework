@@ -1,0 +1,52 @@
+@page "/confirm-email"
+@inject NavigationManager Nav
+@inject HttpClient Http
+
+<PageTitle>Подтверждение email — Runews</PageTitle>
+
+<div style="display:flex;justify-content:center;align-items:center;min-height:60vh">
+    <div class="auth-card" style="text-align:center">
+        @if (_loading)
+        {
+            <span class="auth-spinner" style="width:32px;height:32px;margin-bottom:16px"></span>
+            <p>Подтверждаем ваш email...</p>
+        }
+        else if (_success)
+        {
+            <i class="bi bi-check-circle" style="font-size:48px;color:#43a047"></i>
+            <h2 style="margin:12px 0 8px">Email подтверждён!</h2>
+            <p style="color:var(--text-muted)">Теперь вы можете войти в аккаунт.</p>
+            <a href="/login?confirmed=true" class="auth-btn" style="display:inline-block;margin-top:16px;text-decoration:none">
+                Войти
+            </a>
+        }
+        else
+        {
+            <i class="bi bi-x-circle" style="font-size:48px;color:#e53935"></i>
+            <h2 style="margin:12px 0 8px">Ссылка недействительна</h2>
+            <p style="color:var(--text-muted)">Ссылка устарела или уже была использована.</p>
+            <a href="/" class="auth-btn" style="display:inline-block;margin-top:16px;text-decoration:none">
+                На главную
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _loading = true;
+    private bool _success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri   = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var token = query["token"];
+
+        if (string.IsNullOrEmpty(token)) { _loading = false; return; }
+
+        var response = await Http.GetAsync($"api/auth/confirm-email?token={token}");
+        _success = response.IsSuccessStatusCode;
+        _loading = false;
+        if (_success) Nav.NavigateTo("/login?confirmed=true");
+    }
+}

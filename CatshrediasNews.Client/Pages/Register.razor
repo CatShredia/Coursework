@@ -22,6 +22,14 @@
             <i class="bi bi-exclamation-circle"></i> @_error
         </div>
     }
+    @if (_emailSent)
+    {
+        <div class="auth-success">
+            <i class="bi bi-envelope-check"></i>
+            Письмо с подтверждением отправлено на <strong>@_email</strong>.
+            Перейдите по ссылке в письме, чтобы активировать аккаунт.
+        </div>
+    }
 
     <div class="auth-field">
         <label>Имя пользователя</label>
@@ -115,7 +123,7 @@
     private string _username = "", _email = "", _password = "", _confirm = "";
     private string _avatarColor = "#1a73e8";
     private string? _error;
-    private bool _loading, _showPassword, _emailInvalid, _passwordInvalid, _confirmInvalid;
+    private bool _loading, _showPassword, _emailInvalid, _passwordInvalid, _confirmInvalid, _emailSent;
 
     private static readonly string[] _palette =
     [
@@ -154,8 +162,10 @@
         if (_emailInvalid || _passwordInvalid || _confirmInvalid) return;
 
         _loading = true; _error = null;
-        _error = await Auth.RegisterAsync(new() { Username = _username, Email = _email, Password = _password, AvatarColor = _avatarColor });
+        var result = await Auth.RegisterAsync(new() { Username = _username, Email = _email, Password = _password, AvatarColor = _avatarColor });
         _loading = false;
-        if (_error is null) Nav.NavigateTo("/");
+        if (result == "email_sent") { _emailSent = true; return; }
+        if (result is not null) { _error = result; return; }
+        Nav.NavigateTo("/");
     }
 }

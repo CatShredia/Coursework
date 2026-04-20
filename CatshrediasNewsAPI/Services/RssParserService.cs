@@ -48,7 +48,10 @@ public class RssParserService(IServiceScopeFactory scopeFactory, TagMappingServi
                 .Where(t => matchedTagNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
-            var rawHtml   = item.Description ?? string.Empty;
+            var rawHtml = (item.SpecificItem as CodeHollow.FeedReader.Feeds.MediaRssFeedItem)?.Content
+                       ?? (item.SpecificItem as CodeHollow.FeedReader.Feeds.Rss20FeedItem)?.Content
+                       ?? item.Description
+                       ?? string.Empty;
 
             var article = new Article
             {

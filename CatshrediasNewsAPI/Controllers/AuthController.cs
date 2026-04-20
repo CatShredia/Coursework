@@ -24,9 +24,24 @@ public class AuthController(AuthService authService) : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
+        // Проверяем отдельно: есть ли пользователь с таким email и правильным паролем, но не подтверждён
+        var emailConfirmed = await authService.IsEmailConfirmedAsync(dto);
+        if (emailConfirmed == false)
+            return Unauthorized("email_not_confirmed");
+
         var result = await authService.LoginAsync(dto);
         if (result is null)
             return Unauthorized("Неверный email или пароль.");
         return Ok(result);
+    }
+
+    // ? ConfirmEmail : подтверждает email по токену из письма
+    // вызывается по ссылке из письма (Public)
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+    {
+        var ok = await authService.ConfirmEmailAsync(token);
+        if (!ok) return BadRequest("Ссылка недействительна или устарела.");
+        return Ok();
     }
 }

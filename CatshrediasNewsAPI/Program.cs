@@ -78,6 +78,7 @@ builder.Services.AddSignalR();
 builder.Services.AddHttpClient(); 
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<TagService>();
 builder.Services.AddScoped<ModerationService>();

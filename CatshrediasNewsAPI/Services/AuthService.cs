@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CatshrediasNewsAPI.Services;
 
-public class AuthService(AppDbContext db, IConfiguration config)
+public class AuthService(AppDbContext db, IConfiguration config, EmailService emailService)
 {
     // ? RegisterAsync : регистрирует нового пользователя с ролью User
     // вызывается из AuthController.Register (Public)
@@ -26,12 +26,17 @@ public class AuthService(AppDbContext db, IConfiguration config)
             Email        = dto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             RoleId       = userRole.Id,
-            AvatarColor  = string.IsNullOrWhiteSpace(dto.AvatarColor) ? "#1a73e8" : dto.AvatarColor
+            AvatarColor  = string.IsNullOrWhiteSpace(dto.AvatarColor) ? "#1a73e8" : dto.AvatarColor,
+            EmailConfirmed          = false,
+            EmailConfirmToken       = Guid.NewGuid().ToString("N"),
+            EmailConfirmTokenExpiry = DateTime.UtcNow.AddHours(24)
         };
 
         db.Users.Add(user);
         await db.SaveChangesAsync();
         await db.Entry(user).Reference(u => u.Role).LoadAsync();
+
+        await emailService.SendConfirmationAsync(user.Email, user.Username, user.EmailConfirmToken!);
 
         return new AuthResponseDto(GenerateToken(user), MapToDto(user));
     }
@@ -46,6 +51,9 @@ public class AuthService(AppDbContext db, IConfiguration config)
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return null;
+
+        if (!user.EmailConfirmed)
+            return null; // клиент получит 401 и покажет нужное сообщение
 
         return new AuthResponseDto(GenerateToken(user), MapToDto(user));
     }
@@ -76,4 +84,31 @@ public class AuthService(AppDbContext db, IConfiguration config)
     }
 
     private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);
+
+    // ? IsEmailConfirmedAsync : проверяет, подтверждён ли email у пользователя с правильным паролем
+    // возвращает null если пользователь не найден / пароль неверен
+    public async Task<bool?> IsEmailConfirmedAsync(LoginDto dto)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+            return null;
+        return user.EmailConfirmed;
+    }
+
+    // ? ConfirmEmailAsync : подтверждает email по токену
+    // вызывается из AuthController.ConfirmEmail (Public)
+    public async Task<bool> ConfirmEmailAsync(string token)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u =>
+            u.EmailConfirmToken == token &&
+            u.EmailConfirmTokenExpiry > DateTime.UtcNow);
+
+        if (user is null) return false;
+
+        user.EmailConfirmed          = true;
+        user.EmailConfirmToken       = null;
+        user.EmailConfirmTokenExpiry = null;
+        await db.SaveChangesAsync();
+        return true;
+    }
 }

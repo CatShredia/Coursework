@@ -54,7 +54,12 @@ public class AuthService
     {
         var response = await _http.PostAsJsonAsync("api/auth/login", request);
         if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            if (body.Contains("email_not_confirmed"))
+                return "email_not_confirmed";
             return "Неверный email или пароль.";
+        }
 
         var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
         if (result is null) return "Ошибка сервера.";
@@ -70,12 +75,8 @@ public class AuthService
         var response = await _http.PostAsJsonAsync("api/auth/register", request);
         if (!response.IsSuccessStatusCode)
             return "Пользователь с таким email уже существует.";
-
-        var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        if (result is null) return "Ошибка сервера.";
-
-        await SaveSessionAsync(result);
-        return null;
+        // Не сохраняем сессию — пользователь должен подтвердить email
+        return "email_sent";
     }
 
     // ? UpdateProfileAsync : обновляет username, email или пароль текущего пользователя
