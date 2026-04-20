@@ -4,6 +4,7 @@
 @using Microsoft.JSInterop
 @inject AuthService Auth
 @inject ArticleService ArticleSvc
+@inject GigaChadService GigaSvc
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
@@ -57,20 +58,18 @@
         </div>
         <div style="display:flex;align-items:flex-end;gap:8px">
             <span style="color:var(--text-muted);font-size:13px;padding-bottom:10px">или</span>
-            <div>
-                <label class="editor-upload-btn">
-                    @if (_coverUploading)
-                    {
-                        <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
-                    }
-                    else
-                    {
-                        <i class="bi bi-upload"></i>
-                        <span>Загрузить</span>
-                    }
-                    <InputFile style="display:none" accept="image/*" OnChange="OnCoverSelected" />
-                </label>
-            </div>
+            <label class="editor-upload-btn">
+                @if (_coverUploading)
+                {
+                    <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+                }
+                else
+                {
+                    <i class="bi bi-upload"></i>
+                    <span>Загрузить</span>
+                }
+                <InputFile style="display:none" accept="image/*" OnChange="OnCoverSelected" />
+            </label>
         </div>
     </div>
     @if (!string.IsNullOrEmpty(_coverUrl))
@@ -87,12 +86,102 @@
         <span class="field-error">@_coverError</span>
     }
 
-    <!-- Поле заголовка -->
+    <!-- Ссылки -->
     <a href="/editor-guide" class="editor-guide-link">
         <i class="bi bi-question-circle"></i> Инструкция к редактору
     </a>
+    <a href="/publishing-rules" class="editor-guide-link">
+        <i class="bi bi-shield-check"></i> Правила публикации
+    </a>
 
-    <!-- Поле заголовка -->
+    <!-- GigaChad AI -->
+    <div class="gigachad-block">
+        <button class="gigachad-toggle @(_gigaOpen ? "open" : "")" @onclick="ToggleGiga">
+            @if (_gigaOpen)
+            {
+                <i class="bi bi-x-lg"></i>
+                <span>Отмена</span>
+            }
+            else
+            {
+                <span>Работа с</span>
+                <svg viewBox="0 0 105 43" fill="var(--accent-ultra)" aria-label="На главную" class="Icon__IconNonSquare-sc-2c7dee0f-1 bQCLaW DesktopSidebar-styled__StyledLogoV2-sc-26ad63ba-5 gIBhPL" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path fill="inherit" d="m37.874 40.22 2.16-3.16h1.186v4.697h-1.073v-3.233l-2.18 3.233H36.8V37.06h1.074zM44.18 40.22l2.16-3.16h1.187v4.697h-1.074v-3.233l-2.181 3.233h-1.167V37.06h1.073v3.16zM56.84 38.067h-2.148v3.69H53.62V37.06h4.292v4.697h-1.073v-3.69zM62.033 41.837a3.2 3.2 0 0 1-1.043-.161 2.3 2.3 0 0 1-.815-.473 2.1 2.1 0 0 1-.534-.766 2.6 2.6 0 0 1-.191-1.036q0-.544.188-.99a2.24 2.24 0 0 1 1.337-1.258 3 3 0 0 1 1.051-.174c.386 0 .721.053 1.036.161q.473.162.816.473.341.311.533.766.19.45.191 1.036 0 .543-.188.989a2.2 2.2 0 0 1-.526.761q-.34.316-.811.493a3 3 0 0 1-1.044.177zm-1.442-2.43q0 .297.09.552.09.254.271.45.181.195.45.308.27.114.631.114.328 0 .594-.105.266-.103.451-.289.188-.183.286-.446.097-.262.097-.583 0-.287-.09-.548a1.3 1.3 0 0 0-.271-.453 1.3 1.3 0 0 0-.45-.308 1.6 1.6 0 0 0-.631-.114q-.334 0-.6.105a1.3 1.3 0 0 0-.45.292 1.3 1.3 0 0 0-.282.45 1.6 1.6 0 0 0-.098.578zM70.393 38.53l-1.269 2.159h-.597L67.22 38.54v3.214h-1.074V37.06h1.382l1.322 2.26 1.307-2.26h1.308v4.696H70.39V38.53zM75.592 41.837a3.2 3.2 0 0 1-1.044-.161 2.3 2.3 0 0 1-.815-.473 2.1 2.1 0 0 1-.533-.766 2.6 2.6 0 0 1-.191-1.036q0-.544.187-.99.19-.447.527-.766.339-.32.811-.492a3 3 0 0 1 1.05-.174c.385 0 .722.053 1.037.161q.474.162.815.473.343.311.533.766.192.45.192 1.036 0 .543-.188.989a2.2 2.2 0 0 1-.526.761q-.338.316-.812.493a3 3 0 0 1-1.043.177zm-1.442-2.43q0 .297.09.552.09.254.271.45.18.195.45.308.27.114.63.114.33 0 .594-.105.265-.103.454-.289.188-.183.285-.446.098-.262.097-.583 0-.287-.09-.548a1.3 1.3 0 0 0-.27-.453 1.3 1.3 0 0 0-.45-.308 1.6 1.6 0 0 0-.632-.114q-.335 0-.6.105a1.3 1.3 0 0 0-.45.292 1.25 1.25 0 0 0-.282.45 1.6 1.6 0 0 0-.097.578zM83.14 40.75h1.295v-3.69h1.074v3.69h.489v1.879h-1.014v-.872h-5.28V37.06h1.074v3.69h1.288v-3.69h1.074zM90.834 39.844h-2.268v1.911h-1.074V37.06h1.074v1.778h2.267V37.06h1.074v4.696h-1.073zM94.867 40.22l2.16-3.16h1.186v4.697H97.14v-3.233l-2.18 3.233h-1.167V37.06h1.074zM101.173 41.755h-1.074V37.06h1.074v1.865h.616l1.221-1.865h1.276l-1.57 2.2 1.885 2.496h-1.355l-1.396-1.911h-.677zM50.627 38.358a1.015 1.015 0 1 0 0 2.03 1.015 1.015 0 0 0 0-2.03"></path><path fill="inherit" fill-rule="evenodd" d="M16.046 0c8.862 0 16.046 7.184 16.046 16.046 0 8.863-7.184 16.046-16.046 16.046S0 24.908 0 16.046 7.185 0 16.046 0M29.26 12.157c-.406 2.813-1.835 5.133-3.028 6.644-1.84 2.267-4.307 4.23-7.137 5.68-2.8 1.436-5.827 2.308-8.756 2.522-.496.029-.956.043-1.388.043-.513 0-.987-.02-1.436-.061a13.77 13.77 0 0 0 8.522 2.936l-.002-.002c7.64 0 13.835-6.193 13.835-13.834 0-1.326-.187-2.607-.535-3.821zM18.015 1.463c-4.727 0-9.024 1.95-11.494 5.212l-.015.02c-1.068 1.3-1.778 2.727-2.051 4.127-.156.851-.127 1.633.087 2.315v-.002c.507 1.524 1.743 2.747 3.143 3.106a5.8 5.8 0 0 0 1.664.182l.137-.012c3.542-.286 6.7-2.517 9.322-4.664 1.64-1.373 3.21-3.19 3.311-4.364-2.288 1.11-4.65 2.553-7.373 4.504a.68.68 0 0 1-.938-.137C12.456 10 11.278 8.578 10.1 7.28a.686.686 0 0 1 .097-1.005c3.61-2.708 7.201-4.242 10.685-4.565a16.6 16.6 0 0 0-2.867-.247M72.41 16.453c7.479 0 8.68 2.623 7.904 4.756l-1.266 3.576c-.39 1.105.33 1.352.846 1.353h1.4c.138 0 .235.138.189.268l-1.4 3.845a.345.345 0 0 1-.323.226h-5.397c-2.212 0-2.837-.956-2.805-1.715-.63.514-3.4 2.01-6.76 2.01h-1.63c-3.826 0-6.473-1.986-5.544-4.537.927-2.55 2.97-3.848 7.917-4.167l7.376-.221c.739-.074 1.042-.193 1.243-.786.212-.71-1.13-1.127-3.116-1.127h-1.107c-1.887 0-3.416.729-3.831 1.134a.5.5 0 0 1-.353.141l-5.662-.024a.19.19 0 0 1-.17-.27c.868-1.838 4.076-4.462 11.058-4.462zm.364 7.816c-.886.1-2.33.25-3.89.397-3.477.318-4.471.662-4.934 1.447-.438.859.27 1.226 2.33 1.226 3.609 0 5.782-1.271 6.478-2.452l.198-.338a.187.187 0 0 0-.182-.28" clip-rule="evenodd"></path><path fill="inherit" d="M100.609 16.863c.114 0 .205.092.205.205v3.858a.205.205 0 0 1-.205.205h-6.044a.206.206 0 0 0-.205.206v8.95a.206.206 0 0 1-.206.206h-5.782a.206.206 0 0 1-.205-.205v-8.95a.206.206 0 0 0-.206-.207h-6.044a.205.205 0 0 1-.206-.205v-3.858c0-.114.093-.205.206-.205zM56.083 16.792c.14 0 .253.115.253.253l.001.003v13.19c0 .14-.114.253-.253.253h-5.612a.254.254 0 0 1-.253-.253v-4.023c0-.152-.13-.27-.281-.252-1.21.15-3.215.232-4.783.232-6.362 0-8.41-1.743-8.41-6.358v-2.79c0-.14.115-.253.254-.253h5.67c.14 0 .253.114.253.253v2.324c0 2.16.943 2.626 3.45 2.626.778 0 2.78-.059 3.619-.143a.253.253 0 0 0 .227-.254v-4.555c0-.14.114-.253.253-.253zM48.874 1.799c.114 0 .206.092.206.205v3.565a.207.207 0 0 1-.206.206h-5.75a.205.205 0 0 0-.205.206v9.244a.206.206 0 0 1-.205.206H36.95a.206.206 0 0 1-.206-.207V2.004c0-.114.093-.205.206-.205zM56.178 1.8c.114 0 .205.092.205.205v7.357c0 .189.232.277.358.138l6.888-7.633a.2.2 0 0 1 .152-.068h5.877c.114 0 .206.093.206.206v13.22a.207.207 0 0 1-.206.206h-5.763a.206.206 0 0 1-.205-.207v-7.34a.206.206 0 0 0-.358-.138l-6.888 7.617a.2.2 0 0 1-.152.068h-5.876a.207.207 0 0 1-.207-.207V2.004c0-.113.094-.205.207-.205zM83.486 1.799c.114 0 .205.092.205.205v3.565a.206.206 0 0 1-.205.206h-5.75a.206.206 0 0 0-.206.206v9.244a.206.206 0 0 1-.205.206h-5.763a.207.207 0 0 1-.206-.207V2.004c0-.114.093-.205.206-.205z"></path><path fill="inherit" fill-rule="evenodd" d="M95.65 1.796c.06 0 .118.034.145.086l7.187 13.32c.056.105-.024.229-.146.229H95.99a.17.17 0 0 1-.15-.092l-.82-1.703a.17.17 0 0 0-.15-.093h-7.449a.17.17 0 0 0-.151.093l-.8 1.702a.17.17 0 0 1-.152.093h-6.215c-.12 0-.2-.12-.148-.225l6.753-13.32a.17.17 0 0 1 .148-.09zM91.25 5.9c-.06-.121-.241-.121-.3 0l-1.754 3.665c-.05.103.03.22.15.22h3.54c.12 0 .2-.118.15-.221h.001z" clip-rule="evenodd"></path></svg>
+            }
+        </button>
+
+        @if (_gigaOpen)
+        {
+            <div class="gigachad-actions">
+                @if (_content.Length < 50)
+                {
+                    <p class="gigachad-hint"><i class="bi bi-info-circle"></i> Введите не менее 50 символов для использования ИИ</p>
+                }
+                else
+                {
+                    <div class="gigachad-group">
+                        <span class="gigachad-group-label">Текст</span>
+                        <button class="gigachad-btn" disabled="@_gigaBusy" @onclick='() => RunGiga("improve")'>
+                            <i class="bi bi-stars"></i> Улучшить
+                        </button>
+                        <button class="gigachad-btn" disabled="@_gigaBusy" @onclick='() => RunGiga("expand")'>
+                            <i class="bi bi-arrows-expand"></i> Увеличить текст
+                        </button>
+                        <button class="gigachad-btn" disabled="@_gigaBusy" @onclick='() => RunGiga("shorten")'>
+                            <i class="bi bi-arrows-collapse"></i> Уменьшить текст
+                        </button>
+                    </div>
+                    <div class="gigachad-group">
+                        <span class="gigachad-group-label">Проверка</span>
+                        <button class="gigachad-btn" disabled="@_gigaBusy" @onclick='() => RunGiga("spellcheck")'>
+                            <i class="bi bi-spell-check"></i> Орфография
+                        </button>
+                        <button class="gigachad-btn" disabled="@_gigaBusy" @onclick='() => RunGiga("check-rules")'>
+                            <i class="bi bi-shield-check"></i> Правила публикации
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @if (_gigaBusy)
+            {
+                <div class="gigachad-loading">
+                    <span class="auth-spinner" style="border-color:rgba(168,85,247,.3);border-top-color:#a855f7;width:20px;height:20px"></span>
+                    <span>GigaChad думает<span class="gigachad-loading-dots"></span></span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(_gigaError))
+            {
+                <div class="auth-error" style="margin-top:8px"><i class="bi bi-exclamation-circle"></i> @_gigaError</div>
+            }
+            @if (!string.IsNullOrEmpty(_gigaResult))
+            {
+                <div class="gigachad-result">
+                    <div class="gigachad-result-header">
+                        @if (_gigaAction == "check-rules")
+                        {
+                            <span><i class="bi bi-shield-check"></i> Результат проверки</span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-stars"></i> Предложение GigaChad</span>
+                        }
+                        <button class="gigachad-result-close" @onclick="() => _gigaResult = null"><i class="bi bi-x"></i></button>
+                    </div>
+                    <div class="gigachad-result-body">
+                        @((MarkupString)RenderMarkdown(_gigaResult))
+                    </div>
+                    @if (_gigaAction != "check-rules")
+                    {
+                        <button class="gigachad-apply-btn" @onclick="ApplyGigaResult">
+                            <i class="bi bi-check2"></i> Внести изменения
+                        </button>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Заголовок статьи -->
     <input class="editor-title-input"
            type="text"
            placeholder="Заголовок статьи..."
@@ -117,56 +206,27 @@
     {
         <!-- Панель инструментов -->
         <div class="editor-toolbar">
-            <button class="editor-tool" title="Жирный (Ctrl+B)"      @onclick='() => Wrap("**", "**", "жирный текст")'>
-                <i class="bi bi-type-bold"></i>
-            </button>
-            <button class="editor-tool" title="Курсив (Ctrl+I)"      @onclick='() => Wrap("*", "*", "курсив")'>
-                <i class="bi bi-type-italic"></i>
-            </button>
-            <button class="editor-tool" title="Зачёркнутый"          @onclick='() => Wrap("~~", "~~", "текст")'>
-                <i class="bi bi-type-strikethrough"></i>
-            </button>
+            <button class="editor-tool" title="Жирный (Ctrl+B)"      @onclick='() => Wrap("**", "**", "жирный текст")'><i class="bi bi-type-bold"></i></button>
+            <button class="editor-tool" title="Курсив (Ctrl+I)"      @onclick='() => Wrap("*", "*", "курсив")'><i class="bi bi-type-italic"></i></button>
+            <button class="editor-tool" title="Зачёркнутый"          @onclick='() => Wrap("~~", "~~", "текст")'><i class="bi bi-type-strikethrough"></i></button>
             <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Заголовок H1"         @onclick='() => LinePrefix("# ")'>
-                <i class="bi bi-type-h1"></i>
-            </button>
-            <button class="editor-tool" title="Заголовок H2"         @onclick='() => LinePrefix("## ")'>
-                <i class="bi bi-type-h2"></i>
-            </button>
-            <button class="editor-tool" title="Заголовок H3"         @onclick='() => LinePrefix("### ")'>
-                <i class="bi bi-type-h3"></i>
-            </button>
+            <button class="editor-tool" title="Заголовок H1"         @onclick='() => LinePrefix("# ")'><i class="bi bi-type-h1"></i></button>
+            <button class="editor-tool" title="Заголовок H2"         @onclick='() => LinePrefix("## ")'><i class="bi bi-type-h2"></i></button>
+            <button class="editor-tool" title="Заголовок H3"         @onclick='() => LinePrefix("### ")'><i class="bi bi-type-h3"></i></button>
             <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Цитата"               @onclick='() => LinePrefix("> ")'>
-                <i class="bi bi-blockquote-left"></i>
-            </button>
-            <button class="editor-tool" title="Код"                  @onclick='() => Wrap("`", "`", "код")'>
-                <i class="bi bi-code"></i>
-            </button>
-            <button class="editor-tool" title="Блок кода"            @onclick='() => Wrap("```\n", "\n```", "код")'>
-                <i class="bi bi-code-square"></i>
-            </button>
+            <button class="editor-tool" title="Цитата"               @onclick='() => LinePrefix("> ")'><i class="bi bi-blockquote-left"></i></button>
+            <button class="editor-tool" title="Код"                  @onclick='() => Wrap("`", "`", "код")'><i class="bi bi-code"></i></button>
+            <button class="editor-tool" title="Блок кода"            @onclick='() => Wrap("```\n", "\n```", "код")'><i class="bi bi-code-square"></i></button>
             <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Маркированный список" @onclick='() => LinePrefix("- ")'>
-                <i class="bi bi-list-ul"></i>
-            </button>
-            <button class="editor-tool" title="Нумерованный список"  @onclick='() => LinePrefix("1. ")'>
-                <i class="bi bi-list-ol"></i>
-            </button>
+            <button class="editor-tool" title="Маркированный список" @onclick='() => LinePrefix("- ")'><i class="bi bi-list-ul"></i></button>
+            <button class="editor-tool" title="Нумерованный список"  @onclick='() => LinePrefix("1. ")'><i class="bi bi-list-ol"></i></button>
             <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Гиперссылка"          @onclick="InsertLink">
-                <i class="bi bi-link-45deg"></i>
-            </button>
-            <button class="editor-tool" title="Изображение"          @onclick="InsertImage">
-                <i class="bi bi-image"></i>
-            </button>
+            <button class="editor-tool" title="Гиперссылка"          @onclick="InsertLink"><i class="bi bi-link-45deg"></i></button>
+            <button class="editor-tool" title="Изображение"          @onclick="InsertImage"><i class="bi bi-image"></i></button>
             <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Горизонтальная линия" @onclick='() => Insert("\n---\n")'>
-                <i class="bi bi-dash-lg"></i>
-            </button>
+            <button class="editor-tool" title="Горизонтальная линия" @onclick='() => Insert("\n---\n")'><i class="bi bi-dash-lg"></i></button>
         </div>
 
-        <!-- Textarea редактора -->
         <textarea id="md-editor"
                   class="editor-textarea"
                   placeholder="Начните писать статью в формате Markdown..."
@@ -177,7 +237,6 @@
     }
     else
     {
-        <!-- Предпросмотр -->
         <div class="editor-preview">
             @if (string.IsNullOrWhiteSpace(_content))
             {
@@ -204,10 +263,15 @@
     private List<TagDto> _tags = [];
     private HashSet<int> _selectedTags = [];
 
+    private bool    _gigaOpen;
+    private bool    _gigaBusy;
+    private string? _gigaResult;
+    private string? _gigaError;
+    private string? _gigaAction;
+
     protected override async Task OnInitializedAsync()
     {
         _tags = await ArticleSvc.GetTagsAsync();
-
         if (EditId.HasValue)
         {
             var article = await ArticleSvc.GetByIdAsync(EditId.Value);
@@ -229,33 +293,56 @@
         if (!_selectedTags.Remove(id)) _selectedTags.Add(id);
     }
 
-    // ── Сохранение ───────────────────────────────────────────
-
     private async Task Save()
     {
-        if (string.IsNullOrWhiteSpace(_title))
-        { _error = "Введите заголовок."; return; }
-        if (string.IsNullOrWhiteSpace(_content))
-        { _error = "Статья не может быть пустой."; return; }
+        if (string.IsNullOrWhiteSpace(_title))   { _error = "Введите заголовок."; return; }
+        if (string.IsNullOrWhiteSpace(_content)) { _error = "Статья не может быть пустой."; return; }
 
         _saving = true; _error = null; _success = null;
-
-        var (article, error) = await ArticleSvc.SaveArticleAsync(
-            EditId, _title.Trim(), _content, _selectedTags.ToList(), _coverUrl);
-
+        var (article, error) = await ArticleSvc.SaveArticleAsync(EditId, _title.Trim(), _content, _selectedTags.ToList(), _coverUrl);
         _saving = false;
 
         if (error is not null) { _error = error; return; }
-
-        _success = EditId.HasValue
-            ? "Статья обновлена и отправлена на модерацию."
-            : "Статья создана и отправлена на модерацию.";
-
+        _success = EditId.HasValue ? "Статья обновлена и отправлена на модерацию." : "Статья создана и отправлена на модерацию.";
         if (!EditId.HasValue && article is not null)
             Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
     }
 
-    // ── Загрузка обложки ─────────────────────────────────────
+    private void ToggleGiga()
+    {
+        _gigaOpen   = !_gigaOpen;
+        _gigaResult = null;
+        _gigaError  = null;
+    }
+
+    private async Task RunGiga(string action)
+    {
+        if (_content.Length < 50) return;
+        _gigaBusy = true; _gigaError = null; _gigaResult = null; _gigaAction = action;
+
+        var result = action switch
+        {
+            "improve"     => await GigaSvc.ImproveAsync(_content),
+            "expand"      => await GigaSvc.ExpandAsync(_content),
+            "shorten"     => await GigaSvc.ShortenAsync(_content),
+            "spellcheck"  => await GigaSvc.SpellcheckAsync(_content),
+            "check-rules" => await GigaSvc.CheckRulesAsync(_content),
+            _             => null
+        };
+
+        _gigaBusy = false;
+
+        if (result is null) { _gigaError = "ГигаЧат недоступен. Попробуйте позже."; return; }
+        // Всегда показываем результат в отдельном блоке
+        _gigaResult = result;
+    }
+
+    private void ApplyGigaResult()
+    {
+        if (_gigaResult is null) return;
+        _content    = _gigaResult;
+        _gigaResult = null;
+    }
 
     private async Task OnCoverSelected(InputFileChangeEventArgs e)
     {
@@ -263,19 +350,17 @@
         var f = e.File;
         if (f.Size > 10 * 1024 * 1024) { _coverError = "Файл не должен превышать 10 МБ."; return; }
         _coverUploading = true;
-        using var ms    = new System.IO.MemoryStream();
+        using var ms = new System.IO.MemoryStream();
         await f.OpenReadStream(10 * 1024 * 1024).CopyToAsync(ms);
-        var content     = new ByteArrayContent(ms.ToArray());
+        var content = new ByteArrayContent(ms.ToArray());
         content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(f.ContentType);
-        var form        = new MultipartFormDataContent();
+        var form = new MultipartFormDataContent();
         form.Add(content, "upload", f.Name);
-        var (url, err)  = await ArticleSvc.UploadImageAsync(form);
+        var (url, err) = await ArticleSvc.UploadImageAsync(form);
         _coverUploading = false;
         if (err is not null) { _coverError = err; return; }
         _coverUrl = url;
     }
-
-    // ── Горячие клавиши ──────────────────────────────────────
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
@@ -288,68 +373,39 @@
         }
     }
 
-    // ── Операции с текстом через JS ──────────────────────────
+    private async Task Wrap(string before, string after, string placeholder) =>
+        _content = await JS.InvokeAsync<string>("mdEditor.wrap", "md-editor", before, after, placeholder);
 
-    private async Task Wrap(string before, string after, string placeholder)
-    {
-        _content = await JS.InvokeAsync<string>("mdEditor.wrap",
-            "md-editor", before, after, placeholder);
-    }
+    private async Task LinePrefix(string prefix) =>
+        _content = await JS.InvokeAsync<string>("mdEditor.linePrefix", "md-editor", prefix);
 
-    private async Task LinePrefix(string prefix)
-    {
-        _content = await JS.InvokeAsync<string>("mdEditor.linePrefix",
-            "md-editor", prefix);
-    }
+    private async Task Insert(string text) =>
+        _content = await JS.InvokeAsync<string>("mdEditor.insert", "md-editor", text);
 
-    private async Task Insert(string text)
-    {
-        _content = await JS.InvokeAsync<string>("mdEditor.insert",
-            "md-editor", text);
-    }
+    private async Task InsertLink() =>
+        _content = await JS.InvokeAsync<string>("mdEditor.wrap", "md-editor", "[", "](https://)", "текст ссылки");
 
-    private async Task InsertLink()
-    {
-        _content = await JS.InvokeAsync<string>("mdEditor.wrap",
-            "md-editor", "[", "](https://)", "текст ссылки");
-    }
-
-    private async Task InsertImage()
-    {
-        _content = await JS.InvokeAsync<string>("mdEditor.wrap",
-            "md-editor", "![", "](https://)", "описание");
-    }
-
-    // ── Рендер Markdown ──────────────────────────────────────
+    private async Task InsertImage() =>
+        _content = await JS.InvokeAsync<string>("mdEditor.wrap", "md-editor", "![", "](https://)", "описание");
 
     private static string RenderMarkdown(string md)
     {
-        // Заголовки
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",  "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",   "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        // Жирный, курсив, зачёркнутый
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");
-        // Код
         md = System.Text.RegularExpressions.Regex.Replace(md, @"```[\s\S]+?```", m =>
             "<pre><code>" + m.Value.Trim('`').Trim() + "</code></pre>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`", "<code>$1</code>");
-        // Ссылки и изображения
         md = System.Text.RegularExpressions.Regex.Replace(md, @"!\[(.+?)\]\((.+?)\)", "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\[(.+?)\]\((.+?)\)",  "<a href=\"$2\" target=\"_blank\">$1</a>");
-        // Цитата
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^> (.+)$", "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        // Списки
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$","<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        // Горизонтальная линия
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$", "<hr>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        // Абзацы
-        md = string.Join("\n", md.Split('\n')
-            .Select(l => l.StartsWith('<') ? l : $"<p>{l}</p>"));
-
+        md = string.Join("\n", md.Split('\n').Select(l => l.StartsWith('<') ? l : $"<p>{l}</p>"));
         return md;
     }
 }
