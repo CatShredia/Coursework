@@ -1,4 +1,5 @@
 @page "/register"
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @layout AuthLayout
 @inject AuthService Auth
@@ -20,6 +21,14 @@
     {
         <div class="auth-error">
             <i class="bi bi-exclamation-circle"></i> @_error
+        </div>
+    }
+    @if (_emailSent)
+    {
+        <div class="auth-success">
+            <i class="bi bi-envelope-check"></i>
+            Письмо с подтверждением отправлено на <strong>@_email</strong>.
+            Перейдите по ссылке в письме, чтобы активировать аккаунт
         </div>
     }
 
@@ -96,9 +105,21 @@
             }
         </div>
         <div class="avatar-preview">
-            <i class="bi bi-person-circle" style="color:@_avatarColor"></i>
+            @if (_avatarPreviewUrl is not null)
+            {
+                <img src="@_avatarPreviewUrl" class="profile-avatar-img" alt="preview" />
+            }
+            else
+            {
+                <i class="bi bi-person-circle" style="color:@_avatarColor"></i>
+            }
             <span style="color:var(--text-muted);font-size:12px">Предпросмотр</span>
         </div>
+        <label class="reg-avatar-upload">
+            <i class="bi bi-upload"></i>
+            @(_avatarFile is null ? "Загрузить аватар (необязательно)" : _avatarFile.Name)
+            <InputFile style="display:none" accept="image/*" OnChange="OnRegAvatarSelected" />
+        </label>
     </div>
 
     <button class="auth-btn" @onclick="Submit" disabled="@_loading">
@@ -114,8 +135,9 @@
 @code {
     private string _username = "", _email = "", _password = "", _confirm = "";
     private string _avatarColor = "#1a73e8";
-    private string? _error;
-    private bool _loading, _showPassword, _emailInvalid, _passwordInvalid, _confirmInvalid;
+    private string? _error, _avatarPreviewUrl;
+    private IBrowserFile? _avatarFile;
+    private bool _loading, _showPassword, _emailInvalid, _passwordInvalid, _confirmInvalid, _emailSent;
 
     private static readonly string[] _palette =
     [
@@ -141,6 +163,14 @@
     }
 
     private void TogglePassword() => _showPassword = !_showPassword;
+
+    private async Task OnRegAvatarSelected(InputFileChangeEventArgs e)
+    {
+        _avatarFile = e.File;
+        using var ms = new System.IO.MemoryStream();
+        await _avatarFile.OpenReadStream(5 * 1024 * 1024).CopyToAsync(ms);
+        _avatarPreviewUrl = $"data:{_avatarFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+    }
     
     private void GoBack() => JS.InvokeVoidAsync("history.back");
 
@@ -154,8 +184,10 @@
         if (_emailInvalid || _passwordInvalid || _confirmInvalid) return;
 
         _loading = true; _error = null;
-        _error = await Auth.RegisterAsync(new() { Username = _username, Email = _email, Password = _password, AvatarColor = _avatarColor });
+        var result = await Auth.RegisterAsync(new() { Username = _username, Email = _email, Password = _password, AvatarColor = _avatarColor });
         _loading = false;
-        if (_error is null) Nav.NavigateTo("/");
+        if (result == "email_sent") { _emailSent = true; return; }
+        if (result is not null) { _error = result; return; }
+        Nav.NavigateTo("/");
     }
 }

@@ -20,16 +20,18 @@
 <div class="profile-wrap">
         <div class="profile-card">
             <div class="profile-avatar">
-                <label class="profile-avatar-label">
-                    @if (!string.IsNullOrEmpty(Auth.CurrentUser!.AvatarUrl))
-                    {
-                        <img src="@Auth.CurrentUser.AvatarUrl" class="profile-avatar-img" alt="avatar" />
-                    }
-                    else
-                    {
-                        <i class="bi bi-person-circle" style="color:@Auth.CurrentUser!.AvatarColor"></i>
-                    }
-                    <div class="profile-avatar-overlay"><i class="bi bi-camera"></i></div>
+                @if (!string.IsNullOrEmpty(Auth.CurrentUser!.AvatarUrl))
+                {
+                    <img src="@Auth.CurrentUser.AvatarUrl" class="profile-avatar-img"
+                         alt="avatar" style="cursor:zoom-in"
+                         @onclick="() => _showAvatarPreview = true" />
+                }
+                else
+                {
+                    <i class="bi bi-person-circle" style="color:@Auth.CurrentUser!.AvatarColor;font-size:64px"></i>
+                }
+                <label class="profile-avatar-upload-btn">
+                    <i class="bi bi-upload"></i> Загрузить аватар
                     <InputFile style="display:none" accept="image/*" OnChange="OnAvatarSelected" />
                 </label>
             </div>
@@ -154,6 +156,13 @@
         </div>
     </div>
 
+@if (_showAvatarPreview && !string.IsNullOrEmpty(Auth.CurrentUser?.AvatarUrl))
+{
+    <div class="modal-overlay" @onclick="() => _showAvatarPreview = false">
+        <img src="@Auth.CurrentUser!.AvatarUrl" style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)" @onclick:stopPropagation="true" />
+    </div>
+}
+
 @if (_showDeleteModal)
 {
     <div class="modal-overlay" @onclick="() => _showDeleteModal = false">
@@ -191,7 +200,7 @@
     private string _confirm = "";
     private string _avatarColor = "#1a73e8";
     private string? _error, _success, _deleteError, _avatarError;
-    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting, _avatarLoading;
+    private bool _loading, _showPassword, _showDeleteModal, _deleteLoading, _deleting, _avatarLoading, _showAvatarPreview;
     private bool _emailInvalid, _passwordInvalid, _confirmInvalid;
 
     private static readonly string[] _palette =

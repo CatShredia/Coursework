@@ -18,6 +18,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "https://localhost:7241",
+                "https://localhost:7255",
                 "http://localhost:5071",
                 "http://localhost:5110"
             )
@@ -75,7 +76,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
 
+builder.Services.AddHttpClient(); 
+
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<TagService>();
 builder.Services.AddScoped<ModerationService>();
@@ -83,6 +87,7 @@ builder.Services.AddScoped<RssSourceService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<TagMappingService>();
+builder.Services.AddScoped<IGigaChatService, GigaChatService>();
 builder.Services.AddSingleton<RssParserService>();
 builder.Services.AddSingleton<RssFetcherService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>());

@@ -1,0 +1,131 @@
+@page "/publishing-rules"
+
+<PageTitle>Правила публикации — Runews</PageTitle>
+
+<div class="info-page">
+    <a href="/publicist/create" class="article-back">
+        <i class="bi bi-arrow-left"></i> Назад к редактору
+    </a>
+
+    <div>
+        <h1 class="info-page-title">Правила публикации статей</h1>
+        <p class="info-page-subtitle">
+            Перед публикацией убедитесь, что ваша статья соответствует требованиям сообщества.
+            Нарушение правил приведёт к отклонению материала или блокировке аккаунта.
+        </p>
+    </div>
+
+    <!-- Общие требования -->
+    <div class="rules-section">
+        <div class="rules-section-header">
+            <div class="rules-section-icon"><i class="bi bi-check2-circle"></i></div>
+            <h2>Общие требования</h2>
+        </div>
+        <ul class="rules-list">
+            <li>Статья должна быть написана на русском или английском языке.</li>
+            <li>Минимальный объём — <strong>300 символов</strong>. Слишком короткие материалы не несут ценности для читателей.</li>
+            <li>Заголовок должен точно отражать содержание статьи и не вводить читателя в заблуждение.</li>
+            <li>Текст должен быть грамотным, структурированным и читаемым.</li>
+            <li>Один автор не может публиковать более <strong>5 статей в сутки</strong>.</li>
+        </ul>
+    </div>
+
+    <!-- Запрещённый контент -->
+    <div class="rules-section rules-section-danger">
+        <div class="rules-section-header">
+            <div class="rules-section-icon danger"><i class="bi bi-slash-circle"></i></div>
+            <h2>Запрещённый контент</h2>
+        </div>
+        <ul class="rules-list">
+            <li><strong>Дезинформация и фейки</strong> — публикация заведомо ложных сведений, непроверенных слухов или манипулятивных материалов.</li>
+            <li><strong>Разжигание ненависти</strong> — материалы, направленные против людей по признаку расы, национальности, религии, пола или сексуальной ориентации.</li>
+            <li><strong>Спам и реклама</strong> — коммерческие объявления, партнёрские ссылки без пометки, массовые однотипные публикации.</li>
+            <li><strong>Насилие и жестокость</strong> — детальные описания или изображения насилия, контент 18+.</li>
+            <li><strong>Нарушение авторских прав</strong> — полное копирование чужих материалов без указания источника и разрешения автора.</li>
+            <li><strong>Личные данные</strong> — публикация персональных данных третьих лиц без их согласия.</li>
+        </ul>
+    </div>
+
+    <!-- Требования к оформлению -->
+    <div class="rules-section">
+        <div class="rules-section-header">
+            <div class="rules-section-icon"><i class="bi bi-pencil-square"></i></div>
+            <h2>Требования к оформлению</h2>
+        </div>
+        <ul class="rules-list">
+            <li>Используйте заголовки (H2, H3) для структурирования длинных материалов.</li>
+            <li>Обложка статьи должна соответствовать теме и не содержать текст, перекрывающий изображение.</li>
+            <li>Ссылки на внешние источники должны вести на авторитетные ресурсы.</li>
+            <li>Цитаты из других источников оформляйте через блок цитирования (<code>&gt; текст</code>) с указанием автора.</li>
+            <li>Теги должны точно соответствовать тематике статьи — не добавляйте нерелевантные теги для привлечения трафика.</li>
+        </ul>
+    </div>
+
+    <!-- Процесс модерации -->
+    <div class="rules-section">
+        <div class="rules-section-header">
+            <div class="rules-section-icon"><i class="bi bi-shield-check"></i></div>
+            <h2>Процесс модерации</h2>
+        </div>
+        <div class="rules-flow">
+            <div class="rules-flow-step">
+                <div class="rules-flow-num">1</div>
+                <div>
+                    <strong>Отправка на проверку</strong>
+                    <p>После нажатия «Сохранить» статья получает статус <span class="rules-badge pending">На проверке</span> и становится видна только вам.</p>
+                </div>
+            </div>
+            <div class="rules-flow-step">
+                <div class="rules-flow-num">2</div>
+                <div>
+                    <strong>Проверка модератором</strong>
+                    <p>Модератор проверяет соответствие правилам. Обычно это занимает до 24 часов.</p>
+                </div>
+            </div>
+            <div class="rules-flow-step">
+                <div class="rules-flow-num">3</div>
+                <div>
+                    <strong>Результат</strong>
+                    <p>Статья получает статус <span class="rules-badge published">Опубликована</span> или <span class="rules-badge rejected">Отклонена</span> с указанием причины.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Последствия нарушений -->
+    <div class="rules-section">
+        <div class="rules-section-header">
+            <div class="rules-section-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <h2>Последствия нарушений</h2>
+        </div>
+        <div class="rules-consequences">
+            <div class="rules-consequence">
+                <i class="bi bi-x-circle" style="color:#f57c00"></i>
+                <div>
+                    <strong>Первое нарушение</strong>
+                    <p>Статья отклоняется с объяснением причины.</p>
+                </div>
+            </div>
+            <div class="rules-consequence">
+                <i class="bi bi-exclamation-circle" style="color:#e53935"></i>
+                <div>
+                    <strong>Систематические нарушения</strong>
+                    <p>Временная блокировка возможности публикации.</p>
+                </div>
+            </div>
+            <div class="rules-consequence">
+                <i class="bi bi-slash-circle" style="color:#b71c1c"></i>
+                <div>
+                    <strong>Грубые нарушения</strong>
+                    <p>Постоянная блокировка аккаунта без возможности восстановления.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="guide-note">
+        <i class="bi bi-info-circle"></i>
+        Если вы считаете, что ваша статья была отклонена ошибочно — свяжитесь с командой модерации.
+        Мы рассмотрим апелляцию в течение 48 часов.
+    </div>
+</div>

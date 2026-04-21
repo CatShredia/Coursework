@@ -70,6 +70,24 @@ public class ArticleService(HttpClient http)
         }
     }
 
+    // ? IsLikedAsync : проверяет, лайкнул ли пользователь статью
+    // вызывается из Pages/ArticleView.razor
+    public async Task<bool> IsLikedAsync(int articleId)
+    {
+        var res = await http.GetFromJsonAsync<bool>($"api/articles/{articleId}/liked");
+        return res;
+    }
+
+    // ? GetLikedIdsAsync : возвращает все Id лайкнутых статей
+    // вызывается из Pages/Home.razor, Pages/Saved.razor
+    public async Task<HashSet<int>> GetLikedIdsAsync() =>
+        new(await http.GetFromJsonAsync<List<int>>("api/articles/liked-ids") ?? []);
+
+    // ? GetSavedIdsAsync : возвращает все Id сохранённых статей
+    // вызывается из Pages/Home.razor, Pages/Saved.razor
+    public async Task<HashSet<int>> GetSavedIdsAsync() =>
+        new(await http.GetFromJsonAsync<List<int>>("api/articles/saved-ids") ?? []);
+
     // ? ToggleLikeAsync : ставит или снимает лайк на статью
     // вызывается из Pages/Home.razor
     public async Task<bool> ToggleLikeAsync(int articleId)

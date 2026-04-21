@@ -280,7 +280,19 @@ else
 
         var articlesTask = ArticleSvc.GetFeedAsync(Auth.IsAuthenticated, 1, 200);
         var tagsTask = ArticleSvc.GetTagsAsync();
-        await Task.WhenAll(articlesTask, tagsTask);
+
+        if (Auth.IsAuthenticated)
+        {
+            var likedTask = ArticleSvc.GetLikedIdsAsync();
+            var savedTask = ArticleSvc.GetSavedIdsAsync();
+            await Task.WhenAll(articlesTask, tagsTask, likedTask, savedTask);
+            _liked = likedTask.Result;
+            _saved = savedTask.Result;
+        }
+        else
+        {
+            await Task.WhenAll(articlesTask, tagsTask);
+        }
 
         _articles = articlesTask.Result;
         _tags = tagsTask.Result;

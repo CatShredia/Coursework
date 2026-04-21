@@ -9,3 +9,5 @@ public record LoginDto(string Email, string Password);
 public record AuthResponseDto(string Token, UserDto User);
 
 public record UpdateProfileDto(string? Username, string? Email, string? Password, string? AvatarColor);
+
+public record ResetPasswordDto(string Token, string NewPassword);

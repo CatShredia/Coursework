@@ -7,3 +7,6 @@
 ~$*
 **/*.png
 **/*.jpeg
+**/*.webp
+
+need_to_fix.md

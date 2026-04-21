@@ -87,6 +87,36 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = article.Id }, article);
     }
 
+    // ? GetLikedIds : возвращает Id всех лайкнутых статей пользователя
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("liked-ids")]
+    public async Task<IActionResult> GetLikedIds()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.GetLikedIdsAsync(userId));
+    }
+
+    // ? GetSavedIds : возвращает Id всех сохранённых статей пользователя
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("saved-ids")]
+    public async Task<IActionResult> GetSavedIds()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.GetSavedIdsAsync(userId));
+    }
+
+    // ? IsLiked : проверяет, лайкнул ли текущий пользователь статью
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpGet("{id:int}/liked")]
+    public async Task<IActionResult> IsLiked(int id)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await articleService.IsLikedAsync(id, userId));
+    }
+
     // ? Like : ставит или снимает лайк, обновляет вес тегов пользователя
     // вызывается клиентом (Auth)
     [Authorize]

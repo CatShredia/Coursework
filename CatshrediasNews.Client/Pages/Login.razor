@@ -19,7 +19,21 @@
     @if (!string.IsNullOrEmpty(_error))
     {
         <div class="auth-error">
-            <i class="bi bi-exclamation-circle"></i> @_error
+            <i class="bi bi-exclamation-circle"></i>
+            @if (_error == "email_not_confirmed")
+            {
+                <span>Подтвердите email перед входом. Проверьте почту.</span>
+            }
+            else
+            {
+                <span>@_error</span>
+            }
+        </div>
+    }
+    @if (_confirmed)
+    {
+        <div class="auth-success">
+            <i class="bi bi-check-circle"></i> Email подтверждён! Теперь можно войти.
         </div>
     }
 
@@ -78,9 +92,16 @@
     private string? _error;
     private bool _loading;
     private bool _showPassword;
-
     private bool _emailInvalid;
     private bool _passwordInvalid;
+    private bool _confirmed;
+
+    protected override void OnInitialized()
+    {
+        var uri   = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _confirmed = query["confirmed"] == "true";
+    }
 
     private void ValidateEmail()
     {

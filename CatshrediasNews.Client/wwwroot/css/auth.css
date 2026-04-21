@@ -203,6 +203,7 @@
     font-size: 13px;
     color: #2e7d32;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
@@ -295,6 +296,14 @@
     box-shadow: var(--shadow);
 }
 
+.profile-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
 .profile-avatar i {
     font-size: 64px;
     color: var(--accent);
@@ -364,6 +373,37 @@
     color: #e53935;
 }
 .auth-btn-delete:hover { background: #fdecea; }
+
+/* ── Кнопка загрузки аватара при регистрации ── */
+.reg-avatar-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 7px 14px;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color .18s, color .18s;
+}
+.reg-avatar-upload:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Кнопка загрузки аватара в профиле ── */
+.profile-avatar-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    transition: opacity .18s;
+}
+.profile-avatar-upload-btn:hover { opacity: .75; }
 
 /* ── Аватар профиля ── */
 .profile-avatar-label {
