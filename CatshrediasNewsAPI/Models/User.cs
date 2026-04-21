@@ -17,6 +17,9 @@ public class User
     public string?   EmailConfirmToken        { get; set; }
     public DateTime? EmailConfirmTokenExpiry  { get; set; }
 
+    public string?   PasswordResetToken       { get; set; }
+    public DateTime? PasswordResetTokenExpiry { get; set; }
+
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;
 

@@ -111,4 +111,35 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
         await db.SaveChangesAsync();
         return true;
     }
+
+    // ? SendPasswordResetAsync : генерирует токен сброса и отправляет письмо
+    // вызывается из AuthController.ForgotPassword (Public)
+    public async Task SendPasswordResetAsync(string email)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user is null) return; // не раскрываем, существует ли email
+
+        user.PasswordResetToken       = Guid.NewGuid().ToString("N");
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        await db.SaveChangesAsync();
+
+        await emailService.SendPasswordResetAsync(user.Email, user.Username, user.PasswordResetToken!);
+    }
+
+    // ? ResetPasswordAsync : проверяет токен и устанавливает новый пароль
+    // вызывается из AuthController.ResetPassword (Public)
+    public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u =>
+            u.PasswordResetToken == token &&
+            u.PasswordResetTokenExpiry > DateTime.UtcNow);
+
+        if (user is null) return false;
+
+        user.PasswordHash             = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.PasswordResetToken       = null;
+        user.PasswordResetTokenExpiry = null;
+        await db.SaveChangesAsync();
+        return true;
+    }
 }

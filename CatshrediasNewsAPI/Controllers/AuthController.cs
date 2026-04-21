@@ -35,6 +35,24 @@ public class AuthController(AuthService authService) : ControllerBase
         return Ok(result);
     }
 
+    // ? ForgotPassword : отправляет письмо со ссылкой сброса пароля
+    // вызывается клиентом (Public)
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] string email)
+    {
+        await authService.SendPasswordResetAsync(email);
+        return Ok(); // всегда 200 — не раскрываем, есть ли такой email
+    }
+
+    // ? ResetPassword : устанавливает новый пароль по токену
+    // вызывается клиентом (Public)
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        var ok = await authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+        if (!ok) return BadRequest("Ссылка недействительна или устарела.");
+        return Ok();
+    }
     // ? ConfirmEmail : подтверждает email по токену из письма
     // вызывается по ссылке из письма (Public)
     [HttpGet("confirm-email")]
