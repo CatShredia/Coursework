@@ -28,6 +28,11 @@
                     @onclick="() => _preview = !_preview">
                 <i class="bi bi-eye"></i> @(_preview ? "Редактор" : "Предпросмотр")
             </button>
+            <button class="feed-sort-btn" @onclick="SaveDbDraft" disabled="@_savingDraft">
+                @if (_savingDraft) { <span class="auth-spinner" style="width:14px;height:14px;border-color:var(--border);border-top-color:var(--accent)"></span> }
+                else { <i class="bi bi-floppy2"></i> }
+                Черновик
+            </button>
             <button class="auth-btn" style="width:auto;padding:8px 20px"
                     @onclick="Save" disabled="@_saving">
                 @if (_saving) { <span class="auth-spinner"></span> }
@@ -44,6 +49,14 @@
     @if (!string.IsNullOrEmpty(_success))
     {
         <div class="auth-success"><i class="bi bi-check-circle"></i> @_success</div>
+    }
+    @if (_draftRestored)
+    {
+        <div class="auth-success" style="background:#fff8e1;border-color:#ffe082;color:#795548">
+            <i class="bi bi-clock-history"></i> Черновик восстановлен.
+            <button style="margin-left:auto;background:none;border:none;cursor:pointer;color:#795548;font-size:13px;font-weight:600"
+                    @onclick="DiscardDraft">Отменить</button>
+        </div>
     }
 
     <!-- Обложка -->
@@ -93,6 +106,75 @@
     <a href="/publishing-rules" class="editor-guide-link">
         <i class="bi bi-shield-check"></i> Правила публикации
     </a>
+
+    <!-- Заголовок статьи -->
+    <input class="editor-title-input"
+           type="text"
+           placeholder="Заголовок статьи..."
+           value="@_title"
+           @oninput="OnTitleInput" />
+
+    <!-- Теги -->
+    @if (_tags.Any())
+    {
+        <div class="editor-tags-row">
+            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">Теги:</span>
+            @foreach (var tag in _tags)
+            {
+                <button class="feed-tag-btn @(_selectedTags.Contains(tag.Id) ? "active" : "")"
+                        @onclick="() => ToggleTag(tag.Id)">
+                    @tag.Name
+                </button>
+            }
+        </div>
+    }
+
+    @if (!_preview)
+    {
+        <!-- Панель инструментов -->
+        <div class="editor-toolbar">
+            <button class="editor-tool" title="Жирный (Ctrl+B)"      @onclick='() => Wrap("**", "**", "жирный текст")'><i class="bi bi-type-bold"></i></button>
+            <button class="editor-tool" title="Курсив (Ctrl+I)"      @onclick='() => Wrap("*", "*", "курсив")'><i class="bi bi-type-italic"></i></button>
+            <button class="editor-tool" title="Зачёркнутый"          @onclick='() => Wrap("~~", "~~", "текст")'><i class="bi bi-type-strikethrough"></i></button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Заголовок H1"         @onclick='() => LinePrefix("# ")'><i class="bi bi-type-h1"></i></button>
+            <button class="editor-tool" title="Заголовок H2"         @onclick='() => LinePrefix("## ")'><i class="bi bi-type-h2"></i></button>
+            <button class="editor-tool" title="Заголовок H3"         @onclick='() => LinePrefix("### ")'><i class="bi bi-type-h3"></i></button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Цитата"               @onclick='() => LinePrefix("> ")'><i class="bi bi-blockquote-left"></i></button>
+            <button class="editor-tool" title="Код"                  @onclick='() => Wrap("`", "`", "код")'><i class="bi bi-code"></i></button>
+            <button class="editor-tool" title="Блок кода"            @onclick='() => Wrap("```\n", "\n```", "код")'><i class="bi bi-code-square"></i></button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Маркированный список" @onclick='() => LinePrefix("- ")'><i class="bi bi-list-ul"></i></button>
+            <button class="editor-tool" title="Нумерованный список"  @onclick='() => LinePrefix("1. ")'><i class="bi bi-list-ol"></i></button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Гиперссылка"          @onclick="InsertLink"><i class="bi bi-link-45deg"></i></button>
+            <button class="editor-tool" title="Изображение"          @onclick="InsertImage"><i class="bi bi-image"></i></button>
+            <div class="editor-tool-sep"></div>
+            <button class="editor-tool" title="Горизонтальная линия" @onclick='() => Insert("\n---\n")'><i class="bi bi-dash-lg"></i></button>
+        </div>
+
+        <textarea id="md-editor"
+                  class="editor-textarea"
+                  placeholder="Начните писать статью в формате Markdown..."
+                  value="@_content"
+                  @oninput="OnContentInput"
+                  @onkeydown="OnKeyDown"
+                  rows="24"></textarea>
+    }
+    else
+    {
+        <div class="editor-preview">
+            @if (string.IsNullOrWhiteSpace(_content))
+            {
+                <p style="color:var(--text-muted)">Нет содержимого для предпросмотра.</p>
+            }
+            else
+            {
+                @((MarkupString)RenderMarkdown(_content))
+            }
+        </div>
+    }
 
     <!-- GigaChad AI -->
     <div class="gigachad-block">
@@ -181,74 +263,6 @@
         }
     </div>
 
-    <!-- Заголовок статьи -->
-    <input class="editor-title-input"
-           type="text"
-           placeholder="Заголовок статьи..."
-           @bind="_title" @bind:event="oninput" />
-
-    <!-- Теги -->
-    @if (_tags.Any())
-    {
-        <div class="editor-tags-row">
-            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">Теги:</span>
-            @foreach (var tag in _tags)
-            {
-                <button class="feed-tag-btn @(_selectedTags.Contains(tag.Id) ? "active" : "")"
-                        @onclick="() => ToggleTag(tag.Id)">
-                    @tag.Name
-                </button>
-            }
-        </div>
-    }
-
-    @if (!_preview)
-    {
-        <!-- Панель инструментов -->
-        <div class="editor-toolbar">
-            <button class="editor-tool" title="Жирный (Ctrl+B)"      @onclick='() => Wrap("**", "**", "жирный текст")'><i class="bi bi-type-bold"></i></button>
-            <button class="editor-tool" title="Курсив (Ctrl+I)"      @onclick='() => Wrap("*", "*", "курсив")'><i class="bi bi-type-italic"></i></button>
-            <button class="editor-tool" title="Зачёркнутый"          @onclick='() => Wrap("~~", "~~", "текст")'><i class="bi bi-type-strikethrough"></i></button>
-            <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Заголовок H1"         @onclick='() => LinePrefix("# ")'><i class="bi bi-type-h1"></i></button>
-            <button class="editor-tool" title="Заголовок H2"         @onclick='() => LinePrefix("## ")'><i class="bi bi-type-h2"></i></button>
-            <button class="editor-tool" title="Заголовок H3"         @onclick='() => LinePrefix("### ")'><i class="bi bi-type-h3"></i></button>
-            <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Цитата"               @onclick='() => LinePrefix("> ")'><i class="bi bi-blockquote-left"></i></button>
-            <button class="editor-tool" title="Код"                  @onclick='() => Wrap("`", "`", "код")'><i class="bi bi-code"></i></button>
-            <button class="editor-tool" title="Блок кода"            @onclick='() => Wrap("```\n", "\n```", "код")'><i class="bi bi-code-square"></i></button>
-            <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Маркированный список" @onclick='() => LinePrefix("- ")'><i class="bi bi-list-ul"></i></button>
-            <button class="editor-tool" title="Нумерованный список"  @onclick='() => LinePrefix("1. ")'><i class="bi bi-list-ol"></i></button>
-            <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Гиперссылка"          @onclick="InsertLink"><i class="bi bi-link-45deg"></i></button>
-            <button class="editor-tool" title="Изображение"          @onclick="InsertImage"><i class="bi bi-image"></i></button>
-            <div class="editor-tool-sep"></div>
-            <button class="editor-tool" title="Горизонтальная линия" @onclick='() => Insert("\n---\n")'><i class="bi bi-dash-lg"></i></button>
-        </div>
-
-        <textarea id="md-editor"
-                  class="editor-textarea"
-                  placeholder="Начните писать статью в формате Markdown..."
-                  @bind="_content"
-                  @bind:event="oninput"
-                  @onkeydown="OnKeyDown"
-                  rows="24"></textarea>
-    }
-    else
-    {
-        <div class="editor-preview">
-            @if (string.IsNullOrWhiteSpace(_content))
-            {
-                <p style="color:var(--text-muted)">Нет содержимого для предпросмотра.</p>
-            }
-            else
-            {
-                @((MarkupString)RenderMarkdown(_content))
-            }
-        </div>
-    }
-
 </div>
 
 @code {
@@ -258,7 +272,7 @@
     private string _content = "";
     private string? _coverUrl;
     private string? _coverError;
-    private bool   _preview, _saving, _coverUploading;
+    private bool   _preview, _saving, _savingDraft, _coverUploading;
     private string? _error, _success;
     private List<TagDto> _tags = [];
     private HashSet<int> _selectedTags = [];
@@ -268,6 +282,9 @@
     private string? _gigaResult;
     private string? _gigaError;
     private string? _gigaAction;
+    private bool    _draftRestored;
+
+    private string DraftKey => $"draft_{EditId?.ToString() ?? "new"}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -286,11 +303,38 @@
                     .ToHashSet();
             }
         }
+
+        // Восстанавливаем черновик если есть
+        var draftTitle   = await JS.InvokeAsync<string?>("localStorage.getItem", DraftKey + "_title");
+        var draftContent = await JS.InvokeAsync<string?>("localStorage.getItem", DraftKey + "_content");
+        if (!string.IsNullOrEmpty(draftTitle) || !string.IsNullOrEmpty(draftContent))
+        {
+            // Черновик актуален только если он отличается от текущего содержимого
+            if (draftTitle != _title || draftContent != _content)
+            {
+                _title   = draftTitle   ?? _title;
+                _content = draftContent ?? _content;
+                _draftRestored = true;
+            }
+        }
     }
 
     private void ToggleTag(int id)
     {
         if (!_selectedTags.Remove(id)) _selectedTags.Add(id);
+    }
+
+    private async Task SaveDbDraft()
+    {
+        if (string.IsNullOrWhiteSpace(_title) && string.IsNullOrWhiteSpace(_content)) return;
+        _savingDraft = true; _error = null;
+        var (article, error) = await ArticleSvc.SaveDraftToDbAsync(EditId, _title.Trim(), _content, _selectedTags.ToList(), _coverUrl);
+        _savingDraft = false;
+        if (error is not null) { _error = error; return; }
+        await DiscardDraft();
+        _success = "Черновик сохранён.";
+        if (!EditId.HasValue && article is not null)
+            Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
     }
 
     private async Task Save()
@@ -303,9 +347,36 @@
         _saving = false;
 
         if (error is not null) { _error = error; return; }
+
+        await DiscardDraft();
         _success = EditId.HasValue ? "Статья обновлена и отправлена на модерацию." : "Статья создана и отправлена на модерацию.";
         if (!EditId.HasValue && article is not null)
             Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
+    }
+
+    private async Task SaveDraft()
+    {
+        await JS.InvokeVoidAsync("localStorage.setItem", DraftKey + "_title",   _title);
+        await JS.InvokeVoidAsync("localStorage.setItem", DraftKey + "_content", _content);
+    }
+
+    private async Task DiscardDraft()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", DraftKey + "_title");
+        await JS.InvokeVoidAsync("localStorage.removeItem", DraftKey + "_content");
+        _draftRestored = false;
+    }
+
+    private async Task OnTitleInput(ChangeEventArgs e)
+    {
+        _title = e.Value?.ToString() ?? "";
+        await SaveDraft();
+    }
+
+    private async Task OnContentInput(ChangeEventArgs e)
+    {
+        _content = e.Value?.ToString() ?? "";
+        await SaveDraft();
     }
 
     private void ToggleGiga()

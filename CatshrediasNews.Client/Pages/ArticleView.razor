@@ -79,10 +79,7 @@ else
             }
             else
             {
-                @foreach (var paragraph in _paragraphs)
-                {
-                    <p>@paragraph</p>
-                }
+                @((MarkupString)RenderMarkdown(_article.Content))
             }
         </div>
 
@@ -160,7 +157,6 @@ else
     private ArticleDto? _article;
     private bool _loading = true;
     private bool _liked;
-    private List<string> _paragraphs = [];
     private bool _hasHtml => !string.IsNullOrEmpty(_article?.ContentHtml);
 
     private bool _showReport;
@@ -175,11 +171,6 @@ else
 
         if (_article is not null)
         {
-            _paragraphs = _article.Content
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                .Where(p => !string.IsNullOrWhiteSpace(p))
-                .ToList();
-
             if (Auth.IsAuthenticated)
                 _liked = await ArticleSvc.IsLikedAsync(Id);
         }
@@ -213,5 +204,26 @@ else
         await ModerationSvc.CreateReportAsync(_article.Id, _reportTypeId, _reportDesc);
         _reportSent    = true;
         _reportLoading = false;
+    }
+
+    private static string RenderMarkdown(string md)
+    {
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",  "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",   "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"```[\s\S]+?```", m =>
+            "<pre><code>" + m.Value.Trim('`').Trim() + "</code></pre>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`", "<code>$1</code>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"!\[(.+?)\]\((.+?)\)", "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\[(.+?)\]\((.+?)\)",  "<a href=\"$2\" target=\"_blank\">$1</a>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^> (.+)$", "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$","<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$", "<hr>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = string.Join("\n", md.Split('\n').Select(l => l.StartsWith('<') ? l : $"<p>{l}</p>"));
+        return md;
     }
 }

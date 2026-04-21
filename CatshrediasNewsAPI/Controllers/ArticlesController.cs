@@ -76,6 +76,18 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         return article is null ? NotFound() : Ok(article);
     }
 
+    // ? SaveDraft : сохраняет статью как черновик в БД
+    // вызывается клиентом (Auth)
+    [Authorize]
+    [HttpPost("draft")]
+    public async Task<IActionResult> SaveDraft([FromBody] SaveDraftRequest req)
+    {
+        var userId  = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var dto     = new CreateArticleDto(req.Title, req.Content, null, req.ImageUrl, DateTime.UtcNow, req.TagIds);
+        var article = await articleService.SaveDraftAsync(userId, req.ArticleId, dto);
+        return Ok(article);
+    }
+
     // ? Create : создаёт новую статью со статусом PendingReview
     // вызывается клиентом (Auth)
     [Authorize]
