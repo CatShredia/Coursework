@@ -75,9 +75,13 @@ else
                     {
                         <span class="article-meta"><i class="bi bi-person"></i> @article.Author</span>
                     }
-                    <span class="article-meta" style="margin-left:auto">
-                        <i class="bi bi-heart"></i> @article.LikesCount
-                    </span>
+                    <button class="article-like-btn @(_liked.Contains(article.Id) ? "liked" : "")"
+                            style="margin-left:auto"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => ToggleLike(article)">
+                        <i class="bi @(_liked.Contains(article.Id) ? "bi-heart-fill" : "bi-heart")"></i>
+                        @article.LikesCount
+                    </button>
                     <button class="article-save-btn saved"
                             title="Убрать из избранного"
                             @onclick:stopPropagation="true"
@@ -92,19 +96,39 @@ else
 
 @code {
     private List<ArticleDto> _articles = [];
+    private HashSet<int> _liked = [];
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        _articles = await ArticleSvc.GetSavedAsync();
+        var articlesTask = ArticleSvc.GetSavedAsync();
+        var likedTask    = ArticleSvc.GetLikedIdsAsync();
+        await Task.WhenAll(articlesTask, likedTask);
+        _articles = articlesTask.Result;
+        _liked    = likedTask.Result;
         _loading  = false;
     }
 
     private void GoTo(int id) => Nav.NavigateTo("/articles/" + id);
 
+    private async Task ToggleLike(ArticleDto article)
+    {
+        var wasLiked = _liked.Contains(article.Id);
+        if (wasLiked) { _liked.Remove(article.Id); article.LikesCount--; }
+        else          { _liked.Add(article.Id);    article.LikesCount++; }
+
+        var ok = await ArticleSvc.ToggleLikeAsync(article.Id);
+        if (!ok)
+        {
+            if (wasLiked) { _liked.Add(article.Id);    article.LikesCount++; }
+            else          { _liked.Remove(article.Id); article.LikesCount--; }
+        }
+    }
+
     private async Task Unsave(ArticleDto article)
     {
         await ArticleSvc.ToggleSaveAsync(article.Id);
         _articles.Remove(article);
+        _liked.Remove(article.Id);
     }
 }

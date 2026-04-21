@@ -185,6 +185,21 @@ public class ArticleService(AppDbContext db)
             .ToListAsync();
     }
 
+    // ? IsLikedAsync : проверяет, поставил ли пользователь лайк на статью
+    // вызывается из ArticlesController.IsLiked (Auth)
+    public async Task<bool> IsLikedAsync(int articleId, int userId) =>
+        await db.Likes.AnyAsync(l => l.ArticleId == articleId && l.UserId == userId);
+
+    // ? GetLikedIdsAsync : возвращает все Id статей, лайкнутых пользователем
+    // вызывается из ArticlesController.GetLikedIds (Auth)
+    public async Task<List<int>> GetLikedIdsAsync(int userId) =>
+        await db.Likes.Where(l => l.UserId == userId).Select(l => l.ArticleId).ToListAsync();
+
+    // ? GetSavedIdsAsync : возвращает все Id сохранённых статей пользователя
+    // вызывается из ArticlesController.GetSavedIds (Auth)
+    public async Task<List<int>> GetSavedIdsAsync(int userId) =>
+        await db.SavedArticles.Where(s => s.UserId == userId).Select(s => s.ArticleId).ToListAsync();
+
     // ? ToggleSaveAsync : добавляет или удаляет статью из избранного
     // вызывается из ArticlesController.ToggleSave (Auth)
     public async Task<bool> ToggleSaveAsync(int articleId, int userId)

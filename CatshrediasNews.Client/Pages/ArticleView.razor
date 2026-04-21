@@ -171,13 +171,18 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
-    _article = await ArticleSvc.GetByIdAsync(Id);
+        _article = await ArticleSvc.GetByIdAsync(Id);
 
         if (_article is not null)
+        {
             _paragraphs = _article.Content
                 .Split('\n', StringSplitOptions.RemoveEmptyEntries)
                 .Where(p => !string.IsNullOrWhiteSpace(p))
                 .ToList();
+
+            if (Auth.IsAuthenticated)
+                _liked = await ArticleSvc.IsLikedAsync(Id);
+        }
 
         _loading = false;
     }
