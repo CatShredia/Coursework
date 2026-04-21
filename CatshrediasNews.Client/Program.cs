@@ -17,6 +17,7 @@ builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<GigaChadService>();
+builder.Services.AddScoped<ArticleHeadingsService>();
 
 var host = builder.Build();
 

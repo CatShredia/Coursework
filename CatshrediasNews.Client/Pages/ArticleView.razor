@@ -3,6 +3,8 @@
 @inject ModerationService ModerationSvc
 @inject AuthService Auth
 @inject NavigationManager Nav
+@inject ArticleHeadingsService HeadingsSvc
+@implements IDisposable
 
 <PageTitle>@(_article?.Title ?? "Статья") — Runews</PageTitle>
 
@@ -75,7 +77,7 @@ else
         <div class="article-view-content">
             @if (!string.IsNullOrEmpty(_article.ContentHtml))
             {
-                @((MarkupString)_article.ContentHtml)
+                @((MarkupString)AddHeadingIds(_article.ContentHtml))
             }
             else
             {
@@ -173,6 +175,17 @@ else
         {
             if (Auth.IsAuthenticated)
                 _liked = await ArticleSvc.IsLikedAsync(Id);
+
+            var source = !string.IsNullOrEmpty(_article.ContentHtml)
+                    ? _article.ContentHtml
+                    : _article.Content;
+
+            var headings = ParseHeadings(source);
+            HeadingsSvc.Set(headings);
+        }
+        else
+        {
+            HeadingsSvc.Clear();
         }
 
         _loading = false;
@@ -197,6 +210,47 @@ else
         catch { return url; }
     }
 
+    public void Dispose() => HeadingsSvc.Clear();
+
+    private static List<ArticleHeadingsService.Heading> ParseHeadings(string source)
+    {
+        var result = new List<ArticleHeadingsService.Heading>();
+
+        // Если источник содержит HTML-теги — парсим как HTML
+        if (System.Text.RegularExpressions.Regex.IsMatch(source, @"<h[123][\s>]"))
+        {
+            var matches = System.Text.RegularExpressions.Regex.Matches(
+                source, @"<h([123])[^>]*>(.+?)</h\1>",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            foreach (System.Text.RegularExpressions.Match m in matches)
+            {
+                var level  = "h" + m.Groups[1].Value;
+                var text   = System.Text.RegularExpressions.Regex.Replace(m.Groups[2].Value, "<[^>]+>", "");
+                var anchor = MakeAnchor(text);
+                result.Add(new(level, text, anchor));
+            }
+        }
+        else
+        {
+            // Парсим Markdown: # заголовок
+            foreach (var line in source.Split('\n'))
+            {
+                var m3 = System.Text.RegularExpressions.Regex.Match(line, @"^### (.+)$");
+                var m2 = System.Text.RegularExpressions.Regex.Match(line, @"^## (.+)$");
+                var m1 = System.Text.RegularExpressions.Regex.Match(line, @"^# (.+)$");
+                if      (m3.Success) result.Add(new("h3", m3.Groups[1].Value.Trim(), MakeAnchor(m3.Groups[1].Value.Trim())));
+                else if (m2.Success) result.Add(new("h2", m2.Groups[1].Value.Trim(), MakeAnchor(m2.Groups[1].Value.Trim())));
+                else if (m1.Success) result.Add(new("h1", m1.Groups[1].Value.Trim(), MakeAnchor(m1.Groups[1].Value.Trim())));
+            }
+        }
+
+        return result;
+    }
+
+    private static string MakeAnchor(string text) =>
+        "heading-" + System.Text.RegularExpressions.Regex.Replace(
+            text.ToLowerInvariant(), @"[^a-z0-9а-я]+", "-").Trim('-');
+
     private async Task SendReport()
     {
         if (_article is null) return;
@@ -206,11 +260,28 @@ else
         _reportLoading = false;
     }
 
+    private static string AddHeadingIds(string html) =>
+        System.Text.RegularExpressions.Regex.Replace(
+            html, @"<h([123])([^>]*)>(.+?)</h\1>",
+            m =>
+            {
+                var text   = System.Text.RegularExpressions.Regex.Replace(m.Groups[3].Value, "<[^>]+>", "");
+                var anchor = MakeAnchor(text);
+                return $"<h{m.Groups[1].Value} id=\"{anchor}\"{m.Groups[2].Value}>{m.Groups[3].Value}</h{m.Groups[1].Value}>";
+            },
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
     private static string RenderMarkdown(string md)
     {
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",  "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",   "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$",
+            m => { var t = m.Groups[1].Value; return $"<h3 id=\"{MakeAnchor(t)}\">{t}</h3>"; },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",
+            m => { var t = m.Groups[1].Value; return $"<h2 id=\"{MakeAnchor(t)}\">{t}</h2>"; },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",
+            m => { var t = m.Groups[1].Value; return $"<h1 id=\"{MakeAnchor(t)}\">{t}</h1>"; },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");

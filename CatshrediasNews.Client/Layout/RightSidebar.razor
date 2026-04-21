@@ -1,3 +1,33 @@
-<aside class="app-sidebar-right">
-    <!-- Правый сайдбар — будет заполнен позже -->
-</aside>
+@using Microsoft.JSInterop
+@inject ArticleHeadingsService HeadingsSvc
+@inject IJSRuntime JS
+@implements IDisposable
+
+@if (HeadingsSvc.Headings.Any())
+{
+    <aside class="app-sidebar-right">
+        <div class="toc-title">
+            <i class="bi bi-list-ul"></i> Содержание
+        </div>
+        <nav class="toc-nav">
+            @foreach (var h in HeadingsSvc.Headings)
+            {
+                <button class="toc-item toc-@h.Level" @onclick="() => ScrollTo(h.Anchor)">
+                    @h.Text
+                </button>
+            }
+        </nav>
+    </aside>
+}
+
+@code {
+    protected override void OnInitialized() =>
+        HeadingsSvc.OnChange += StateHasChanged;
+
+    public void Dispose() =>
+        HeadingsSvc.OnChange -= StateHasChanged;
+
+    private async Task ScrollTo(string anchor) =>
+        await JS.InvokeVoidAsync("eval",
+            $"document.getElementById('{anchor}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
+}
