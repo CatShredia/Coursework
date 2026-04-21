@@ -30,23 +30,25 @@
                 {
                     <i class="bi bi-person-circle" style="color:@Auth.CurrentUser!.AvatarColor;font-size:64px"></i>
                 }
-                <label class="profile-avatar-upload-btn">
-                    <i class="bi bi-upload"></i> Загрузить аватар
-                    <InputFile style="display:none" accept="image/*" OnChange="OnAvatarSelected" />
-                </label>
             </div>
             <div class="profile-info">
                 <div class="profile-name">@Auth.CurrentUser!.Username</div>
                 <div class="profile-email">@Auth.CurrentUser.Email</div>
                 <span class="profile-role">@Auth.CurrentUser.Role</span>
-                @if (!string.IsNullOrEmpty(Auth.CurrentUser.AvatarUrl))
-                {
-                    <button class="profile-avatar-delete" @onclick="DeleteAvatar" disabled="@_avatarLoading">
-                        @if (_avatarLoading) { <span class="auth-spinner" style="width:14px;height:14px"></span> }
-                        else { <i class="bi bi-trash3"></i> }
-                        Удалить фото
-                    </button>
-                }
+                <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+                    <label class="profile-avatar-upload-btn">
+                        <i class="bi bi-upload"></i> Загрузить аватар
+                        <InputFile style="display:none" accept="image/*" OnChange="OnAvatarSelected" />
+                    </label>
+                    @if (!string.IsNullOrEmpty(Auth.CurrentUser.AvatarUrl))
+                    {
+                        <button class="profile-avatar-delete" @onclick="DeleteAvatar" disabled="@_avatarLoading">
+                            @if (_avatarLoading) { <span class="auth-spinner" style="width:14px;height:14px"></span> }
+                            else { <i class="bi bi-trash3"></i> }
+                            Удалить фото
+                        </button>
+                    }
+                </div>
                 @if (!string.IsNullOrEmpty(_avatarError))
                 {
                     <div class="auth-error" style="margin-top:8px;font-size:12px"><i class="bi bi-exclamation-circle"></i> @_avatarError</div>

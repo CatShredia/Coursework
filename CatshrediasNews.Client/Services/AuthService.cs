@@ -110,7 +110,9 @@ public class AuthService
         var updated = await response.Content.ReadFromJsonAsync<UserInfo>();
         if (updated is null) return "Ошибка сервера.";
 
-        CurrentUser = updated;
+        // Сохраняем только AvatarUrl, остальные данные берём из текущей сессии
+        if (CurrentUser is not null)
+            CurrentUser.AvatarUrl = updated.AvatarUrl;
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url", updated.AvatarUrl ?? "");
         OnChange?.Invoke();
         return null;
@@ -124,7 +126,8 @@ public class AuthService
         var updated = await response.Content.ReadFromJsonAsync<UserInfo>();
         if (updated is null) return "Ошибка сервера.";
 
-        CurrentUser = updated;
+        if (CurrentUser is not null)
+            CurrentUser.AvatarUrl = null;
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url", "");
         OnChange?.Invoke();
         return null;
