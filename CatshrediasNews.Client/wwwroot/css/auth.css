@@ -203,6 +203,7 @@
     font-size: 13px;
     color: #2e7d32;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }

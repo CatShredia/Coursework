@@ -49,9 +49,18 @@ public class AuthController(AuthService authService) : ControllerBase
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
-        var ok = await authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
-        if (!ok) return BadRequest("Ссылка недействительна или устарела.");
+        var (ok, error) = await authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+        if (!ok) return BadRequest(error ?? "invalid_token");
         return Ok();
+    }
+
+    // ? CheckEmail : проверяет, зарегистрирован ли email
+    // вызывается клиентом перед отправкой запроса сброса (Public)
+    [HttpPost("check-email")]
+    public async Task<IActionResult> CheckEmail([FromBody] string email)
+    {
+        var exists = await authService.EmailExistsAsync(email);
+        return Ok(exists);
     }
     // ? ConfirmEmail : подтверждает email по токену из письма
     // вызывается по ссылке из письма (Public)

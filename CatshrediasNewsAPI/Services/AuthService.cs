@@ -128,18 +128,26 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
 
     // ? ResetPasswordAsync : проверяет токен и устанавливает новый пароль
     // вызывается из AuthController.ResetPassword (Public)
-    public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+    public async Task<(bool ok, string? error)> ResetPasswordAsync(string token, string newPassword)
     {
         var user = await db.Users.FirstOrDefaultAsync(u =>
             u.PasswordResetToken == token &&
             u.PasswordResetTokenExpiry > DateTime.UtcNow);
 
-        if (user is null) return false;
+        if (user is null) return (false, null);
+
+        if (BCrypt.Net.BCrypt.Verify(newPassword, user.PasswordHash))
+            return (false, "same_password");
 
         user.PasswordHash             = BCrypt.Net.BCrypt.HashPassword(newPassword);
         user.PasswordResetToken       = null;
         user.PasswordResetTokenExpiry = null;
         await db.SaveChangesAsync();
-        return true;
+        return (true, null);
     }
+
+    // ? EmailExistsAsync : проверяет, зарегистрирован ли email в системе
+    // вызывается из AuthController.CheckEmail (Public)
+    public async Task<bool> EmailExistsAsync(string email) =>
+        await db.Users.AnyAsync(u => u.Email == email);
 }
