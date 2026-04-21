@@ -28,6 +28,7 @@
             <option value="">Все роли</option>
             <option value="Admin">Admin</option>
             <option value="Moderator">Moderator</option>
+            <option value="Publicist">Publicist</option>
             <option value="User">User</option>
         </select>
         <select class="admin-select" @bind="_statusFilter">
@@ -82,7 +83,20 @@
                             </td>
                             <td class="td-email">@user.Email</td>
                             <td>
-                                <span class="role-badge role-@user.Role.ToLower()">@user.Role</span>
+                                @if (user.Id != Auth.CurrentUser!.Id && user.Role != "Admin")
+                                {
+                                    <select class="admin-select" style="width:auto;font-size:12px;padding:4px 8px"
+                                            value="@user.Role"
+                                            @onchange="e => ChangeRole(user, e.Value?.ToString())">
+                                        <option value="Moderator">Moderator</option>
+                                        <option value="Publicist">Publicist</option>
+                                        <option value="User">User</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    <span class="role-badge role-@user.Role.ToLower()">@user.Role</span>
+                                }
                             </td>
                             <td>
                                 @if (user.IsBlocked)
@@ -181,6 +195,16 @@
     {
         _users   = await AdminSvc.GetUsersAsync();
         _loading = false;
+    }
+
+    private async Task ChangeRole(UserInfo user, string? role)
+    {
+        if (string.IsNullOrEmpty(role) || role == user.Role) return;
+        _actionLoading = true;
+        var ok = await AdminSvc.SetRoleAsync(user.Id, role);
+        if (ok) { user.Role = role; ShowMsg($"Роль {user.Username} изменена на {role}.", false); }
+        else      ShowMsg("Ошибка при смене роли.", true);
+        _actionLoading = false;
     }
 
     private async Task Block(UserInfo user)

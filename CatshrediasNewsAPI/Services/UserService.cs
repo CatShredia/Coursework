@@ -17,6 +17,19 @@ public class UserService(AppDbContext db, IWebHostEnvironment env)
             .ToListAsync();
     }
 
+    // ? SetRoleAsync : меняет роль пользователя
+    // вызывается из AdminController.SetRole (Admin)
+    public async Task<bool> SetRoleAsync(int userId, string roleName)
+    {
+        var user = await db.Users.FindAsync(userId);
+        if (user is null) return false;
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+        if (role is null) return false;
+        user.RoleId = role.Id;
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     // ? SetBlockedAsync : блокирует или разблокирует пользователя
     // вызывается из AdminController.BlockUser / UnblockUser (Admin)
     public async Task<bool> SetBlockedAsync(int userId, bool blocked)

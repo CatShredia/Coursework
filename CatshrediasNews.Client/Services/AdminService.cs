@@ -12,6 +12,14 @@ public class AdminService(HttpClient http)
         return await http.GetFromJsonAsync<List<UserInfo>>("api/admin/users") ?? [];
     }
 
+    // ? SetRoleAsync : меняет роль пользователя
+    // вызывается из Pages/Admin/Users.razor (Admin)
+    public async Task<bool> SetRoleAsync(int userId, string role)
+    {
+        var res = await http.PutAsJsonAsync($"api/admin/users/{userId}/role", role);
+        return res.IsSuccessStatusCode;
+    }
+
     // ? BlockUserAsync : блокирует пользователя по Id
     // вызывается из Pages/Admin/Users.razor (Admin)
     public async Task<bool> BlockUserAsync(int userId)
