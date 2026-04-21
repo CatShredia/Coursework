@@ -11,6 +11,21 @@ public class UserInfo
     public string AvatarColor { get; set; } = "#1a73e8";
 }
 
+public class RssSourceDto
+{
+    public int       Id            { get; set; }
+    public string    Name          { get; set; } = "";
+    public string    Url           { get; set; } = "";
+    public bool      IsTrusted     { get; set; }
+    public bool      IsEnabled     { get; set; }
+    public DateTime? LastFetchedAt { get; set; }
+}
+
+public class RssStatusDto
+{
+    public int IntervalMinutes { get; set; }
+}
+
 public class AuthResponse
 {
     public string Token { get; set; } = "";

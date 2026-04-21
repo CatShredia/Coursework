@@ -291,7 +291,8 @@
     border-radius: 16px;
     padding: 28px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    justify-content: center;
     gap: 20px;
     box-shadow: var(--shadow);
 }
