@@ -1,0 +1,84 @@
+@page "/profile/{Id:int}"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject AuthService Auth
+
+@using CatshrediasNews.Client.Models
+
+<PageTitle>@(_user?.Username ?? "Профиль") — Runews</PageTitle>
+
+@if (_loading)
+{
+    <div class="profile-wrap">
+        <div class="profile-card">
+            <div class="skeleton" style="width:72px;height:72px;border-radius:50%"></div>
+            <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+                <div class="skeleton" style="height:20px;width:160px"></div>
+                <div class="skeleton" style="height:14px;width:120px"></div>
+            </div>
+        </div>
+    </div>
+}
+else if (_user is null)
+{
+    <div class="feed-empty">
+        <i class="bi bi-person-x"></i>
+        <p>Пользователь не найден.</p>
+        <a href="/" style="color:var(--accent);margin-top:8px;display:inline-block">← На главную</a>
+    </div>
+}
+else
+{
+    <div class="profile-wrap">
+        <div class="profile-card">
+            <div class="profile-avatar" style="flex-shrink:0">
+                @if (!string.IsNullOrEmpty(_user.AvatarUrl))
+                {
+                    <img src="@_user.AvatarUrl" class="profile-avatar-img"
+                         style="cursor:zoom-in;width:72px;height:72px"
+                         alt="avatar" @onclick="() => _showPreview = true" />
+                }
+                else
+                {
+                    <i class="bi bi-person-circle" style="font-size:64px;color:@_user.AvatarColor"></i>
+                }
+            </div>
+            <div class="profile-info">
+                <div class="profile-name">@_user.Username</div>
+                <span class="profile-role">@_user.Role</span>
+                @if (Auth.IsAuthenticated && Auth.CurrentUser?.Id == _user.Id)
+                {
+                    <a href="/profile" style="font-size:13px;color:var(--accent);margin-top:6px;display:inline-block">
+                        <i class="bi bi-pencil"></i> Редактировать профиль
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showPreview && !string.IsNullOrEmpty(_user?.AvatarUrl))
+{
+    <div class="modal-overlay" @onclick="() => _showPreview = false">
+        <img src="@_user!.AvatarUrl"
+             style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"
+             @onclick:stopPropagation="true" />
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private UserInfo? _user;
+    private bool _loading = true;
+    private bool _showPreview;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        var dto = await Http.GetFromJsonAsync<UserInfo>($"api/users/{Id}");
+        _user   = dto;
+        _loading = false;
+    }
+}
