@@ -19,6 +19,7 @@ builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<GigaChadService>();
 builder.Services.AddScoped<ArticleHeadingsService>();
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<CommentService>();
 
 var host = builder.Build();
 
