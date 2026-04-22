@@ -82,9 +82,20 @@
         @if (_newType == "Scraper")
         {
             <div class="scraper-fields">
-                <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">
-                    <i class="bi bi-info-circle"></i> Укажите CSS-селекторы для извлечения данных со страницы.
-                    Пример: <code>article.post h1</code>, <code>.content</code>, <code>#main-image</code>
+                <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px">
+                    <i class="bi bi-info-circle" style="color:var(--accent)"></i> Как найти CSS-селекторы
+                </p>
+                <ol style="font-size:12px;color:var(--text-secondary);padding-left:18px;margin-bottom:12px;line-height:1.8">
+                    <li>Откройте нужный сайт в браузере и нажмите <kbd>F12</kbd> (или <kbd>Ctrl+Shift+I</kbd>).</li>
+                    <li>Нажмите иконку <kbd>&#x2316;</kbd> (инспектор элементов) в левом верхнем углу DevTools.</li>
+                    <li>Кликните на нужный элемент на странице — он подсветится в коде.</li>
+                    <li>В панели Elements кликните правой кнопкой на тег → <strong>Copy → Copy selector</strong>.</li>
+                    <li>Вставьте скопированный селектор в нужное поле ниже.</li>
+                </ol>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+                    <i class="bi bi-lightbulb"></i>
+                    <strong>Совет:</strong> для <em>Селектора ссылок</em> выбирайте элемент на странице-каталоге (список статей).
+                    Для остальных — на странице отдельной статьи. Пример: <code>h1.article-title</code>, <code>.post-body</code>, <code>img.cover</code>.
                 </p>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                     <div class="auth-field">

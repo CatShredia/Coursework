@@ -138,32 +138,34 @@ public class ScraperService(
         return article;
     }
 
-    // Конвертирует CSS-селектор в XPath (базовая поддержка)
+    // Конвертирует CSS-селектор в XPath (поддержка обычных и CSS-модульных классов)
     private static string ToXPath(string css)
     {
-        // Поддерживаем: tag, .class, #id, tag.class, tag > child, пробел (потомок)
-        var parts = css.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var parts = css.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var xpath = string.Join("//", parts.Select(CssPartToXPath));
         return "//" + xpath;
     }
 
     private static string CssPartToXPath(string part)
     {
-        // tag > child — прямой потомок
         if (part.Contains('>'))
         {
             var sub = part.Split('>').Select(p => p.Trim()).ToArray();
             return string.Join("/", sub.Select(CssPartToXPath));
         }
 
-        var tag   = System.Text.RegularExpressions.Regex.Match(part, @"^[a-zA-Z0-9]*").Value;
-        var cls   = System.Text.RegularExpressions.Regex.Match(part, @"\.([a-zA-Z0-9_-]+)").Groups[1].Value;
-        var id    = System.Text.RegularExpressions.Regex.Match(part, @"#([a-zA-Z0-9_-]+)").Groups[1].Value;
-
-        var node  = string.IsNullOrEmpty(tag) ? "*" : tag;
+        var tag  = System.Text.RegularExpressions.Regex.Match(part, @"^[a-zA-Z0-9]*").Value;
+        var node = string.IsNullOrEmpty(tag) ? "*" : tag;
         var preds = new List<string>();
-        if (!string.IsNullOrEmpty(cls)) preds.Add($"contains(@class,'{cls}')");
-        if (!string.IsNullOrEmpty(id))  preds.Add($"@id='{id}'");
+
+        // Все классы (.класс)
+        foreach (System.Text.RegularExpressions.Match m in
+            System.Text.RegularExpressions.Regex.Matches(part, @"\.([a-zA-Z0-9_-]+)"))
+            preds.Add($"contains(@class,'{m.Groups[1].Value}')");
+
+        // id (#id)
+        var id = System.Text.RegularExpressions.Regex.Match(part, @"#([a-zA-Z0-9_-]+)").Groups[1].Value;
+        if (!string.IsNullOrEmpty(id)) preds.Add($"@id='{id}'");
 
         return preds.Count > 0 ? $"{node}[{string.Join(" and ", preds)}]" : node;
     }

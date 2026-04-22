@@ -81,7 +81,15 @@ builder.Services.AddHttpClient("scraper", c =>
 {
     c.Timeout = TimeSpan.FromSeconds(15);
     c.DefaultRequestHeaders.UserAgent.ParseAdd(
-        "Mozilla/5.0 (compatible; RunewsBot/1.0)");
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+    c.DefaultRequestHeaders.Accept.ParseAdd(
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ru-RU,ru;q=0.9,en;q=0.8");
+    c.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+    c.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+    c.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "document");
+    c.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "navigate");
+    c.DefaultRequestHeaders.Add("Sec-Fetch-Site", "none");
 }); 
 
 builder.Services.AddScoped<AuthService>();
