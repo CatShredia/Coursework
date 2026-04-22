@@ -5,3 +5,4 @@ t004 - create, view articles
 t005 - search article, moderation, image_uplouding to user.profile and article  
 
 v0.0.1 - email and gigachad ai integrations
+v0.0.2 - fix bugs and dark_theme integration
