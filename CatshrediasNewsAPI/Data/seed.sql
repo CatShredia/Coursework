@@ -51,11 +51,11 @@ ON CONFLICT ("Id") DO NOTHING;
 -- RssSources
 -- -------------------------------------------------------------
 INSERT INTO "RssSources" ("Id", "Name", "Url", "IsTrusted", "IsEnabled", "LastFetchedAt") VALUES
-    (1, 'Habr',        'https://habr.com/ru/rss/articles/',         true,  true,  null),
-    (2, 'РБК',         'https://rbc.ru/rss/news',                   true,  true,  null),
-    (3, 'Lenta.ru',    'https://lenta.ru/rss',                      true,  true,  null),
-    (4, 'Ведомости',   'https://vedomosti.ru/rss/news',             true, true,  null),
-    (5, 'Дзен',        'https://dzen.ru/rss',                       true, true, null)
+    (1, 'Habr',        'https://habr.com/ru/rss/articles/',         true,  false,  null),
+    (2, 'РБК',         'https://rbc.ru/rss/news',                   true,  false,  null),
+    (3, 'Lenta.ru',    'https://lenta.ru/rss',                      true,  false,  null),
+    (4, 'Ведомости',   'https://vedomosti.ru/rss/news',             true, false,  null),
+    (5, 'Дзен',        'https://dzen.ru/rss',                       true, false, null)
 ON CONFLICT ("Id") DO NOTHING;
 
 -- -------------------------------------------------------------
