@@ -88,6 +88,51 @@ public class ArticleService(AppDbContext db)
         return true;
     }
 
+    // ? SaveDraftAsync : создаёт новую статью со статусом Draft или обновляет существующий черновик
+    // вызывается из ArticlesController.SaveDraft (Auth)
+    public async Task<ArticleDto> SaveDraftAsync(int authorId, int? articleId, CreateArticleDto dto)
+    {
+        var draftStatus = await db.PublicationStatuses.FirstAsync(s => s.Name == "Draft");
+
+        Article article;
+        if (articleId.HasValue)
+        {
+            article = await db.Articles
+                .Include(a => a.ArticleTags)
+                .FirstOrDefaultAsync(a => a.Id == articleId.Value && a.AuthorId == authorId)
+                ?? throw new InvalidOperationException("Article not found");
+
+            article.Title    = dto.Title;
+            article.Content  = dto.Content;
+            article.ImageUrl = dto.ImageUrl;
+            article.StatusId = draftStatus.Id;
+            db.ArticleTags.RemoveRange(article.ArticleTags);
+        }
+        else
+        {
+            article = new Article
+            {
+                Title       = dto.Title,
+                Content     = dto.Content,
+                ImageUrl    = dto.ImageUrl,
+                PublishedAt = dto.PublishedAt,
+                AuthorId    = authorId,
+                StatusId    = draftStatus.Id
+            };
+            db.Articles.Add(article);
+        }
+
+        await db.SaveChangesAsync();
+
+        if (dto.TagIds.Count > 0)
+        {
+            db.ArticleTags.AddRange(dto.TagIds.Select(t => new ArticleTag { ArticleId = article.Id, TagId = t }));
+            await db.SaveChangesAsync();
+        }
+
+        return (await GetByIdAsync(article.Id))!;
+    }
+
     // ? CreateAsync : создаёт новую статью со статусом PendingReview
     // вызывается из ArticlesController.Create (Auth)
     public async Task<ArticleDto> CreateAsync(int authorId, CreateArticleDto dto)

@@ -47,6 +47,18 @@ public class ArticleService(HttpClient http)
         return await http.GetFromJsonAsync<ArticleDto>($"api/articles/{id}");
     }
 
+    // ? SaveDraftToDbAsync : сохраняет черновик в БД
+    // вызывается из Pages/Publicist/CreateArticle.razor
+    public async Task<(ArticleDto? article, string? error)> SaveDraftToDbAsync(
+        int? articleId, string title, string content, List<int> tagIds, string? imageUrl)
+    {
+        var payload = new { articleId, title, content, imageUrl, tagIds };
+        var res = await http.PostAsJsonAsync("api/articles/draft", payload);
+        if (!res.IsSuccessStatusCode) return (null, "Ошибка при сохранении черновика.");
+        var dto = await res.Content.ReadFromJsonAsync<ArticleDto>();
+        return (dto, null);
+    }
+
     // ? SaveArticleAsync : создаёт новую статью или обновляет существующую
     // вызывается из Pages/Publicist/CreateArticle.razor
     public async Task<(ArticleDto? article, string? error)> SaveArticleAsync(

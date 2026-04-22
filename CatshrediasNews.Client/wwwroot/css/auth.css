@@ -291,17 +291,19 @@
     border-radius: 16px;
     padding: 28px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    justify-content: center;
     gap: 20px;
     box-shadow: var(--shadow);
 }
 
 .profile-avatar {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
     flex-shrink: 0;
+    width: 72px;
+    height: 72px;
 }
 
 .profile-avatar i {

@@ -1,13 +1,64 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject ArticleHeadingsService HeadingsSvc
 
 <AppHeader />
 
 <div class="app-body">
-    <LeftSidebar />
+
+    @if (_leftVisible)
+    {
+        <div class="sidebar-left-wrap sidebar-visible">
+            <LeftSidebar />
+            <button class="sidebar-toggle sidebar-toggle-left" title="Скрыть меню"
+                    @onclick="() => _leftVisible = false">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </div>
+    }
+    else
+    {
+        <button class="sidebar-show sidebar-show-left" title="Показать меню"
+                @onclick="() => _leftVisible = true">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    }
+
     <main class="app-main">
         @Body
     </main>
-    <RightSidebar />
+
+    @if (_rightVisible && HasRightContent)
+    {
+        <div class="sidebar-right-wrap sidebar-visible">
+            <button class="sidebar-toggle sidebar-toggle-right" title="Скрыть содержание"
+                    @onclick="() => _rightVisible = false">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <RightSidebar />
+        </div>
+    }
+    else if (HasRightContent)
+    {
+        <button class="sidebar-show sidebar-show-right" title="Показать содержание"
+                @onclick="() => _rightVisible = true">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    }
+
 </div>
 
 <AppFooter />
+
+@code {
+    private bool _leftVisible  = true;
+    private bool _rightVisible = true;
+
+    private bool HasRightContent => HeadingsSvc.Headings.Any();
+
+    protected override void OnInitialized() =>
+        HeadingsSvc.OnChange += StateHasChanged;
+
+    public void Dispose() =>
+        HeadingsSvc.OnChange -= StateHasChanged;
+}

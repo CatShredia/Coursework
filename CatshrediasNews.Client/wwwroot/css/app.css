@@ -80,3 +80,97 @@
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-outline { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
 .btn-outline:hover { background: var(--accent-light); }
+
+/* ── Тёмная тема: переопределения хардкод ── */
+[data-theme="dark"] .auth-error {
+    background: #2d1515;
+    border-color: #5c2020;
+    color: #ff8a80;
+}
+
+[data-theme="dark"] .auth-success {
+    background: #152d15;
+    border-color: #1e5c1e;
+    color: #69f0ae;
+}
+
+[data-theme="dark"] .modal-box {
+    background: var(--bg-white);
+}
+
+[data-theme="dark"] .search-modal {
+    background: var(--bg-white);
+}
+
+[data-theme="dark"] .search-modal-input {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .input-wrap input {
+    background: var(--bg);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .input-wrap input:focus {
+    background: var(--bg-white);
+}
+
+[data-theme="dark"] .editor-textarea,
+[data-theme="dark"] .editor-preview {
+    background: var(--bg-white);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .gigachad-toggle {
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .gigachad-actions,
+[data-theme="dark"] .gigachad-loading,
+[data-theme="dark"] .gigachad-result {
+    background: var(--bg-white);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .gigachad-result-header {
+    background: var(--bg);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .gigachad-btn {
+    background: var(--bg);
+    border-color: var(--border);
+    color: var(--accent);
+}
+
+[data-theme="dark"] .gigachad-btn:hover:not(:disabled) {
+    background: var(--accent-light);
+    border-color: var(--accent);
+}
+
+[data-theme="dark"] .gigachad-result-body {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .gigachad-result-body em { color: var(--accent); }
+[data-theme="dark"] .gigachad-result-body strong { color: var(--text-primary); }
+[data-theme="dark"] .gigachad-result-body code {
+    background: var(--bg);
+    color: var(--accent);
+}
+
+[data-theme="dark"] .gigachad-hint { color: var(--text-muted); }
+
+[data-theme="dark"] .gigachad-loading { color: var(--accent); }
+
+[data-theme="dark"] .status-active  { background: #152d15; color: #69f0ae; }
+[data-theme="dark"] .status-blocked { background: #2d1515; color: #ff8a80; }
+[data-theme="dark"] .status-pending { background: #2d2010; color: #ffb74d; }
+
+[data-theme="dark"] .role-admin     { background: #2d1520; color: #ff8a80; }
+[data-theme="dark"] .role-moderator { background: #2d2010; color: #ffb74d; }
+[data-theme="dark"] .role-publicist { background: #1e1530; color: #ce93d8; }
+[data-theme="dark"] .role-user      { background: var(--accent-light); color: var(--accent); }

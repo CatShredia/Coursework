@@ -17,10 +17,14 @@ builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<GigaChadService>();
+builder.Services.AddScoped<ArticleHeadingsService>();
+builder.Services.AddScoped<ThemeService>();
 
 var host = builder.Build();
 
-var auth = host.Services.GetRequiredService<AuthService>();
+var auth  = host.Services.GetRequiredService<AuthService>();
+var theme = host.Services.GetRequiredService<ThemeService>();
 await auth.InitAsync();
+await theme.InitAsync();
 
 await host.RunAsync();

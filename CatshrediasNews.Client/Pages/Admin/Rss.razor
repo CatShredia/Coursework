@@ -1,0 +1,329 @@
+@page "/admin/rss"
+@using CatshrediasNews.Client.Models
+@inject AuthService Auth
+@inject AdminService AdminSvc
+@inject NavigationManager Nav
+
+<PageTitle>Настройка RSS — Runews</PageTitle>
+
+@if (Auth.CurrentUser?.Role != "Admin")
+{
+    Nav.NavigateTo("/");
+    return;
+}
+
+<div class="admin-page">
+    <div class="admin-header">
+        <h1 class="page-title" style="margin:0">Настройка RSS</h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="@(_isError ? "auth-error" : "auth-success")" style="margin-bottom:16px">
+            <i class="bi @(_isError ? "bi-exclamation-circle" : "bi-check-circle")"></i> @_message
+        </div>
+    }
+
+    <!-- Панель управления парсером -->
+    <div class="profile-card" style="margin-bottom:24px;gap:24px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Интервал парсинга</span>
+            <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" class="input-wrap" min="1" max="10080"
+                       style="width:90px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg);outline:none"
+                       @bind="_interval" />
+                <span style="font-size:13px;color:var(--text-muted)">мин.</span>
+                <button class="auth-btn" style="width:auto;padding:8px 16px"
+                        @onclick="SaveInterval" disabled="@_saving">
+                    @if (_saving) { <span class="auth-spinner"></span> }
+                    else { <i class="bi bi-check-lg"></i> }
+                    Сохранить
+                </button>
+            </div>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+            <button class="auth-btn" style="width:auto;padding:8px 20px;background:#43a047"
+                    @onclick="TriggerNow" disabled="@_triggering">
+                @if (_triggering) { <span class="auth-spinner"></span> }
+                else { <i class="bi bi-play-fill"></i> }
+                Запустить парсинг сейчас
+            </button>
+        </div>
+    </div>
+
+    <!-- Форма добавления источника -->
+    <div class="profile-section" style="margin-bottom:24px">
+        <h2 class="profile-section-title">Добавить источник</h2>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="auth-field" style="flex:1;min-width:160px">
+                <label>Название</label>
+                <div class="input-wrap">
+                    <i class="bi bi-rss"></i>
+                    <input type="text" placeholder="Habr" @bind="_newName" @bind:event="oninput" />
+                </div>
+            </div>
+            <div class="auth-field" style="flex:2;min-width:240px">
+                <label>URL фида</label>
+                <div class="input-wrap">
+                    <i class="bi bi-link-45deg"></i>
+                    <input type="url" placeholder="https://habr.com/ru/rss/articles/" @bind="_newUrl" @bind:event="oninput" />
+                </div>
+            </div>
+            <div class="auth-field" style="justify-content:flex-end">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--text-secondary)">
+                    <input type="checkbox" @bind="_newTrusted" style="width:16px;height:16px;cursor:pointer" />
+                    Доверенный
+                </label>
+            </div>
+            <button class="auth-btn" style="width:auto;padding:9px 20px;margin-bottom:6px"
+                    @onclick="AddSource" disabled="@_adding">
+                @if (_adding) { <span class="auth-spinner"></span> }
+                else { <i class="bi bi-plus-lg"></i> }
+                Добавить
+            </button>
+        </div>
+    </div>
+
+    <!-- Таблица источников -->
+    @if (_loading)
+    {
+        <div class="admin-loading">
+            <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+            Загрузка...
+        </div>
+    }
+    else if (!_sources.Any())
+    {
+        <div class="feed-empty">
+            <i class="bi bi-rss"></i>
+            <p>Источников нет. Добавьте первый.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>URL</th>
+                        <th>Доверенный</th>
+                        <th>Статус</th>
+                        <th>Последний парсинг</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var src in _sources)
+                    {
+                        @if (_editId == src.Id)
+                        {
+                            <tr style="background:var(--accent-light)">
+                                <td><input class="admin-inline-input" @bind="_editName" /></td>
+                                <td><input class="admin-inline-input" @bind="_editUrl" /></td>
+                                <td style="text-align:center">
+                                    <input type="checkbox" @bind="_editTrusted" style="width:16px;height:16px;cursor:pointer" />
+                                </td>
+                                <td colspan="2" style="color:var(--text-muted);font-size:12px">Режим редактирования</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="action-btn action-btn-success" title="Сохранить" @onclick="() => SaveEdit(src)">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                        <button class="action-btn" title="Отмена" @onclick="CancelEdit">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td style="font-weight:600">@src.Name</td>
+                                <td>
+                                    <a href="@src.Url" target="_blank" style="color:var(--accent);font-size:12px;word-break:break-all">
+                                        @src.Url
+                                    </a>
+                                </td>
+                                <td style="text-align:center">
+                                    @if (src.IsTrusted)
+                                    {
+                                        <span class="status-badge status-active"><i class="bi bi-shield-check"></i> Да</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge"><i class="bi bi-shield"></i> Нет</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (src.IsEnabled)
+                                    {
+                                        <span class="status-badge status-active"><i class="bi bi-check-circle"></i> Включён</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-blocked"><i class="bi bi-slash-circle"></i> Отключён</span>
+                                    }
+                                </td>
+                                <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">
+                                    @(src.LastFetchedAt.HasValue
+                                        ? src.LastFetchedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                        : "—")
+                                </td>
+                                <td>
+                                    <div class="action-btns">
+                                        @if (src.IsEnabled)
+                                        {
+                                            <button class="action-btn action-btn-warn" title="Отключить"
+                                                    @onclick="() => ToggleEnabled(src, false)">
+                                                <i class="bi bi-pause-fill"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="action-btn action-btn-success" title="Включить"
+                                                    @onclick="() => ToggleEnabled(src, true)">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                        }
+                                        <button class="action-btn" title="Редактировать"
+                                                @onclick="() => StartEdit(src)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="action-btn action-btn-danger" title="Удалить"
+                                                @onclick="() => AskDelete(src)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (_deleteTarget is not null)
+{
+    <div class="modal-overlay" @onclick="() => _deleteTarget = null">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <h3 class="modal-title">Удалить источник?</h3>
+            <p class="modal-text">«@_deleteTarget.Name» будет удалён безвозвратно.</p>
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
+                <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_deleting">
+                    @if (_deleting) { <span class="auth-spinner"></span> }
+                    else { <span>Удалить</span> }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<RssSourceDto> _sources = [];
+    private bool _loading = true, _saving, _triggering, _adding, _deleting;
+    private string? _message;
+    private bool _isError;
+    private int _interval = 15;
+
+    private string _newName = "", _newUrl = "";
+    private bool _newTrusted = true;
+
+    private int? _editId;
+    private string _editName = "", _editUrl = "";
+    private bool _editTrusted;
+
+    private RssSourceDto? _deleteTarget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sources  = await AdminSvc.GetSourcesAsync();
+        _interval = await AdminSvc.GetRssIntervalAsync();
+        _loading  = false;
+    }
+
+    private async Task SaveInterval()
+    {
+        if (_interval < 1) { ShowMsg("Интервал должен быть не менее 1 минуты.", true); return; }
+        _saving = true;
+        var ok = await AdminSvc.SetRssIntervalAsync(_interval);
+        ShowMsg(ok ? $"Интервал изменён на {_interval} мин." : "Ошибка при сохранении.", !ok);
+        _saving = false;
+    }
+
+    private async Task TriggerNow()
+    {
+        _triggering = true;
+        var ok = await AdminSvc.TriggerRssAsync();
+        ShowMsg(ok ? "Парсинг запущен." : "Ошибка запуска.", !ok);
+        _triggering = false;
+    }
+
+    private async Task AddSource()
+    {
+        if (string.IsNullOrWhiteSpace(_newName) || string.IsNullOrWhiteSpace(_newUrl))
+        { ShowMsg("Заполните название и URL.", true); return; }
+        _adding = true;
+        var src = await AdminSvc.CreateSourceAsync(_newName.Trim(), _newUrl.Trim(), _newTrusted);
+        if (src is not null)
+        {
+            _sources.Add(src);
+            _newName = ""; _newUrl = ""; _newTrusted = true;
+            ShowMsg("Источник добавлен.", false);
+        }
+        else ShowMsg("Ошибка при добавлении.", true);
+        _adding = false;
+    }
+
+    private void StartEdit(RssSourceDto src)
+    {
+        _editId = src.Id; _editName = src.Name; _editUrl = src.Url; _editTrusted = src.IsTrusted;
+    }
+
+    private void CancelEdit() => _editId = null;
+
+    private async Task SaveEdit(RssSourceDto src)
+    {
+        var ok = await AdminSvc.UpdateSourceAsync(src.Id, _editName.Trim(), _editUrl.Trim(), _editTrusted);
+        if (ok)
+        {
+            var idx = _sources.IndexOf(src);
+            _sources[idx] = new RssSourceDto { Id = src.Id, Name = _editName.Trim(), Url = _editUrl.Trim(), IsTrusted = _editTrusted, IsEnabled = src.IsEnabled, LastFetchedAt = src.LastFetchedAt };
+            ShowMsg("Источник обновлён.", false);
+        }
+        else ShowMsg("Ошибка при обновлении.", true);
+        _editId = null;
+    }
+
+    private async Task ToggleEnabled(RssSourceDto src, bool enabled)
+    {
+        var ok = await AdminSvc.SetSourceEnabledAsync(src.Id, enabled);
+        if (ok)
+        {
+            var idx = _sources.IndexOf(src);
+            _sources[idx] = new RssSourceDto { Id = src.Id, Name = src.Name, Url = src.Url, IsTrusted = src.IsTrusted, IsEnabled = enabled, LastFetchedAt = src.LastFetchedAt };
+            ShowMsg(enabled ? "Источник включён." : "Источник отключён.", false);
+        }
+        else ShowMsg("Ошибка.", true);
+    }
+
+    private void AskDelete(RssSourceDto src) => _deleteTarget = src;
+
+    private async Task ConfirmDelete()
+    {
+        if (_deleteTarget is null) return;
+        _deleting = true;
+        var ok = await AdminSvc.DeleteSourceAsync(_deleteTarget.Id);
+        if (ok) { _sources.Remove(_deleteTarget); ShowMsg("Источник удалён.", false); }
+        else ShowMsg("Ошибка при удалении.", true);
+        _deleteTarget = null;
+        _deleting = false;
+    }
+
+    private void ShowMsg(string msg, bool isError) { _message = msg; _isError = isError; }
+}

@@ -1,6 +1,7 @@
 @inject AuthService Auth
 @inject ArticleService ArticleSvc
 @inject NavigationManager Nav
+@inject ThemeService ThemeSvc
 @implements IDisposable
 
 <header class="app-header">
@@ -9,6 +10,10 @@
     <div class="header-actions">
         <button class="btn-search-trigger" @onclick="OpenSearch" title="Поиск">
             <i class="bi bi-search"></i>
+        </button>
+        <button class="btn-search-trigger" @onclick="ThemeSvc.ToggleAsync"
+                title="@(ThemeSvc.IsDark ? "Светлая тема" : "Тёмная тема")">
+            <i class="bi @(ThemeSvc.IsDark ? "bi-sun" : "bi-moon")"></i>
         </button>
 
         @if (Auth.IsAuthenticated)
@@ -107,10 +112,16 @@
     private bool _searching;
     private CancellationTokenSource? _cts;
 
-    protected override void OnInitialized() => Auth.OnChange += StateHasChanged;
+    protected override void OnInitialized()
+    {
+        Auth.OnChange  += StateHasChanged;
+        ThemeSvc.OnChange += StateHasChanged;
+    }
+
     public void Dispose()
     {
-        Auth.OnChange -= StateHasChanged;
+        Auth.OnChange     -= StateHasChanged;
+        ThemeSvc.OnChange -= StateHasChanged;
         _cts?.Cancel();
     }
 

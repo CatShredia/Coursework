@@ -32,3 +32,11 @@ public record UpdateArticleDto(
     string? SourceUrl,
     List<int> TagIds
 );
+
+public record SaveDraftRequest(
+    int? ArticleId,
+    string Title,
+    string Content,
+    string? ImageUrl,
+    List<int> TagIds
+);

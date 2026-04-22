@@ -98,6 +98,18 @@ public class AdminController(RssSourceService rssSourceService, TagService tagSe
         return Ok(await userService.GetAllAsync());
     }
 
+    // ? SetRole : меняет роль пользователя
+    // вызывается клиентом (Admin)
+    [HttpPut("users/{id:int}/role")]
+    public async Task<IActionResult> SetRole(int id, [FromBody] string role)
+    {
+        if (role == "Admin") return BadRequest("Нельзя назначать роль Admin.");
+        var target = await userService.GetByIdAsync(id);
+        if (target?.Role == "Admin") return BadRequest("Нельзя изменить роль Admin.");
+        var result = await userService.SetRoleAsync(id, role);
+        return result ? NoContent() : NotFound();
+    }
+
     // ? BlockUser : блокирует пользователя
     // вызывается клиентом (Admin)
     [HttpPost("users/{id:int}/block")]

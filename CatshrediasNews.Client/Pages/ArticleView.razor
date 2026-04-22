@@ -3,6 +3,8 @@
 @inject ModerationService ModerationSvc
 @inject AuthService Auth
 @inject NavigationManager Nav
+@inject ArticleHeadingsService HeadingsSvc
+@implements IDisposable
 
 <PageTitle>@(_article?.Title ?? "Статья") — Runews</PageTitle>
 
@@ -75,14 +77,11 @@ else
         <div class="article-view-content">
             @if (!string.IsNullOrEmpty(_article.ContentHtml))
             {
-                @((MarkupString)_article.ContentHtml)
+                @((MarkupString)AddHeadingIds(_article.ContentHtml))
             }
             else
             {
-                @foreach (var paragraph in _paragraphs)
-                {
-                    <p>@paragraph</p>
-                }
+                @((MarkupString)RenderMarkdown(_article.Content))
             }
         </div>
 
@@ -160,7 +159,6 @@ else
     private ArticleDto? _article;
     private bool _loading = true;
     private bool _liked;
-    private List<string> _paragraphs = [];
     private bool _hasHtml => !string.IsNullOrEmpty(_article?.ContentHtml);
 
     private bool _showReport;
@@ -175,13 +173,19 @@ else
 
         if (_article is not null)
         {
-            _paragraphs = _article.Content
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                .Where(p => !string.IsNullOrWhiteSpace(p))
-                .ToList();
-
             if (Auth.IsAuthenticated)
                 _liked = await ArticleSvc.IsLikedAsync(Id);
+
+            var source = !string.IsNullOrEmpty(_article.ContentHtml)
+                    ? _article.ContentHtml
+                    : _article.Content;
+
+            var headings = ParseHeadings(source);
+            HeadingsSvc.Set(headings);
+        }
+        else
+        {
+            HeadingsSvc.Clear();
         }
 
         _loading = false;
@@ -206,6 +210,47 @@ else
         catch { return url; }
     }
 
+    public void Dispose() => HeadingsSvc.Clear();
+
+    private static List<ArticleHeadingsService.Heading> ParseHeadings(string source)
+    {
+        var result = new List<ArticleHeadingsService.Heading>();
+
+        // Если источник содержит HTML-теги — парсим как HTML
+        if (System.Text.RegularExpressions.Regex.IsMatch(source, @"<h[123][\s>]"))
+        {
+            var matches = System.Text.RegularExpressions.Regex.Matches(
+                source, @"<h([123])[^>]*>(.+?)</h\1>",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            foreach (System.Text.RegularExpressions.Match m in matches)
+            {
+                var level  = "h" + m.Groups[1].Value;
+                var text   = System.Text.RegularExpressions.Regex.Replace(m.Groups[2].Value, "<[^>]+>", "");
+                var anchor = MakeAnchor(text);
+                result.Add(new(level, text, anchor));
+            }
+        }
+        else
+        {
+            // Парсим Markdown: # заголовок
+            foreach (var line in source.Split('\n'))
+            {
+                var m3 = System.Text.RegularExpressions.Regex.Match(line, @"^### (.+)$");
+                var m2 = System.Text.RegularExpressions.Regex.Match(line, @"^## (.+)$");
+                var m1 = System.Text.RegularExpressions.Regex.Match(line, @"^# (.+)$");
+                if      (m3.Success) result.Add(new("h3", m3.Groups[1].Value.Trim(), MakeAnchor(m3.Groups[1].Value.Trim())));
+                else if (m2.Success) result.Add(new("h2", m2.Groups[1].Value.Trim(), MakeAnchor(m2.Groups[1].Value.Trim())));
+                else if (m1.Success) result.Add(new("h1", m1.Groups[1].Value.Trim(), MakeAnchor(m1.Groups[1].Value.Trim())));
+            }
+        }
+
+        return result;
+    }
+
+    private static string MakeAnchor(string text) =>
+        "heading-" + System.Text.RegularExpressions.Regex.Replace(
+            text.ToLowerInvariant(), @"[^a-z0-9а-я]+", "-").Trim('-');
+
     private async Task SendReport()
     {
         if (_article is null) return;
@@ -213,5 +258,96 @@ else
         await ModerationSvc.CreateReportAsync(_article.Id, _reportTypeId, _reportDesc);
         _reportSent    = true;
         _reportLoading = false;
+    }
+
+    private static string AddHeadingIds(string html) =>
+        System.Text.RegularExpressions.Regex.Replace(
+            html, @"<h([123])([^>]*)>(.+?)</h\1>",
+            m =>
+            {
+                var text   = System.Text.RegularExpressions.Regex.Replace(m.Groups[3].Value, "<[^>]+>", "");
+                var anchor = MakeAnchor(text);
+                return $"<h{m.Groups[1].Value} id=\"{anchor}\"{m.Groups[2].Value}>{m.Groups[3].Value}</h{m.Groups[1].Value}>";
+            },
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    private static string RenderMarkdown(string md)
+    {
+        // Экранируем HTML чтобы теги не интерпретировались браузером
+        // Сначала вырезаем блоки кода и заменяем плейсхолдерами
+        var codeBlocks = new System.Collections.Generic.List<string>();
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"```(?:\w+)?\n([\s\S]+?)```", m =>
+        {
+            var code = m.Groups[1].Value
+                .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+            codeBlocks.Add($"<pre><code>{code}</code></pre>");
+            return $"%%CODEBLOCK{codeBlocks.Count - 1}%%";
+        });
+
+        // Экранируем HTML во всём остальном тексте
+        md = md.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+        // Заголовки
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$",
+            m => { var t = m.Groups[1].Value; return $"<h3 id=\"{MakeAnchor(t)}\">{t}</h3>"; },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",
+            m => { var t = m.Groups[1].Value; return $"<h2 id=\"{MakeAnchor(t)}\">{t}</h2>"; },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",
+            m => { var t = m.Groups[1].Value; return $"<h1 id=\"{MakeAnchor(t)}\">{t}</h1>"; },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Таблицы
+        md = System.Text.RegularExpressions.Regex.Replace(md,
+            @"((?:^\|.+\|\r?\n)+)",
+            m =>
+            {
+                var rows = m.Value.Trim().Split('\n');
+                var sb = new System.Text.StringBuilder("<table class=\"md-table\"><tbody>");
+                bool headerDone = false;
+                foreach (var row in rows)
+                {
+                    var trimmed = row.Trim();
+                    if (trimmed.StartsWith("|") && trimmed.Replace("-", "").Replace("|", "").Replace(":", "").Trim() == "")
+                        continue; // разделительная строка
+                    var cells = trimmed.Trim('|').Split('|');
+                    var tag = !headerDone ? "th" : "td";
+                    sb.Append("<tr>");
+                    foreach (var cell in cells)
+                        sb.Append($"<{tag}>{cell.Trim()}</{tag}>");
+                    sb.Append("</tr>");
+                    headerDone = true;
+                }
+                sb.Append("</tbody></table>");
+                return sb.ToString();
+            },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Инлайн-форматирование
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`",       "<code>$1</code>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"!\[(.+?)\]\((.+?)\)", "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\[(.+?)\]\((.+?)\)",  "<a href=\"$2\" target=\"_blank\">$1</a>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^&gt; (.+)$",   "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\*   (.+)$",   "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^-   (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",      "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\.  (.+)$", "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$",  "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$",         "<hr>",         System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Обертываем параграфы
+        md = string.Join("\n", md.Split('\n').Select(l =>
+            l.StartsWith('<') || string.IsNullOrWhiteSpace(l) ? l : $"<p>{l}</p>"));
+
+        // Возвращаем блоки кода
+        for (int i = 0; i < codeBlocks.Count; i++)
+            md = md.Replace($"<p>%%CODEBLOCK{i}%%</p>", codeBlocks[i])
+                   .Replace($"%%CODEBLOCK{i}%%", codeBlocks[i]);
+
+        return md;
     }
 }
