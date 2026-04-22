@@ -51,18 +51,22 @@ public class AdminService(HttpClient http)
 
     // ? CreateSourceAsync : добавляет новый RSS-источник
     // вызывается из Pages/Admin/Rss.razor (Admin)
-    public async Task<RssSourceDto?> CreateSourceAsync(string name, string url, bool isTrusted)
+    public async Task<RssSourceDto?> CreateSourceAsync(string name, string url, bool isTrusted,
+        string sourceType = "Rss", string? linkSelector = null, string? titleSelector = null,
+        string? contentSelector = null, string? dateSelector = null, string? imageSelector = null)
     {
-        var res = await http.PostAsJsonAsync("api/admin/sources", new { name, url, isTrusted });
+        var res = await http.PostAsJsonAsync("api/admin/sources",
+            new { name, url, isTrusted, sourceType, linkSelector, titleSelector, contentSelector, dateSelector, imageSelector });
         if (!res.IsSuccessStatusCode) return null;
         return await res.Content.ReadFromJsonAsync<RssSourceDto>();
     }
 
-    // ? UpdateSourceAsync : обновляет RSS-источник
-    // вызывается из Pages/Admin/Rss.razor (Admin)
-    public async Task<bool> UpdateSourceAsync(int id, string name, string url, bool isTrusted)
+    public async Task<bool> UpdateSourceAsync(int id, string name, string url, bool isTrusted,
+        string sourceType = "Rss", string? linkSelector = null, string? titleSelector = null,
+        string? contentSelector = null, string? dateSelector = null, string? imageSelector = null)
     {
-        var res = await http.PutAsJsonAsync($"api/admin/sources/{id}", new { name, url, isTrusted });
+        var res = await http.PutAsJsonAsync($"api/admin/sources/{id}",
+            new { name, url, isTrusted, sourceType, linkSelector, titleSelector, contentSelector, dateSelector, imageSelector });
         return res.IsSuccessStatusCode;
     }
 

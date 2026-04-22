@@ -76,7 +76,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
 
-builder.Services.AddHttpClient(); 
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("scraper", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(15);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "Mozilla/5.0 (compatible; RunewsBot/1.0)");
+}); 
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailService>();
@@ -89,6 +95,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<TagMappingService>();
 builder.Services.AddScoped<IGigaChatService, GigaChatService>();
 builder.Services.AddSingleton<RssParserService>();
+builder.Services.AddSingleton<ScraperService>();
 builder.Services.AddSingleton<RssFetcherService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>());
 

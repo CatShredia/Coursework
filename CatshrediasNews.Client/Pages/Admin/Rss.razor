@@ -4,7 +4,7 @@
 @inject AdminService AdminSvc
 @inject NavigationManager Nav
 
-<PageTitle>Настройка RSS — Runews</PageTitle>
+<PageTitle>Настройка источников — Runews</PageTitle>
 
 @if (Auth.CurrentUser?.Role != "Admin")
 {
@@ -14,7 +14,7 @@
 
 <div class="admin-page">
     <div class="admin-header">
-        <h1 class="page-title" style="margin:0">Настройка RSS</h1>
+        <h1 class="page-title" style="margin:0">Настройка источников</h1>
     </div>
 
     @if (!string.IsNullOrEmpty(_message))
@@ -29,23 +29,19 @@
         <div style="display:flex;flex-direction:column;gap:6px">
             <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Интервал парсинга</span>
             <div style="display:flex;align-items:center;gap:8px">
-                <input type="number" class="input-wrap" min="1" max="10080"
+                <input type="number" min="1" max="10080"
                        style="width:90px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg);outline:none"
                        @bind="_interval" />
                 <span style="font-size:13px;color:var(--text-muted)">мин.</span>
-                <button class="auth-btn" style="width:auto;padding:8px 16px"
-                        @onclick="SaveInterval" disabled="@_saving">
-                    @if (_saving) { <span class="auth-spinner"></span> }
-                    else { <i class="bi bi-check-lg"></i> }
+                <button class="auth-btn" style="width:auto;padding:8px 16px" @onclick="SaveInterval" disabled="@_saving">
+                    @if (_saving) { <span class="auth-spinner"></span> } else { <i class="bi bi-check-lg"></i> }
                     Сохранить
                 </button>
             </div>
         </div>
         <div style="display:flex;align-items:flex-end">
-            <button class="auth-btn" style="width:auto;padding:8px 20px;background:#43a047"
-                    @onclick="TriggerNow" disabled="@_triggering">
-                @if (_triggering) { <span class="auth-spinner"></span> }
-                else { <i class="bi bi-play-fill"></i> }
+            <button class="auth-btn" style="width:auto;padding:8px 20px;background:#43a047" @onclick="TriggerNow" disabled="@_triggering">
+                @if (_triggering) { <span class="auth-spinner"></span> } else { <i class="bi bi-play-fill"></i> }
                 Запустить парсинг сейчас
             </button>
         </div>
@@ -54,20 +50,26 @@
     <!-- Форма добавления источника -->
     <div class="profile-section" style="margin-bottom:24px">
         <h2 class="profile-section-title">Добавить источник</h2>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
             <div class="auth-field" style="flex:1;min-width:160px">
                 <label>Название</label>
-                <div class="input-wrap">
-                    <i class="bi bi-rss"></i>
+                <div class="input-wrap"><i class="bi bi-rss"></i>
                     <input type="text" placeholder="Habr" @bind="_newName" @bind:event="oninput" />
                 </div>
             </div>
             <div class="auth-field" style="flex:2;min-width:240px">
-                <label>URL фида</label>
-                <div class="input-wrap">
-                    <i class="bi bi-link-45deg"></i>
-                    <input type="url" placeholder="https://habr.com/ru/rss/articles/" @bind="_newUrl" @bind:event="oninput" />
+                <label>URL</label>
+                <div class="input-wrap"><i class="bi bi-link-45deg"></i>
+                    <input type="url" placeholder="https://..." @bind="_newUrl" @bind:event="oninput" />
                 </div>
+            </div>
+            <div class="auth-field">
+                <label>Тип</label>
+                <select class="admin-select" @bind="_newType">
+                    <option value="Rss">RSS</option>
+                    <option value="Scraper">Скрапер</option>
+                </select>
             </div>
             <div class="auth-field" style="justify-content:flex-end">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--text-secondary)">
@@ -75,13 +77,54 @@
                     Доверенный
                 </label>
             </div>
-            <button class="auth-btn" style="width:auto;padding:9px 20px;margin-bottom:6px"
-                    @onclick="AddSource" disabled="@_adding">
-                @if (_adding) { <span class="auth-spinner"></span> }
-                else { <i class="bi bi-plus-lg"></i> }
-                Добавить
-            </button>
         </div>
+
+        @if (_newType == "Scraper")
+        {
+            <div class="scraper-fields">
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">
+                    <i class="bi bi-info-circle"></i> Укажите CSS-селекторы для извлечения данных со страницы.
+                    Пример: <code>article.post h1</code>, <code>.content</code>, <code>#main-image</code>
+                </p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="auth-field">
+                        <label>Селектор ссылок <span style="color:#e53935">*</span></label>
+                        <div class="input-wrap"><i class="bi bi-link"></i>
+                            <input type="text" placeholder="a.article-link" @bind="_newLinkSel" @bind:event="oninput" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label>Селектор заголовка</label>
+                        <div class="input-wrap"><i class="bi bi-type-h1"></i>
+                            <input type="text" placeholder="h1.title" @bind="_newTitleSel" @bind:event="oninput" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label>Селектор контента</label>
+                        <div class="input-wrap"><i class="bi bi-text-paragraph"></i>
+                            <input type="text" placeholder=".article-body" @bind="_newContentSel" @bind:event="oninput" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label>Селектор даты</label>
+                        <div class="input-wrap"><i class="bi bi-calendar3"></i>
+                            <input type="text" placeholder="time.published" @bind="_newDateSel" @bind:event="oninput" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label>Селектор изображения</label>
+                        <div class="input-wrap"><i class="bi bi-image"></i>
+                            <input type="text" placeholder=".cover img" @bind="_newImageSel" @bind:event="oninput" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <button class="auth-btn" style="width:auto;padding:9px 20px;margin-top:12px" @onclick="AddSource" disabled="@_adding">
+            @if (_adding) { <span class="auth-spinner"></span> } else { <i class="bi bi-plus-lg"></i> }
+            Добавить
+        </button>
     </div>
 
     <!-- Таблица источников -->
@@ -94,10 +137,7 @@
     }
     else if (!_sources.Any())
     {
-        <div class="feed-empty">
-            <i class="bi bi-rss"></i>
-            <p>Источников нет. Добавьте первый.</p>
-        </div>
+        <div class="feed-empty"><i class="bi bi-rss"></i><p>Источников нет. Добавьте первый.</p></div>
     }
     else
     {
@@ -107,6 +147,7 @@
                     <tr>
                         <th>Название</th>
                         <th>URL</th>
+                        <th>Тип</th>
                         <th>Доверенный</th>
                         <th>Статус</th>
                         <th>Последний парсинг</th>
@@ -121,10 +162,31 @@
                             <tr style="background:var(--accent-light)">
                                 <td><input class="admin-inline-input" @bind="_editName" /></td>
                                 <td><input class="admin-inline-input" @bind="_editUrl" /></td>
+                                <td>
+                                    <select class="admin-select" style="font-size:12px;padding:4px 8px" @bind="_editType">
+                                        <option value="Rss">RSS</option>
+                                        <option value="Scraper">Скрапер</option>
+                                    </select>
+                                </td>
                                 <td style="text-align:center">
                                     <input type="checkbox" @bind="_editTrusted" style="width:16px;height:16px;cursor:pointer" />
                                 </td>
-                                <td colspan="2" style="color:var(--text-muted);font-size:12px">Режим редактирования</td>
+                                <td colspan="2">
+                                    @if (_editType == "Scraper")
+                                    {
+                                        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px">
+                                            <input class="admin-inline-input" placeholder="Ссылки (обязательно)" @bind="_editLinkSel" />
+                                            <input class="admin-inline-input" placeholder="Заголовок" @bind="_editTitleSel" />
+                                            <input class="admin-inline-input" placeholder="Контент" @bind="_editContentSel" />
+                                            <input class="admin-inline-input" placeholder="Дата" @bind="_editDateSel" />
+                                            <input class="admin-inline-input" placeholder="Изображение" @bind="_editImageSel" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);font-size:12px">Режим редактирования</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="action-btns">
                                         <button class="action-btn action-btn-success" title="Сохранить" @onclick="() => SaveEdit(src)">
@@ -143,8 +205,18 @@
                                 <td style="font-weight:600">@src.Name</td>
                                 <td>
                                     <a href="@src.Url" target="_blank" style="color:var(--accent);font-size:12px;word-break:break-all">
-                                        @src.Url
+                                        @(src.Url.Length > 50 ? src.Url[..50] + "…" : src.Url)
                                     </a>
+                                </td>
+                                <td>
+                                    @if (src.SourceType == "Scraper")
+                                    {
+                                        <span class="status-badge status-pending"><i class="bi bi-code-slash"></i> Скрапер</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge"><i class="bi bi-rss"></i> RSS</span>
+                                    }
                                 </td>
                                 <td style="text-align:center">
                                     @if (src.IsTrusted)
@@ -167,32 +239,26 @@
                                     }
                                 </td>
                                 <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">
-                                    @(src.LastFetchedAt.HasValue
-                                        ? src.LastFetchedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                                        : "—")
+                                    @(src.LastFetchedAt.HasValue ? src.LastFetchedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "—")
                                 </td>
                                 <td>
                                     <div class="action-btns">
                                         @if (src.IsEnabled)
                                         {
-                                            <button class="action-btn action-btn-warn" title="Отключить"
-                                                    @onclick="() => ToggleEnabled(src, false)">
+                                            <button class="action-btn action-btn-warn" title="Отключить" @onclick="() => ToggleEnabled(src, false)">
                                                 <i class="bi bi-pause-fill"></i>
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="action-btn action-btn-success" title="Включить"
-                                                    @onclick="() => ToggleEnabled(src, true)">
+                                            <button class="action-btn action-btn-success" title="Включить" @onclick="() => ToggleEnabled(src, true)">
                                                 <i class="bi bi-play-fill"></i>
                                             </button>
                                         }
-                                        <button class="action-btn" title="Редактировать"
-                                                @onclick="() => StartEdit(src)">
+                                        <button class="action-btn" title="Редактировать" @onclick="() => StartEdit(src)">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="action-btn action-btn-danger" title="Удалить"
-                                                @onclick="() => AskDelete(src)">
+                                        <button class="action-btn action-btn-danger" title="Удалить" @onclick="() => AskDelete(src)">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
@@ -216,8 +282,7 @@
             <div class="modal-actions">
                 <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
                 <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_deleting">
-                    @if (_deleting) { <span class="auth-spinner"></span> }
-                    else { <span>Удалить</span> }
+                    @if (_deleting) { <span class="auth-spinner"></span> } else { <span>Удалить</span> }
                 </button>
             </div>
         </div>
@@ -231,12 +296,16 @@
     private bool _isError;
     private int _interval = 15;
 
-    private string _newName = "", _newUrl = "";
-    private bool _newTrusted = true;
+    // Форма добавления
+    private string _newName = "", _newUrl = "", _newType = "Rss";
+    private bool   _newTrusted = true;
+    private string? _newLinkSel, _newTitleSel, _newContentSel, _newDateSel, _newImageSel;
 
-    private int? _editId;
-    private string _editName = "", _editUrl = "";
-    private bool _editTrusted;
+    // Форма редактирования
+    private int?   _editId;
+    private string _editName = "", _editUrl = "", _editType = "Rss";
+    private bool   _editTrusted;
+    private string? _editLinkSel, _editTitleSel, _editContentSel, _editDateSel, _editImageSel;
 
     private RssSourceDto? _deleteTarget;
 
@@ -268,12 +337,18 @@
     {
         if (string.IsNullOrWhiteSpace(_newName) || string.IsNullOrWhiteSpace(_newUrl))
         { ShowMsg("Заполните название и URL.", true); return; }
+        if (_newType == "Scraper" && string.IsNullOrWhiteSpace(_newLinkSel))
+        { ShowMsg("Для скрапера обязателен селектор ссылок.", true); return; }
+
         _adding = true;
-        var src = await AdminSvc.CreateSourceAsync(_newName.Trim(), _newUrl.Trim(), _newTrusted);
+        var src = await AdminSvc.CreateSourceAsync(
+            _newName.Trim(), _newUrl.Trim(), _newTrusted, _newType,
+            _newLinkSel, _newTitleSel, _newContentSel, _newDateSel, _newImageSel);
         if (src is not null)
         {
             _sources.Add(src);
-            _newName = ""; _newUrl = ""; _newTrusted = true;
+            _newName = ""; _newUrl = ""; _newType = "Rss"; _newTrusted = true;
+            _newLinkSel = _newTitleSel = _newContentSel = _newDateSel = _newImageSel = null;
             ShowMsg("Источник добавлен.", false);
         }
         else ShowMsg("Ошибка при добавлении.", true);
@@ -282,18 +357,35 @@
 
     private void StartEdit(RssSourceDto src)
     {
-        _editId = src.Id; _editName = src.Name; _editUrl = src.Url; _editTrusted = src.IsTrusted;
+        _editId = src.Id; _editName = src.Name; _editUrl = src.Url;
+        _editTrusted = src.IsTrusted; _editType = src.SourceType;
+        _editLinkSel = src.LinkSelector; _editTitleSel = src.TitleSelector;
+        _editContentSel = src.ContentSelector; _editDateSel = src.DateSelector;
+        _editImageSel = src.ImageSelector;
     }
 
     private void CancelEdit() => _editId = null;
 
     private async Task SaveEdit(RssSourceDto src)
     {
-        var ok = await AdminSvc.UpdateSourceAsync(src.Id, _editName.Trim(), _editUrl.Trim(), _editTrusted);
+        if (_editType == "Scraper" && string.IsNullOrWhiteSpace(_editLinkSel))
+        { ShowMsg("Для скрапера обязателен селектор ссылок.", true); return; }
+
+        var ok = await AdminSvc.UpdateSourceAsync(
+            src.Id, _editName.Trim(), _editUrl.Trim(), _editTrusted, _editType,
+            _editLinkSel, _editTitleSel, _editContentSel, _editDateSel, _editImageSel);
         if (ok)
         {
             var idx = _sources.IndexOf(src);
-            _sources[idx] = new RssSourceDto { Id = src.Id, Name = _editName.Trim(), Url = _editUrl.Trim(), IsTrusted = _editTrusted, IsEnabled = src.IsEnabled, LastFetchedAt = src.LastFetchedAt };
+            _sources[idx] = new RssSourceDto
+            {
+                Id = src.Id, Name = _editName.Trim(), Url = _editUrl.Trim(),
+                IsTrusted = _editTrusted, IsEnabled = src.IsEnabled,
+                LastFetchedAt = src.LastFetchedAt, SourceType = _editType,
+                LinkSelector = _editLinkSel, TitleSelector = _editTitleSel,
+                ContentSelector = _editContentSel, DateSelector = _editDateSel,
+                ImageSelector = _editImageSel
+            };
             ShowMsg("Источник обновлён.", false);
         }
         else ShowMsg("Ошибка при обновлении.", true);
@@ -306,7 +398,14 @@
         if (ok)
         {
             var idx = _sources.IndexOf(src);
-            _sources[idx] = new RssSourceDto { Id = src.Id, Name = src.Name, Url = src.Url, IsTrusted = src.IsTrusted, IsEnabled = enabled, LastFetchedAt = src.LastFetchedAt };
+            _sources[idx] = new RssSourceDto
+            {
+                Id = src.Id, Name = src.Name, Url = src.Url, IsTrusted = src.IsTrusted,
+                IsEnabled = enabled, LastFetchedAt = src.LastFetchedAt, SourceType = src.SourceType,
+                LinkSelector = src.LinkSelector, TitleSelector = src.TitleSelector,
+                ContentSelector = src.ContentSelector, DateSelector = src.DateSelector,
+                ImageSelector = src.ImageSelector
+            };
             ShowMsg(enabled ? "Источник включён." : "Источник отключён.", false);
         }
         else ShowMsg("Ошибка.", true);

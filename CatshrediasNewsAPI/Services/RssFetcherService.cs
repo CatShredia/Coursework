@@ -6,6 +6,7 @@ namespace CatshrediasNewsAPI.Services;
 public class RssFetcherService(
     IServiceScopeFactory scopeFactory,
     RssParserService parser,
+    ScraperService scraper,
     IConfiguration config,
     ILogger<RssFetcherService> logger) : BackgroundService
 {
@@ -74,7 +75,10 @@ public class RssFetcherService(
         foreach (var source in sources)
         {
             if (ct.IsCancellationRequested) break;
-            await parser.ParseSourceAsync(source);
+            if (source.SourceType == Models.SourceType.Scraper)
+                await scraper.ParseSourceAsync(source);
+            else
+                await parser.ParseSourceAsync(source);
         }
     }
 }

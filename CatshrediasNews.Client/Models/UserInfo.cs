@@ -13,12 +13,18 @@ public class UserInfo
 
 public class RssSourceDto
 {
-    public int       Id            { get; set; }
-    public string    Name          { get; set; } = "";
-    public string    Url           { get; set; } = "";
-    public bool      IsTrusted     { get; set; }
-    public bool      IsEnabled     { get; set; }
-    public DateTime? LastFetchedAt { get; set; }
+    public int       Id               { get; set; }
+    public string    Name             { get; set; } = "";
+    public string    Url              { get; set; } = "";
+    public bool      IsTrusted        { get; set; }
+    public bool      IsEnabled        { get; set; }
+    public DateTime? LastFetchedAt    { get; set; }
+    public string    SourceType       { get; set; } = "Rss";
+    public string?   LinkSelector     { get; set; }
+    public string?   TitleSelector    { get; set; }
+    public string?   ContentSelector  { get; set; }
+    public string?   DateSelector     { get; set; }
+    public string?   ImageSelector    { get; set; }
 }
 
 public class RssStatusDto
