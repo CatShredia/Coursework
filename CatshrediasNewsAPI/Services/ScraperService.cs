@@ -2,8 +2,10 @@ using CatshrediasNewsAPI.Data;
 using CatshrediasNewsAPI.Models;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting; // Для IWebHostEnvironment
-using System.IO; // Для Path и File
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CatshrediasNewsAPI.Services;
 
@@ -11,7 +13,7 @@ public class ScraperService(
     IServiceScopeFactory scopeFactory,
     TagMappingService tagMapping,
     IHttpClientFactory httpFactory,
-    IWebHostEnvironment env) // Добавили env для доступа к wwwroot
+    IWebHostEnvironment env)
 {
     // Вспомогательный метод для вывода в консоль
     private static void Log(string level, string message)
@@ -31,17 +33,17 @@ public class ScraperService(
 
         var http = httpFactory.CreateClient("scraper");
 
-        // 1. Загрузка страницы-каталога
-        Log("DEBUG", $"Источник {source.Name}: Начинаю загрузку каталога...");
+        // 1. Загрузка страницы-каталога с принудительной кодировкой
+        Log("DEBUG", $"Источник {source.Name}: Загружаю каталог...");
         string catalogHtml;
         try 
         { 
-            catalogHtml = await http.GetStringAsync(source.Url); 
+            catalogHtml = await DownloadHtmlWithEncodingAsync(http, source.Url);
             
-            // Сохраняем каталог в wwwroot/debug
+            // Сохраняем в wwwroot для проверки глазами
             await SaveHtmlToWwwRootAsync($"catalog_{SanitizeFileName(source.Name)}_{DateTime.Now:yyyyMMdd_HHmmss}.html", catalogHtml);
             
-            Log("DEBUG", $"Источник {source.Name}: Каталог загружен. Размер HTML: {catalogHtml.Length} байт");
+            Log("DEBUG", $"Источник {source.Name}: Каталог загружен. Размер: {catalogHtml.Length} байт");
         }
         catch (Exception ex)
         {
@@ -58,13 +60,13 @@ public class ScraperService(
         
         if (linkNodes is null || linkNodes.Count == 0)
         {
-            Log("WARN", $"Источник {source.Name}: Ссылки по селектору «{source.LinkSelector}» не найдены.");
+            Log("WARN", $"Источник {source.Name}: Ссылки не найдены.");
             return;
         }
 
         Log("INFO", $"Источник {source.Name}: Найдено узлов: {linkNodes.Count}");
 
-        // 3. Обработка и фильтрация ссылок
+        // 3. Обработка ссылок
         var baseUri = new Uri(source.Url);
         var links = linkNodes
             .Select(n => 
@@ -108,7 +110,7 @@ public class ScraperService(
         int skipped = 0;
         int errors = 0;
 
-        // 5. Цикл обработки статей
+        // 4. Цикл обработки статей
         for (int i = 0; i < links.Count; i++)
         {
             var url = links[i];
@@ -160,19 +162,19 @@ public class ScraperService(
         HttpClient http, RssSource source, string url,
         int statusId, List<Tag> allTags, AppDbContext db)
     {
-        Log("DEBUG", $">> Парсинг: {url}");
+        Log("DEBUG", $">> Парсинг статьи: {url}");
 
         string html;
         try 
         { 
-            html = await http.GetStringAsync(url); 
+            // Используем тот же метод с принудительной кодировкой
+            html = await DownloadHtmlWithEncodingAsync(http, url);
             
-            // Сохраняем статью в wwwroot/debug/articles
-            // Используем хеш или часть URL для имени файла, чтобы было уникально
+            // Сохраняем в wwwroot
             string fileName = $"article_{Math.Abs(url.GetHashCode())}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
             await SaveHtmlToWwwRootAsync(fileName, html, subFolder: "articles");
             
-            Log("DEBUG", $"HTML сохранен: {fileName}");
+            Log("DEBUG", $"HTML статьи сохранен: {fileName}");
         }
         catch (Exception ex)
         {
@@ -195,6 +197,8 @@ public class ScraperService(
         var matchedTags = tagMapping.Map(words).Select(name =>
             allTags.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             .Where(t => t is not null).Select(t => t!).ToList();
+
+        Log("INFO", $"Найдено тегов: {matchedTags.Count}");
 
         var article = new Article
         {
@@ -227,20 +231,73 @@ public class ScraperService(
     }
 
     /// <summary>
+    /// Скачивает HTML и декодирует его.
+    /// Приоритет: Windows-1251 (для старых РФ сайтов), если выглядит битым -> UTF-8.
+    /// </summary>
+    private async Task<string> DownloadHtmlWithEncodingAsync(HttpClient http, string url)
+    {
+        // 1. Получаем сырые байты
+        byte[] bytes = await http.GetByteArrayAsync(url);
+
+        // 2. Пробуем декодировать как Windows-1251 (самая частая причина кракозябр)
+        Encoding encodingWin1251 = Encoding.GetEncoding(1251);
+        string textWin1251 = encodingWin1251.GetString(bytes);
+
+        // 3. Проверка: если текст выглядит нормально (мало спецсимволов), возвращаем его
+        if (!IsGarbled(textWin1251))
+        {
+            return textWin1251;
+        }
+
+        // 4. Если Windows-1251 выдал мусор, пробуем UTF-8
+        string textUtf8 = Encoding.UTF8.GetString(bytes);
+        
+        // Если и UTF-8 мусор (маловероятно, но бывает), вернем хотя бы UTF-8
+        // Или можно выбросить ошибку, но лучше вернуть то, что есть
+        return textUtf8;
+    }
+
+    /// <summary>
+    /// Простая эвристика: если в тексте много символов "" или непечатных символов,
+    /// значит кодировка выбрана неверно.
+    /// </summary>
+    private bool IsGarbled(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return true;
+
+        // Считаем количество символов замены ()
+        int replacementCount = 0;
+        foreach (char c in text)
+        {
+            if (c == '\uFFFD') replacementCount++;
+        }
+
+        // Если больше 2% символов - это мусор
+        if ((double)replacementCount / text.Length > 0.02)
+        {
+            return true;
+        }
+
+        // Дополнительная проверка: если видим специфические последовательности кракозябр
+        // Например, частое повторение символов из диапазона Latin-1, которые выглядят как мусор в кириллице
+        // Но проверки на  обычно достаточно.
+        
+        return false;
+    }
+
+    /// <summary>
     /// Сохраняет HTML строку в файл внутри wwwroot/debug
     /// </summary>
     private async Task SaveHtmlToWwwRootAsync(string fileName, string content, string subFolder = "")
     {
         try
         {
-            // Формируем путь: wwwroot/debug/[subFolder]/filename.html
             string debugPath = Path.Combine(env.WebRootPath, "debug");
             if (!string.IsNullOrEmpty(subFolder))
             {
                 debugPath = Path.Combine(debugPath, subFolder);
             }
 
-            // Создаем директорию, если её нет
             if (!Directory.Exists(debugPath))
             {
                 Directory.CreateDirectory(debugPath);
@@ -248,8 +305,8 @@ public class ScraperService(
 
             string fullPath = Path.Combine(debugPath, fileName);
 
-            // Асинхронная запись файла
-            await File.WriteAllTextAsync(fullPath, content, System.Text.Encoding.UTF8);
+            // Сохраняем в UTF-8, чтобы браузер корректно отображал файл
+            await File.WriteAllTextAsync(fullPath, content, Encoding.UTF8);
         }
         catch (Exception ex)
         {
@@ -257,16 +314,13 @@ public class ScraperService(
         }
     }
 
-    /// <summary>
-    /// Очищает имя файла от недопустимых символов
-    /// </summary>
     private static string SanitizeFileName(string name)
     {
         var invalidChars = Path.GetInvalidFileNameChars();
         return new string(name.Where(c => !invalidChars.Contains(c)).ToArray()).Replace(" ", "_");
     }
 
-    // --- Остальные методы без изменений ---
+    // --- Методы парсинга (XPath и прочее) без изменений ---
 
     private static string ToXPath(string css)
     {
@@ -283,15 +337,14 @@ public class ScraperService(
             return string.Join("/", sub.Select(CssPartToXPath));
         }
 
-        var tag  = System.Text.RegularExpressions.Regex.Match(part, @"^[a-zA-Z0-9]*").Value;
+        var tag  = Regex.Match(part, @"^[a-zA-Z0-9]*").Value;
         var node = string.IsNullOrEmpty(tag) ? "*" : tag;
         var preds = new List<string>();
 
-        foreach (System.Text.RegularExpressions.Match m in
-            System.Text.RegularExpressions.Regex.Matches(part, @"\.([a-zA-Z0-9_-]+)"))
+        foreach (Match m in Regex.Matches(part, @"\.([a-zA-Z0-9_-]+)"))
             preds.Add($"contains(@class,'{m.Groups[1].Value}')");
 
-        var id = System.Text.RegularExpressions.Regex.Match(part, @"#([a-zA-Z0-9_-]+)").Groups[1].Value;
+        var id = Regex.Match(part, @"#([a-zA-Z0-9_-]+)").Groups[1].Value;
         if (!string.IsNullOrEmpty(id)) preds.Add($"@id='{id}'");
 
         return preds.Count > 0 ? $"{node}[{string.Join(" and ", preds)}]" : node;
