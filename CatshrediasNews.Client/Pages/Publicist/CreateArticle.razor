@@ -149,7 +149,17 @@
             <button class="editor-tool" title="Нумерованный список"  @onclick='() => LinePrefix("1. ")'><i class="bi bi-list-ol"></i></button>
             <div class="editor-tool-sep"></div>
             <button class="editor-tool" title="Гиперссылка"          @onclick="InsertLink"><i class="bi bi-link-45deg"></i></button>
-            <button class="editor-tool" title="Изображение"          @onclick="InsertImage"><i class="bi bi-image"></i></button>
+            <label class="editor-tool" title="Вставить изображение" style="cursor:pointer">
+                @if (_imageUploading)
+                {
+                    <span class="auth-spinner" style="width:14px;height:14px;border-color:var(--border);border-top-color:var(--accent)"></span>
+                }
+                else
+                {
+                    <i class="bi bi-image"></i>
+                }
+                <InputFile style="display:none" accept="image/*" OnChange="OnContentImageSelected" />
+            </label>
             <div class="editor-tool-sep"></div>
             <button class="editor-tool" title="Горизонтальная линия" @onclick='() => Insert("\n---\n")'><i class="bi bi-dash-lg"></i></button>
         </div>
@@ -272,7 +282,7 @@
     private string _content = "";
     private string? _coverUrl;
     private string? _coverError;
-    private bool   _preview, _saving, _savingDraft, _coverUploading;
+    private bool   _preview, _saving, _savingDraft, _coverUploading, _imageUploading;
     private string? _error, _success;
     private List<TagDto> _tags = [];
     private HashSet<int> _selectedTags = [];
@@ -413,6 +423,25 @@
         if (_gigaResult is null) return;
         _content    = _gigaResult;
         _gigaResult = null;
+    }
+
+    private async Task OnContentImageSelected(InputFileChangeEventArgs e)
+    {
+        var f = e.File;
+        if (f.Size > 10 * 1024 * 1024) { _error = "Файл не должен превышать 10 МБ."; return; }
+        _imageUploading = true;
+        using var ms = new System.IO.MemoryStream();
+        await f.OpenReadStream(10 * 1024 * 1024).CopyToAsync(ms);
+        var bytes   = new ByteArrayContent(ms.ToArray());
+        bytes.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(f.ContentType);
+        var form = new MultipartFormDataContent();
+        form.Add(bytes, "upload", f.Name);
+        var (url, err) = await ArticleSvc.UploadImageAsync(form);
+        _imageUploading = false;
+        if (err is not null) { _error = err; return; }
+        var md = $"\n![{f.Name}]({url})\n";
+        _content = await JS.InvokeAsync<string>("mdEditor.insert", "md-editor", md);
+        await SaveDraft();
     }
 
     private async Task OnCoverSelected(InputFileChangeEventArgs e)

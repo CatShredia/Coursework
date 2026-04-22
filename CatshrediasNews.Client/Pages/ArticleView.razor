@@ -273,6 +273,21 @@ else
 
     private static string RenderMarkdown(string md)
     {
+        // Экранируем HTML чтобы теги не интерпретировались браузером
+        // Сначала вырезаем блоки кода и заменяем плейсхолдерами
+        var codeBlocks = new System.Collections.Generic.List<string>();
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"```(?:\w+)?\n([\s\S]+?)```", m =>
+        {
+            var code = m.Groups[1].Value
+                .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+            codeBlocks.Add($"<pre><code>{code}</code></pre>");
+            return $"%%CODEBLOCK{codeBlocks.Count - 1}%%";
+        });
+
+        // Экранируем HTML во всём остальном тексте
+        md = md.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+        // Заголовки
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$",
             m => { var t = m.Groups[1].Value; return $"<h3 id=\"{MakeAnchor(t)}\">{t}</h3>"; },
             System.Text.RegularExpressions.RegexOptions.Multiline);
@@ -282,19 +297,57 @@ else
         md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",
             m => { var t = m.Groups[1].Value; return $"<h1 id=\"{MakeAnchor(t)}\">{t}</h1>"; },
             System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Таблицы
+        md = System.Text.RegularExpressions.Regex.Replace(md,
+            @"((?:^\|.+\|\r?\n)+)",
+            m =>
+            {
+                var rows = m.Value.Trim().Split('\n');
+                var sb = new System.Text.StringBuilder("<table class=\"md-table\"><tbody>");
+                bool headerDone = false;
+                foreach (var row in rows)
+                {
+                    var trimmed = row.Trim();
+                    if (trimmed.StartsWith("|") && trimmed.Replace("-", "").Replace("|", "").Replace(":", "").Trim() == "")
+                        continue; // разделительная строка
+                    var cells = trimmed.Trim('|').Split('|');
+                    var tag = !headerDone ? "th" : "td";
+                    sb.Append("<tr>");
+                    foreach (var cell in cells)
+                        sb.Append($"<{tag}>{cell.Trim()}</{tag}>");
+                    sb.Append("</tr>");
+                    headerDone = true;
+                }
+                sb.Append("</tbody></table>");
+                return sb.ToString();
+            },
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Инлайн-форматирование
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"```[\s\S]+?```", m =>
-            "<pre><code>" + m.Value.Trim('`').Trim() + "</code></pre>");
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`", "<code>$1</code>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`",       "<code>$1</code>");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"!\[(.+?)\]\((.+?)\)", "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">");
         md = System.Text.RegularExpressions.Regex.Replace(md, @"\[(.+?)\]\((.+?)\)",  "<a href=\"$2\" target=\"_blank\">$1</a>");
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^> (.+)$", "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$","<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$", "<hr>", System.Text.RegularExpressions.RegexOptions.Multiline);
-        md = string.Join("\n", md.Split('\n').Select(l => l.StartsWith('<') ? l : $"<p>{l}</p>"));
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^&gt; (.+)$",   "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\*   (.+)$",   "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^-   (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",      "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\.  (.+)$", "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$",  "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$",         "<hr>",         System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Обертываем параграфы
+        md = string.Join("\n", md.Split('\n').Select(l =>
+            l.StartsWith('<') || string.IsNullOrWhiteSpace(l) ? l : $"<p>{l}</p>"));
+
+        // Возвращаем блоки кода
+        for (int i = 0; i < codeBlocks.Count; i++)
+            md = md.Replace($"<p>%%CODEBLOCK{i}%%</p>", codeBlocks[i])
+                   .Replace($"%%CODEBLOCK{i}%%", codeBlocks[i]);
+
         return md;
     }
 }
