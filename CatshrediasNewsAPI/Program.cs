@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 const string apiHttpUrl = "http://localhost:5070";
@@ -74,6 +75,37 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var userIdRaw = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var tokenPwdVersion = context.Principal?.FindFirstValue(AuthService.PasswordVersionClaim);
+                if (!int.TryParse(userIdRaw, out var userId) || string.IsNullOrWhiteSpace(tokenPwdVersion))
+                {
+                    context.Fail("Invalid token claims.");
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                var user = await db.Users
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user is null || user.DeletedAt is not null || user.IsBlocked)
+                {
+                    context.Fail("User not active.");
+                    return;
+                }
+
+                var currentPwdVersion = AuthService.ComputePasswordVersion(user.PasswordHash);
+                if (!string.Equals(tokenPwdVersion, currentPwdVersion, StringComparison.Ordinal))
+                {
+                    context.Fail("Session expired.");
+                }
+            }
         };
     });
 

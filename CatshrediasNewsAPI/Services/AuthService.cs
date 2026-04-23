@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using CatshrediasNewsAPI.Data;
 using CatshrediasNewsAPI.DTOs;
@@ -11,6 +12,8 @@ namespace CatshrediasNewsAPI.Services;
 
 public class AuthService(AppDbContext db, IConfiguration config, EmailService emailService)
 {
+    public const string PasswordVersionClaim = "pwdv";
+
     // ? RegisterAsync : регистрирует нового пользователя с ролью User
     // вызывается из AuthController.Register (Public)
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
@@ -52,6 +55,9 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return null;
 
+        if (user.IsBlocked)
+            return null;
+
         if (!user.EmailConfirmed)
             return null; // клиент получит 401 и покажет нужное сообщение
 
@@ -69,7 +75,8 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.Name)
+            new Claim(ClaimTypes.Role, user.Role.Name),
+            new Claim(PasswordVersionClaim, ComputePasswordVersion(user.PasswordHash))
         };
 
         var token = new JwtSecurityToken(
@@ -81,6 +88,12 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public static string ComputePasswordVersion(string passwordHash)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(passwordHash));
+        return Convert.ToHexString(bytes);
     }
 
     private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);

@@ -8,9 +8,15 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 const string apiBaseUrl = "https://localhost:7240/";
 
-builder.Services.AddScoped(_ => new HttpClient
+builder.Services.AddScoped<UnauthorizedLogoutHandler>();
+builder.Services.AddScoped(sp =>
+{
+    var handler = sp.GetRequiredService<UnauthorizedLogoutHandler>();
+    handler.InnerHandler = new HttpClientHandler();
+    return new HttpClient(handler)
 {
     BaseAddress = new Uri(apiBaseUrl)
+};
 });
 
 builder.Services.AddScoped<AuthService>();
