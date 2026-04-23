@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Text.Json;
+using System.Net;
 
 namespace CatshrediasNewsAPI.Services;
 
@@ -176,13 +177,15 @@ public class ScraperService(
         Log("DEBUG", $">> Парсинг статьи: {url}");
 
         HtmlDocument doc;
+        string rawHtml;
         try 
         { 
             doc = await DownloadHtmlDocumentAsync(http, url);
+            rawHtml = doc.DocumentNode.OuterHtml;
             
             // Сохраняем в wwwroot
             string fileName = $"article_{Math.Abs(url.GetHashCode())}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
-            await SaveHtmlToWwwRootAsync(fileName, doc.DocumentNode.OuterHtml, subFolder: "articles");
+            await SaveHtmlToWwwRootAsync(fileName, rawHtml, subFolder: "articles");
             
             Log("DEBUG", $"HTML статьи сохранен: {fileName}");
         }
@@ -210,15 +213,33 @@ public class ScraperService(
         var image = ExtractImage(doc, source.ImageSelector) ?? ExtractMeta(doc, "og:image");
         var dateStr = ExtractText(doc, source.DateSelector);
         var date = TryParseDate(dateStr) ?? DateTime.UtcNow;
+        var domPlainText = TagMappingService.StripHtml(contentRaw);
+
         var jsonLd = ExtractNewsArticleJsonLd(doc);
         if (jsonLd is not null)
         {
             title = FirstNotEmpty(title, jsonLd.Headline, jsonLd.AlternateName) ?? title;
-            contentRaw = FirstNotEmpty(contentRaw, jsonLd.ArticleBody, jsonLd.Description) ?? contentRaw;
+
+            // Не перетираем полноценный DOM-контент коротким лидом из JSON-LD.
+            if (domPlainText.Trim().Length < 220)
+            {
+                contentRaw = FirstNotEmpty(jsonLd.ArticleBody, jsonLd.Body, contentRaw, jsonLd.Description) ?? contentRaw;
+            }
+
             image = FirstNotEmpty(image, jsonLd.Image, jsonLd.ThumbnailUrl);
             if (!string.IsNullOrWhiteSpace(jsonLd.DatePublished))
             {
                 date = TryParseDate(jsonLd.DatePublished) ?? date;
+            }
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Host.Contains("kp.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            // Для kp.ru берем полный body из json/скриптов, если DOM вернул только лид.
+            var fullBody = ExtractKpArticleBodyFromRawHtml(rawHtml);
+            if (!string.IsNullOrWhiteSpace(fullBody))
+            {
+                contentRaw = fullBody;
             }
         }
 
@@ -250,7 +271,7 @@ public class ScraperService(
         {
             Title       = title.Trim(),
             Content     = plainTextContent,
-            ContentHtml = TagMappingService.SanitizeHtml(contentRaw),
+            ContentHtml = BuildReadableContentHtml(contentRaw, plainTextContent),
             ImageUrl    = image,
             SourceUrl   = url,
             PublishedAt = date,
@@ -517,11 +538,12 @@ public class ScraperService(
         var href = node.GetAttributeValue("href", null);
         if (!string.IsNullOrWhiteSpace(href))
         {
-            return href;
+            return HtmlEntity.DeEntitize(href);
         }
 
         var anchor = node.SelectSingleNode(".//a[@href]");
-        return anchor?.GetAttributeValue("href", null);
+        var nestedHref = anchor?.GetAttributeValue("href", null);
+        return string.IsNullOrWhiteSpace(nestedHref) ? null : HtmlEntity.DeEntitize(nestedHref);
     }
 
     private static string? TryResolveAbsoluteUrl(Uri baseUri, string href)
@@ -536,9 +558,10 @@ public class ScraperService(
 
         try
         {
-            return Uri.TryCreate(trimmed, UriKind.Absolute, out var abs)
-                ? abs.ToString()
-                : new Uri(baseUri, trimmed).ToString();
+            var resolved = Uri.TryCreate(trimmed, UriKind.Absolute, out var abs)
+                ? abs
+                : new Uri(baseUri, trimmed);
+            return NormalizeArticleUrl(resolved);
         }
         catch
         {
@@ -567,6 +590,13 @@ public class ScraperService(
         if (host.Contains("kp.ru"))
         {
             return Regex.IsMatch(path, @"^/daily/\d+(?:\.\d+)?/\d+$", RegexOptions.IgnoreCase);
+        }
+
+        if (host.Contains("vedomosti.ru"))
+        {
+            // Ведомости: контент статьи в /<section>/articles/... или /<section>/news/...
+            return Regex.IsMatch(path, @"^/[a-z0-9_-]+/(articles|news)/\d{4}/\d{2}/\d{2}/\d+[-a-z0-9_]*$",
+                RegexOptions.IgnoreCase);
         }
 
         // Общие стоп-ветки для медиа-разделов.
@@ -611,6 +641,18 @@ public class ScraperService(
             return plainTextContent.Trim().Length >= 20 || title.Length >= 20;
         }
 
+        if (Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Host.Contains("vedomosti.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (!Regex.IsMatch(path, @"^/[a-z0-9_-]+/(articles|news)/\d{4}/\d{2}/\d{2}/\d+[-a-z0-9_]*$",
+                RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+
+            return plainTextContent.Trim().Length >= 80 || title.Length >= 20;
+        }
+
         // У остальных сайтов оставляем более строгий порог.
         if (plainTextContent.Trim().Length < 200)
         {
@@ -625,6 +667,7 @@ public class ScraperService(
         public string? Headline { get; set; }
         public string? AlternateName { get; set; }
         public string? Description { get; set; }
+        public string? Body { get; set; }
         public string? ArticleBody { get; set; }
         public string? DatePublished { get; set; }
         public string? Image { get; set; }
@@ -699,6 +742,7 @@ public class ScraperService(
         model.Headline = ReadJsonString(element, "headline");
         model.AlternateName = ReadJsonString(element, "alternateName");
         model.Description = ReadJsonString(element, "description");
+        model.Body = ReadJsonString(element, "body");
         model.ArticleBody = ReadJsonString(element, "articleBody");
         model.DatePublished = ReadJsonString(element, "datePublished");
         model.Image = ReadJsonStringOrUrl(element, "image");
@@ -774,6 +818,161 @@ public class ScraperService(
         return values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
     }
 
+    private static string NormalizeArticleUrl(Uri uri)
+    {
+        var builder = new UriBuilder(uri)
+        {
+            Fragment = string.Empty
+        };
+
+        if (!string.IsNullOrWhiteSpace(builder.Query))
+        {
+            var kept = builder.Query.TrimStart('?')
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Where(p => !p.StartsWith("utm_", StringComparison.OrdinalIgnoreCase)
+                    && !p.StartsWith("from=", StringComparison.OrdinalIgnoreCase)
+                    && !p.StartsWith("clid=", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            builder.Query = kept.Count > 0 ? string.Join("&", kept) : string.Empty;
+        }
+
+        return builder.Uri.ToString();
+    }
+
+    private static string? ExtractKpArticleBodyFromRawHtml(string rawHtml)
+    {
+        if (string.IsNullOrWhiteSpace(rawHtml))
+        {
+            return null;
+        }
+
+        var articleBodyMatch = Regex.Match(
+            rawHtml,
+            "\"articleBody\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])+)\"",
+            RegexOptions.Singleline);
+
+        if (articleBodyMatch.Success)
+        {
+            var decoded = DecodeJsonEscapedString(articleBodyMatch.Groups[1].Value);
+            if (!string.IsNullOrWhiteSpace(decoded) && decoded.Length > 250)
+            {
+                return decoded;
+            }
+        }
+
+        // Fallback: берем длинные текстовые блоки из preload json.
+        var textMatches = Regex.Matches(
+            rawHtml,
+            "\"text\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\]){120,})\"",
+            RegexOptions.Singleline);
+
+        if (textMatches.Count == 0)
+        {
+            return null;
+        }
+
+        var chunks = textMatches
+            .Select(m => DecodeJsonEscapedString(m.Groups[1].Value))
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Where(s => s.Any(ch => ch is >= 'А' and <= 'я'))
+            .Distinct()
+            .ToList();
+
+        var joined = string.Join("\n\n", chunks);
+        return joined.Length > 250 ? joined : null;
+    }
+
+    private static string DecodeJsonEscapedString(string value)
+    {
+        try
+        {
+            var wrapped = $"\"{value}\"";
+            var decoded = JsonSerializer.Deserialize<string>(wrapped) ?? value;
+            return HtmlEntity.DeEntitize(decoded).Trim();
+        }
+        catch
+        {
+            return HtmlEntity.DeEntitize(value).Trim();
+        }
+    }
+
+    private static string BuildReadableContentHtml(string rawContent, string plainText)
+    {
+        var raw = rawContent?.Trim() ?? "";
+        if (Regex.IsMatch(raw, "<\\s*(p|div|section|article|ul|ol|li|h[1-6])\\b", RegexOptions.IgnoreCase))
+        {
+            return TagMappingService.SanitizeHtml(raw);
+        }
+
+        var text = (plainText ?? "").Replace("\r\n", "\n").Replace('\r', '\n').Trim();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return "";
+        }
+
+        // Подготавливаем маркеры списка для более аккуратной верстки.
+        text = Regex.Replace(text, @"(?<=[:;])\s*-\s+", "\n- ");
+        text = Regex.Replace(text, @"\s+\n", "\n");
+        text = Regex.Replace(text, @"\n{3,}", "\n\n");
+
+        if (!text.Contains('\n') && text.Length > 700)
+        {
+            // Если всё пришло одной строкой, разбиваем по 2 предложения в абзац.
+            var sentences = Regex.Split(text, @"(?<=[.!?])\s+(?=[А-ЯЁA-Z])")
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+            if (sentences.Count > 2)
+            {
+                var chunks = new List<string>();
+                for (int i = 0; i < sentences.Count; i += 2)
+                {
+                    chunks.Add(string.Join(" ", sentences.Skip(i).Take(2)));
+                }
+
+                text = string.Join("\n\n", chunks);
+            }
+        }
+
+        var lines = text.Split('\n')
+            .Select(l => l.Trim())
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .ToList();
+
+        var html = new StringBuilder();
+        var listBuffer = new List<string>();
+
+        void FlushList()
+        {
+            if (listBuffer.Count == 0)
+            {
+                return;
+            }
+
+            html.Append("<ul>");
+            foreach (var item in listBuffer)
+            {
+                html.Append("<li>").Append(WebUtility.HtmlEncode(item)).Append("</li>");
+            }
+            html.Append("</ul>");
+            listBuffer.Clear();
+        }
+
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("- "))
+            {
+                listBuffer.Add(line[2..].Trim());
+                continue;
+            }
+
+            FlushList();
+            html.Append("<p>").Append(WebUtility.HtmlEncode(line)).Append("</p>");
+        }
+
+        FlushList();
+        return html.ToString();
+    }
+
     private static HtmlNode? ExtractBestContentNode(HtmlDocument doc, string? sourceSelector)
     {
         var candidates = new List<HtmlNode>();
@@ -786,6 +985,7 @@ public class ScraperService(
         var fallbackXPaths = new[]
         {
             "//article",
+            "//*[contains(@class,'article__body')]",
             "//*[@itemprop='articleBody']",
             "//*[contains(@class,'article') and contains(@class,'text')]",
             "//*[contains(@class,'article__text')]",
@@ -818,15 +1018,32 @@ public class ScraperService(
         }
 
         var baseUri = new Uri(sourceUrl);
+        var host = baseUri.Host.ToLowerInvariant();
         var normalized = html.Replace("\\/", "/");
         var matches = Regex.Matches(
             normalized,
             @"https?://[^\s""'<>]+|/[a-zA-Z0-9_\-./]+",
             RegexOptions.IgnoreCase);
 
+        bool HostSpecificFilter(string value)
+        {
+            if (host.Contains("kp.ru"))
+            {
+                return value.Contains("/daily/", StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (host.Contains("vedomosti.ru"))
+            {
+                return value.Contains("/articles/", StringComparison.OrdinalIgnoreCase)
+                    || value.Contains("/news/", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return true;
+        }
+
         return matches
             .Select(m => m.Value)
-            .Where(v => v.Contains("/daily/", StringComparison.OrdinalIgnoreCase))
+            .Where(HostSpecificFilter)
             .Select(v => TryResolveAbsoluteUrl(baseUri, v))
             .Where(v => !string.IsNullOrWhiteSpace(v))
             .Cast<string>();

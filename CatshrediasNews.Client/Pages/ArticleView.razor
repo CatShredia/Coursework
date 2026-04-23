@@ -74,6 +74,15 @@ else
             </div>
         }
 
+        @if (!string.IsNullOrWhiteSpace(_article.ImageUrl))
+        {
+            <img class="article-view-image"
+                 src="@_article.ImageUrl"
+                 alt="@_article.Title"
+                 loading="lazy"
+                 referrerpolicy="no-referrer" />
+        }
+
         <!-- Контент -->
         <div class="article-view-content">
             @if (!string.IsNullOrEmpty(_article.ContentHtml))
