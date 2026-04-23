@@ -60,6 +60,32 @@
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
+            @if (_availableSources.Any() || _hasAuthorResults)
+            {
+                <div class="search-modal-filters">
+                    <div class="feed-tags" style="margin:0">
+                        <span class="search-filter-icon"><i class="bi bi-rss"></i></span>
+                        <button class="feed-tag-btn @(_selectedSource == "" ? "active" : "")"
+                                @onclick='() => SetSearchSource("")'>
+                            Все источники
+                        </button>
+                        @if (_hasAuthorResults)
+                        {
+                            <button class="feed-tag-btn @(_selectedSource == "__authors__" ? "active" : "")"
+                                    @onclick='() => SetSearchSource("__authors__")'>
+                                <i class="bi bi-pencil-square"></i> Авторские
+                            </button>
+                        }
+                        @foreach (var src in _availableSources)
+                        {
+                            <button class="feed-tag-btn @(_selectedSource == src ? "active" : "")"
+                                    @onclick="() => SetSearchSource(src)">
+                                @src
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
 
             @if (_results is not null)
             {
@@ -109,6 +135,9 @@
     private string _searchQuery = "";
     private ElementReference _searchInput;
     private List<ArticleDto>? _results;
+    private List<string> _availableSources = [];
+    private bool _hasAuthorResults;
+    private string _selectedSource = "";
     private bool _searching;
     private CancellationTokenSource? _cts;
 
@@ -130,6 +159,9 @@
         _searchOpen = true;
         _results    = null;
         _searchQuery = "";
+        _selectedSource = "";
+        _availableSources = [];
+        _hasAuthorResults = false;
         await Task.Delay(50);
         await _searchInput.FocusAsync();
     }
@@ -138,7 +170,10 @@
     {
         _searchOpen  = false;
         _searchQuery = "";
+        _selectedSource = "";
         _results     = null;
+        _availableSources = [];
+        _hasAuthorResults = false;
         _cts?.Cancel();
     }
 
@@ -161,7 +196,15 @@
             await Task.Delay(350, token);
             _searching = true;
             StateHasChanged();
-            _results   = await ArticleSvc.SearchAsync(_searchQuery);
+            _results   = await ArticleSvc.SearchAsync(_searchQuery, _selectedSource);
+            _availableSources = _results
+                .Select(r => r.SourceName)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Cast<string>()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(s => s)
+                .ToList();
+            _hasAuthorResults = _results.Any(r => string.IsNullOrWhiteSpace(r.SourceName));
             _searching = false;
         }
         catch (TaskCanceledException) { }
@@ -175,8 +218,30 @@
             _cts?.Cancel();
             _searching = true;
             StateHasChanged();
-            _results   = await ArticleSvc.SearchAsync(_searchQuery);
+            _results   = await ArticleSvc.SearchAsync(_searchQuery, _selectedSource);
+            _availableSources = _results
+                .Select(r => r.SourceName)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Cast<string>()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(s => s)
+                .ToList();
+            _hasAuthorResults = _results.Any(r => string.IsNullOrWhiteSpace(r.SourceName));
             _searching = false;
         }
+    }
+
+    private async Task SetSearchSource(string value)
+    {
+        _selectedSource = value;
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            return;
+        }
+
+        _searching = true;
+        StateHasChanged();
+        _results = await ArticleSvc.SearchAsync(_searchQuery, _selectedSource);
+        _searching = false;
     }
 }

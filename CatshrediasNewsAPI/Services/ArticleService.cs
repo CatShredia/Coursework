@@ -194,24 +194,94 @@ public class ArticleService(AppDbContext db)
             .ToListAsync();
     }
 
-    // ? SearchAsync : поиск опубликованных статей по заголовку и тексту
+    // ? SearchAsync : умный поиск опубликованных статей с опциональным фильтром по источнику
     // вызывается из ArticlesController.Search (Public)
-    public async Task<List<ArticleDto>> SearchAsync(string query)
+    public async Task<List<ArticleDto>> SearchAsync(string query, string? sourceName = null)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
-        var q = query.ToLower();
-        return await db.Articles
-            .Where(a => a.Status.Name == "Published" &&
-                        (a.Title.ToLower().Contains(q) || a.Content.ToLower().Contains(q)))
+
+        var q = query.Trim().ToLowerInvariant();
+        var tokens = q.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(t => t.Length > 1)
+            .Distinct()
+            .ToList();
+
+        var sqlQuery = db.Articles
+            .Where(a => a.Status.Name == "Published")
             .Include(a => a.Status)
             .Include(a => a.Author)
             .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(sourceName))
+        {
+            var source = sourceName.Trim().ToLowerInvariant();
+            if (source == "__authors__")
+            {
+                sqlQuery = sqlQuery.Where(a => a.RssSource == null);
+            }
+            else
+            {
+                sqlQuery = sqlQuery.Where(a =>
+                    a.RssSource != null &&
+                    a.RssSource.Name.ToLower() == source);
+            }
+        }
+
+        if (tokens.Count > 0)
+        {
+            foreach (var token in tokens)
+            {
+                var t = token;
+                sqlQuery = sqlQuery.Where(a =>
+                    a.Title.ToLower().Contains(t)
+                    || a.Content.ToLower().Contains(t)
+                    || (a.RssSource != null && a.RssSource.Name.ToLower().Contains(t)));
+            }
+        }
+        else
+        {
+            sqlQuery = sqlQuery.Where(a =>
+                a.Title.ToLower().Contains(q)
+                || a.Content.ToLower().Contains(q)
+                || (a.RssSource != null && a.RssSource.Name.ToLower().Contains(q)));
+        }
+
+        var candidates = await sqlQuery
             .OrderByDescending(a => a.PublishedAt)
-            .Take(30)
-            .Select(a => MapToDto(a))
+            .Take(120)
             .ToListAsync();
+
+        return candidates
+            .Select(a => new { Article = a, Score = CalculateSearchScore(a, q, tokens) })
+            .OrderByDescending(x => x.Score)
+            .ThenByDescending(x => x.Article.PublishedAt)
+            .Take(30)
+            .Select(x => MapToDto(x.Article))
+            .ToList();
+    }
+
+    private static int CalculateSearchScore(Article a, string query, List<string> tokens)
+    {
+        var title = a.Title.ToLowerInvariant();
+        var content = a.Content.ToLowerInvariant();
+        var source = a.RssSource?.Name.ToLowerInvariant() ?? "";
+        var score = 0;
+
+        if (title.Contains(query)) score += 120;
+        if (source.Contains(query)) score += 80;
+        if (content.Contains(query)) score += 40;
+
+        foreach (var token in tokens)
+        {
+            if (title.Contains(token)) score += 18;
+            if (source.Contains(token)) score += 12;
+            if (content.Contains(token)) score += 6;
+        }
+
+        return score;
     }
 
     // ? GetSavedAsync : возвращает сохранённые статьи пользователя

@@ -1,9 +1,7 @@
 using CatshrediasNewsAPI.Data;
 using CatshrediasNewsAPI.Models;
 using HtmlAgilityPack;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -15,8 +13,7 @@ namespace CatshrediasNewsAPI.Services;
 public class ScraperService(
     IServiceScopeFactory scopeFactory,
     TagMappingService tagMapping,
-    IHttpClientFactory httpFactory,
-    IWebHostEnvironment env)
+    IHttpClientFactory httpFactory)
 {
     private static readonly Encoding Win1251 = GetWin1251Encoding();
 
@@ -61,12 +58,7 @@ public class ScraperService(
         try 
         { 
             catalogDoc = await DownloadHtmlDocumentAsync(http, source.Url);
-            
-            // Сохраняем в wwwroot для проверки глазами
-            await SaveHtmlToWwwRootAsync(
-                $"catalog_{SanitizeFileName(source.Name)}_{DateTime.Now:yyyyMMdd_HHmmss}.html",
-                catalogDoc.DocumentNode.OuterHtml);
-            
+
             Log("DEBUG", $"Источник {source.Name}: Каталог загружен.");
         }
         catch (Exception ex)
@@ -182,12 +174,6 @@ public class ScraperService(
         { 
             doc = await DownloadHtmlDocumentAsync(http, url);
             rawHtml = doc.DocumentNode.OuterHtml;
-            
-            // Сохраняем в wwwroot
-            string fileName = $"article_{Math.Abs(url.GetHashCode())}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
-            await SaveHtmlToWwwRootAsync(fileName, rawHtml, subFolder: "articles");
-            
-            Log("DEBUG", $"HTML статьи сохранен: {fileName}");
         }
         catch (Exception ex)
         {
@@ -438,40 +424,6 @@ public class ScraperService(
         {
             return null;
         }
-    }
-
-    // ? SaveHtmlToWwwRootAsync : сохраняет отладочный HTML в wwwroot/debug
-    // вызывается из ParseSourceAsync и ScrapeAndPersistArticleAsync
-    private async Task SaveHtmlToWwwRootAsync(string fileName, string content, string subFolder = "")
-    {
-        try
-        {
-            string debugPath = Path.Combine(env.WebRootPath, "debug");
-            if (!string.IsNullOrEmpty(subFolder))
-            {
-                debugPath = Path.Combine(debugPath, subFolder);
-            }
-
-            if (!Directory.Exists(debugPath))
-            {
-                Directory.CreateDirectory(debugPath);
-            }
-
-            string fullPath = Path.Combine(debugPath, fileName);
-
-            // Сохраняем в UTF-8, чтобы браузер корректно отображал файл
-            await File.WriteAllTextAsync(fullPath, content, Encoding.UTF8);
-        }
-        catch (Exception ex)
-        {
-            Log("ERROR", $"Не удалось сохранить HTML в wwwroot: {ex.Message}");
-        }
-    }
-
-    private static string SanitizeFileName(string name)
-    {
-        var invalidChars = Path.GetInvalidFileNameChars();
-        return new string(name.Where(c => !invalidChars.Contains(c)).ToArray()).Replace(" ", "_");
     }
 
     // --- Методы парсинга (XPath и прочее) без изменений ---

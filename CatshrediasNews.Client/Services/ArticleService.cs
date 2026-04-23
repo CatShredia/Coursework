@@ -116,11 +116,16 @@ public class ArticleService(HttpClient http)
         return (obj?.Url, null);
     }
 
-    public async Task<List<ArticleDto>> SearchAsync(string query)
+    public async Task<List<ArticleDto>> SearchAsync(string query, string? source = null)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
-        return await http.GetFromJsonAsync<List<ArticleDto>>(
-            $"api/articles/search?q={Uri.EscapeDataString(query)}") ?? [];
+        var url = $"api/articles/search?q={Uri.EscapeDataString(query)}";
+        if (!string.IsNullOrWhiteSpace(source))
+        {
+            url += $"&source={Uri.EscapeDataString(source)}";
+        }
+
+        return await http.GetFromJsonAsync<List<ArticleDto>>(url) ?? [];
     }
 
     public async Task<List<ArticleDto>> GetSavedAsync()
