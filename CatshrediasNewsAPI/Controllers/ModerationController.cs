@@ -64,6 +64,16 @@ public class ModerationController(ModerationService moderationService) : Control
         return result ? NoContent() : NotFound();
     }
 
+    // ? ConfirmReport : подтверждает жалобу и снимает статью с публикации
+    // вызывается клиентом (Moderator)
+    [HttpPost("reports/{id:int}/confirm")]
+    public async Task<IActionResult> ConfirmReport(int id)
+    {
+        var moderatorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await moderationService.ConfirmReportAsync(id, moderatorId);
+        return result ? NoContent() : NotFound();
+    }
+
     // ? CreateReport : создаёт жалобу на статью
     // вызывается клиентом (Auth)
     [Authorize]

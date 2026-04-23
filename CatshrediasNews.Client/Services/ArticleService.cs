@@ -138,4 +138,11 @@ public class ArticleService(HttpClient http)
         var res = await http.PostAsync($"api/articles/{articleId}/save", null);
         return res.IsSuccessStatusCode;
     }
+
+    public async Task<TagDto?> CreateTagAsync(string name)
+    {
+        var res = await http.PostAsJsonAsync("api/tags", new { name });
+        if (!res.IsSuccessStatusCode) return null;
+        return await res.Content.ReadFromJsonAsync<TagDto>();
+    }
 }

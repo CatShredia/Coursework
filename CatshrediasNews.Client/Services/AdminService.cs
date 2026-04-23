@@ -105,6 +105,21 @@ public class AdminService(HttpClient http)
         return res.IsSuccessStatusCode;
     }
 
+    // ? ExportSourcesSqlAsync : скачивает SQL-дамп таблицы RssSources
+    // вызывается из Pages/Admin/Rss.razor (Admin)
+    public async Task<(bool ok, string? fileName, string? content)> ExportSourcesSqlAsync()
+    {
+        var res = await http.GetAsync("api/admin/sources/export-sql");
+        if (!res.IsSuccessStatusCode) return (false, null, null);
+
+        var content = await res.Content.ReadAsStringAsync();
+        var fileName = res.Content.Headers.ContentDisposition?.FileNameStar
+            ?? res.Content.Headers.ContentDisposition?.FileName
+            ?? $"rss-sources-{DateTime.UtcNow:yyyyMMdd-HHmmss}.sql";
+        fileName = fileName.Trim('"');
+        return (true, fileName, content);
+    }
+
     // ? GetTagsAsync : возвращает список всех тегов
     // вызывается из Pages/Admin/Tags.razor (Admin)
     public async Task<List<TagDto>> GetTagsAsync()

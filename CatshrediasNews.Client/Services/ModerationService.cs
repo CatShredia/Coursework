@@ -43,6 +43,13 @@ public class ModerationService(HttpClient http)
         return res.IsSuccessStatusCode;
     }
 
+    public async Task<bool> ConfirmReportAsync(int id)
+    {
+        var res = await http.PostAsync($"api/moderation/reports/{id}/confirm", null);
+        if (res.IsSuccessStatusCode) CountsChanged?.Invoke();
+        return res.IsSuccessStatusCode;
+    }
+
     public async Task<bool> CreateReportAsync(int articleId, int reportTypeId, string? description)
     {
         var res = await http.PostAsJsonAsync($"api/moderation/articles/{articleId}/report",
