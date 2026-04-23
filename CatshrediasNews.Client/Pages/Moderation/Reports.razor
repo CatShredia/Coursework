@@ -78,6 +78,12 @@
                                 @r.CreatedAt.ToString("dd.MM.yyyy HH:mm")
                             </td>
                             <td>
+                                <button class="action-btn"
+                                        title="Подтвердить жалобу"
+                                        disabled="@(_busy == r.Id)"
+                                        @onclick="() => Confirm(r)">
+                                    <i class="bi bi-shield-check"></i>
+                                </button>
                                 <button class="action-btn action-btn-success"
                                         title="Отклонить жалобу"
                                         disabled="@(_busy == r.Id)"
@@ -111,6 +117,15 @@
         _busy = report.Id;
         var ok = await ModerationSvc.DismissReportAsync(report.Id);
         if (ok) { _reports.Remove(report); ShowMsg("Жалоба отклонена.", false); }
+        else      ShowMsg("Ошибка.", true);
+        _busy = null;
+    }
+
+    private async Task Confirm(ReportDto report)
+    {
+        _busy = report.Id;
+        var ok = await ModerationSvc.ConfirmReportAsync(report.Id);
+        if (ok) { _reports.Remove(report); ShowMsg("Жалоба подтверждена, статья снята с публикации.", false); }
         else      ShowMsg("Ошибка.", true);
         _busy = null;
     }

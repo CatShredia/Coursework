@@ -19,11 +19,13 @@ public class TagsController(TagService tagService) : ControllerBase
     }
 
     // ? Create : создаёт новый тег
-    // вызывается клиентом (Admin)
-    [Authorize(Roles = "Admin")]
+    // вызывается клиентом (Publicist/Moderator/Admin)
+    [Authorize(Roles = "Publicist,Moderator,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateTagDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            return BadRequest("Название тега не может быть пустым.");
         return Ok(await tagService.CreateAsync(dto));
     }
 

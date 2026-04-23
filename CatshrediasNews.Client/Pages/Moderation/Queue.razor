@@ -93,16 +93,25 @@
                         </p>
 
                         <div class="mod-card-actions">
-                            <button class="mod-btn mod-btn-approve"
-                                    disabled="@(_busy == article.Id)"
-                                    @onclick="() => Approve(article)">
-                                <i class="bi bi-check-lg"></i> Одобрить
-                            </button>
-                            <button class="mod-btn mod-btn-reject"
-                                    disabled="@(_busy == article.Id)"
-                                    @onclick="() => OpenReject(article)">
-                                <i class="bi bi-x-lg"></i> Отклонить
-                            </button>
+                            @if (article.AuthorId == Auth.CurrentUser?.Id)
+                            {
+                                <a href="/publicist/create/@article.Id" class="mod-btn" style="text-decoration:none">
+                                    <i class="bi bi-pencil-square"></i> Редактировать
+                                </a>
+                            }
+                            @if (article.AuthorId != Auth.CurrentUser?.Id)
+                            {
+                                <button class="mod-btn mod-btn-approve"
+                                        disabled="@(_busy == article.Id)"
+                                        @onclick="() => Approve(article)">
+                                    <i class="bi bi-check-lg"></i> Одобрить
+                                </button>
+                                <button class="mod-btn mod-btn-reject"
+                                        disabled="@(_busy == article.Id)"
+                                        @onclick="() => OpenReject(article)">
+                                    <i class="bi bi-x-lg"></i> Отклонить
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
