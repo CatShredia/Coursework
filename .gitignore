@@ -12,3 +12,5 @@
 **/article*.html
 
 need_to_fix.md
+
+*.env*

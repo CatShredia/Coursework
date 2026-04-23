@@ -36,3 +36,19 @@ dotnet publish CatshrediasNews.Client/CatshrediasNews.Client.csproj -c Release -
 
 - API health: `https://<api-domain>/health`
 - Swagger (если `Development`): `https://<api-domain>/swagger`
+
+## Единая настройка ngrok
+
+Чтобы указывать ngrok URL в одном месте для API и Blazor:
+
+1. Открой `ngrok.settings.json` в корне проекта и задай:
+   - `PublicUrl`: твой URL ngrok (без завершающего `/`).
+2. Примени настройки командой:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\apply-ngrok.ps1
+```
+
+Скрипт автоматически обновляет:
+- `CatshrediasNewsAPI/appsettings.json` (`Cors:AllowedOrigins`, `App:BaseUrl`, `Api:BaseUrl`)
+- `CatshrediasNews.Client/wwwroot/appsettings.json` (`Api:BaseUrl`)
