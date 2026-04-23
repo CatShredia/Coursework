@@ -10,9 +10,15 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CatshrediasNewsAPI.Services;
 
-public class AuthService(AppDbContext db, IConfiguration config, EmailService emailService)
+public class AuthService(
+    AppDbContext db,
+    IConfiguration config,
+    EmailService emailService,
+    IWebHostEnvironment env,
+    IHttpContextAccessor httpContextAccessor)
 {
     public const string PasswordVersionClaim = "pwdv";
+    private string UploadsRoot => Path.Combine(env.ContentRootPath, "uploads");
 
     // ? RegisterAsync : регистрирует нового пользователя с ролью User
     // вызывается из AuthController.Register (Public)
@@ -30,6 +36,7 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             RoleId       = userRole.Id,
             AvatarColor  = string.IsNullOrWhiteSpace(dto.AvatarColor) ? "#1a73e8" : dto.AvatarColor,
+            AvatarUrl    = SaveAvatarFromDataUrl(dto.AvatarDataUrl),
             EmailConfirmed          = false,
             EmailConfirmToken       = Guid.NewGuid().ToString("N"),
             EmailConfirmTokenExpiry = DateTime.UtcNow.AddHours(24)
@@ -97,6 +104,62 @@ public class AuthService(AppDbContext db, IConfiguration config, EmailService em
     }
 
     private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);
+
+    private string? SaveAvatarFromDataUrl(string? dataUrl)
+    {
+        if (string.IsNullOrWhiteSpace(dataUrl))
+            return null;
+
+        const string marker = ";base64,";
+        var markerIndex = dataUrl.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (!dataUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase) || markerIndex < 0)
+            return null;
+
+        var mime = dataUrl[5..markerIndex];
+        var ext = mime switch
+        {
+            "image/jpeg" => ".jpg",
+            "image/jpg" => ".jpg",
+            "image/png" => ".png",
+            "image/webp" => ".webp",
+            "image/gif" => ".gif",
+            _ => null
+        };
+
+        if (ext is null)
+            return null;
+
+        var base64 = dataUrl[(markerIndex + marker.Length)..];
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(base64);
+        }
+        catch
+        {
+            return null;
+        }
+
+        if (bytes.Length == 0 || bytes.Length > 5 * 1024 * 1024)
+            return null;
+
+        var avatarsDir = Path.Combine(UploadsRoot, "avatars");
+        Directory.CreateDirectory(avatarsDir);
+        var fileName = $"{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(avatarsDir, fileName);
+        File.WriteAllBytes(filePath, bytes);
+        var request = httpContextAccessor.HttpContext?.Request;
+        var apiBaseUrl = request is null
+            ? null
+            : $"{request.Scheme}://{request.Host}".TrimEnd('/');
+
+        if (string.IsNullOrWhiteSpace(apiBaseUrl))
+            apiBaseUrl = config["Api:BaseUrl"]?.TrimEnd('/');
+
+        return string.IsNullOrWhiteSpace(apiBaseUrl)
+            ? $"/uploads/avatars/{fileName}"
+            : $"{apiBaseUrl}/uploads/avatars/{fileName}";
+    }
 
     // ? IsEmailConfirmedAsync : проверяет, подтверждён ли email у пользователя с правильным паролем
     // возвращает null если пользователь не найден / пароль неверен

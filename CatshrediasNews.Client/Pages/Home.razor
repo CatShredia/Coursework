@@ -13,6 +13,13 @@
         <div><strong>Аккаунт удалён.</strong> Спасибо, что были с нами.</div>
     </div>
 }
+@if (_showConfirmedMessage)
+{
+    <div class="auth-success" style="margin-bottom:20px;font-size:15px;padding:16px 20px">
+        <i class="bi bi-check-circle"></i>
+        <div><strong>Email успешно подтверждён.</strong> Теперь вы можете войти в аккаунт.</div>
+    </div>
+}
 
 <!-- Toolbar: заголовок + сортировка -->
 <div class="feed-toolbar">
@@ -247,6 +254,7 @@ else
     private const int PageSize = 10;
     private bool _loading = true;
     private bool _showDeletedMessage;
+    private bool _showConfirmedMessage;
 
     // Отфильтрованные и отсортированные статьи
     private List<ArticleDto> _filtered => ApplyFilter();
@@ -261,6 +269,10 @@ else
         {
             _showDeletedMessage = true;
             Auth.NotifyChanged();
+        }
+        if (query["confirmed"] == "1")
+        {
+            _showConfirmedMessage = true;
         }
 
         Auth.OnChange += StateHasChanged;
