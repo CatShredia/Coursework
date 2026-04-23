@@ -6,7 +6,9 @@ using CatshrediasNews.Client.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-const string apiBaseUrl = "https://localhost:7240/";
+var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7240/";
+if (!apiBaseUrl.EndsWith('/'))
+    apiBaseUrl += "/";
 
 builder.Services.AddScoped<UnauthorizedLogoutHandler>();
 builder.Services.AddScoped(sp =>
