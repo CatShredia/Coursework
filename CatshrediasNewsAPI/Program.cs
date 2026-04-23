@@ -8,6 +8,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+const string apiHttpUrl = "http://localhost:5070";
+const string apiHttpsUrl = "https://localhost:7240";
+var blazorOrigins = new[]
+{
+    "http://localhost:5110",
+    "https://localhost:7255"
+};
+
+builder.WebHost.UseUrls(apiHttpsUrl, apiHttpUrl);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -16,12 +25,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorClient", policy =>
         policy
-            .WithOrigins(
-                "https://localhost:7241",
-                "https://localhost:7255",
-                "http://localhost:5071",
-                "http://localhost:5110"
-            )
+            .WithOrigins(blazorOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -76,7 +80,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
 
-builder.Services.AddHttpClient(); 
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("scraper", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(15);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+    c.DefaultRequestHeaders.Accept.ParseAdd(
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    c.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ru-RU,ru;q=0.9,en;q=0.8");
+    c.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+    c.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "document");
+    c.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "navigate");
+    c.DefaultRequestHeaders.Add("Sec-Fetch-Site", "none");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+                           | System.Net.DecompressionMethods.Deflate
+                           | System.Net.DecompressionMethods.Brotli
+});
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailService>();
@@ -89,6 +112,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<TagMappingService>();
 builder.Services.AddScoped<IGigaChatService, GigaChatService>();
 builder.Services.AddSingleton<RssParserService>();
+builder.Services.AddSingleton<ScraperService>();
 builder.Services.AddSingleton<RssFetcherService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>());
 

@@ -4,6 +4,7 @@ public record CommentDto(
     int Id,
     string Content,
     string Username,
+    int AuthorId,
     DateTime CreatedAt,
     int? ParentCommentId,
     List<CommentDto> Replies

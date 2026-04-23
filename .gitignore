@@ -8,5 +8,7 @@
 **/*.png
 **/*.jpeg
 **/*.webp
+**/catalog*.html
+**/article*.html
 
 need_to_fix.md

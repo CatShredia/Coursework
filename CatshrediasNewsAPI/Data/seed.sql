@@ -50,13 +50,32 @@ ON CONFLICT ("Id") DO NOTHING;
 -- -------------------------------------------------------------
 -- RssSources
 -- -------------------------------------------------------------
-INSERT INTO "RssSources" ("Id", "Name", "Url", "IsTrusted", "IsEnabled", "LastFetchedAt") VALUES
-    (1, 'Habr',        'https://habr.com/ru/rss/articles/',         true,  true,  null),
-    (2, 'РБК',         'https://rbc.ru/rss/news',                   true,  true,  null),
-    (3, 'Lenta.ru',    'https://lenta.ru/rss',                      true,  true,  null),
-    (4, 'Ведомости',   'https://vedomosti.ru/rss/news',             true, true,  null),
-    (5, 'Дзен',        'https://dzen.ru/rss',                       true, true, null)
-ON CONFLICT ("Id") DO NOTHING;
+UPDATE "RssSources"
+SET "IsEnabled" = false;
+
+INSERT INTO "RssSources"
+    ("Id", "Name", "Url", "IsTrusted", "IsEnabled", "LastFetchedAt", "SourceType",
+     "LinkSelector", "TitleSelector", "ContentSelector", "DateSelector", "ImageSelector")
+VALUES
+    (1, 'Habr',                  'https://habr.com/ru/rss/articles/', true, false, null, 0, null, null, null, null, null),
+    (2, 'Интерфакс',             'https://tass.ru/rss/v2.xml',         true, false, null, 0, null, null, null, null, null),
+    (3, 'Lenta.ru',              'https://lenta.ru/rss',               true, false, null, 0, null, null, null, null, null),
+    (4, 'Ведомости',             'https://www.vedomosti.ru/',          true, false, null, 1, 'a[href*="/articles/"], a[href*="/news/"]', 'h1', 'article', 'time', 'article img'),
+    (5, 'TASS',                  'https://tass.ru/rss/v2.xml',         true, false, null, 0, null, null, null, null, null),
+    (6, 'Комсомольская правда',  'https://www.kp.ru/',                 true, false, null, 1, 'a[href*="/daily/"]', 'h1', 'main article', 'time', 'main article img'),
+    (7, 'РИА Новости',           'https://ria.ru/',                    true, false, null, 1, 'a[href*="/"]', 'h1', 'article', 'time', 'article img')
+ON CONFLICT ("Id") DO UPDATE SET
+    "Name"            = EXCLUDED."Name",
+    "Url"             = EXCLUDED."Url",
+    "IsTrusted"       = EXCLUDED."IsTrusted",
+    "IsEnabled"       = EXCLUDED."IsEnabled",
+    "LastFetchedAt"   = EXCLUDED."LastFetchedAt",
+    "SourceType"      = EXCLUDED."SourceType",
+    "LinkSelector"    = EXCLUDED."LinkSelector",
+    "TitleSelector"   = EXCLUDED."TitleSelector",
+    "ContentSelector" = EXCLUDED."ContentSelector",
+    "DateSelector"    = EXCLUDED."DateSelector",
+    "ImageSelector"   = EXCLUDED."ImageSelector";
 
 -- -------------------------------------------------------------
 -- Users

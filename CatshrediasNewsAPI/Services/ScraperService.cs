@@ -1,0 +1,1047 @@
+using CatshrediasNewsAPI.Data;
+using CatshrediasNewsAPI.Models;
+using HtmlAgilityPack;
+using Microsoft.EntityFrameworkCore;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Globalization;
+using System.Text.Json;
+using System.Net;
+
+namespace CatshrediasNewsAPI.Services;
+
+public class ScraperService(
+    IServiceScopeFactory scopeFactory,
+    TagMappingService tagMapping,
+    IHttpClientFactory httpFactory)
+{
+    private static readonly Encoding Win1251 = GetWin1251Encoding();
+
+    private static Encoding GetWin1251Encoding()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(1251);
+    }
+
+    // Вспомогательный метод для вывода в консоль
+    private static void Log(string level, string message)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [{level}] {message}");
+    }
+
+    public async Task ParseSourceAsync(RssSource source)
+    {
+        Log("INFO", $"=== НАЧАЛО СКРАПИНГА: Источник '{source.Name}' ({source.Url}) ===");
+
+        if (string.IsNullOrWhiteSpace(source.LinkSelector))
+        {
+            Log("WARN", $"Источник {source.Name}: не задан LinkSelector, пропускаем.");
+            return;
+        }
+
+        var http = httpFactory.CreateClient("scraper");
+
+        string linkXPath;
+        try
+        {
+            linkXPath = ToXPath(source.LinkSelector);
+        }
+        catch (Exception ex)
+        {
+            Log("ERROR", $"Источник {source.Name}: некорректный LinkSelector '{source.LinkSelector}'. {ex.Message}");
+            return;
+        }
+
+        // 1. Загрузка страницы-каталога
+        Log("DEBUG", $"Источник {source.Name}: Загружаю каталог...");
+        HtmlDocument catalogDoc;
+        try 
+        { 
+            catalogDoc = await DownloadHtmlDocumentAsync(http, source.Url);
+
+            Log("DEBUG", $"Источник {source.Name}: Каталог загружен.");
+        }
+        catch (Exception ex)
+        {
+            Log("ERROR", $"Ошибка загрузки каталога {source.Url}. Exception: {ex.Message}");
+            return;
+        }
+
+        // 2. Поиск ссылок
+        Log("DEBUG", $"Источник {source.Name}: Ищу ссылки по селектору '{source.LinkSelector}'...");
+        var linkNodes = catalogDoc.DocumentNode.SelectNodes(linkXPath);
+        
+        if (linkNodes is null || linkNodes.Count == 0)
+        {
+            Log("WARN", $"Источник {source.Name}: Ссылки не найдены.");
+            return;
+        }
+
+        Log("INFO", $"Источник {source.Name}: Найдено узлов: {linkNodes.Count}");
+
+        // 3. Обработка ссылок
+        var baseUri = new Uri(source.Url);
+        var links = linkNodes
+            .Select(ExtractLinkFromNode)
+            .Where(h => !string.IsNullOrWhiteSpace(h))
+            .Select(h => TryResolveAbsoluteUrl(baseUri, h!))
+            .Where(h => !string.IsNullOrWhiteSpace(h))
+            .Cast<string>()
+            .Where(link => IsLikelyArticleLink(source.Url, link))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(20)
+            .ToList();
+
+        if (links.Count == 0)
+        {
+            Log("DEBUG", $"Источник {source.Name}: fallback-поиск ссылок в raw HTML...");
+            links = ExtractLinksFromRawHtml(catalogDoc.DocumentNode.OuterHtml, source.Url)
+                .Where(link => IsLikelyArticleLink(source.Url, link))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(20)
+                .ToList();
+        }
+
+        Log("INFO", $"Источник {source.Name}: Осталось {links.Count} уникальных ссылок.");
+
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var status = await db.PublicationStatuses.FirstAsync(s =>
+            s.Name == (source.IsTrusted ? "Published" : "PendingReview"));
+        
+        var allTags = await db.Tags.ToListAsync();
+
+        int created = 0;
+        int skipped = 0;
+        int errors = 0;
+
+        // 4. Цикл обработки статей
+        for (int i = 0; i < links.Count; i++)
+        {
+            var url = links[i];
+            Log("INFO", $"[{i + 1}/{links.Count}] Обработка: {url}");
+
+            if (await db.Articles.AnyAsync(a => a.SourceUrl == url)) 
+            {
+                Log("DEBUG", $"Пропуск (уже есть): {url}");
+                skipped++;
+                continue;
+            }
+
+            try 
+            {
+                var createdNow = await ScrapeAndPersistArticleAsync(http, source, url, status.Id, allTags, db);
+                
+                if (createdNow)
+                {
+                    created++;
+                }
+                else 
+                {
+                    skipped++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("ERROR", $"Ошибка статьи {url}: {ex.Message}");
+                errors++;
+            }
+
+            if (i < links.Count - 1) 
+            {
+                await Task.Delay(500); 
+            }
+        }
+
+        source.LastFetchedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        
+        Log("INFO", $"=== ИТОГ: {source.Name}. Добавлено: {created}, Пропущено: {skipped}, Ошибок: {errors} ===");
+    }
+
+    // ? ScrapeAndPersistArticleAsync : загружает страницу статьи, парсит поля и сохраняет в БД
+    // вызывается из ParseSourceAsync
+    private async Task<bool> ScrapeAndPersistArticleAsync(
+        HttpClient http, RssSource source, string url,
+        int statusId, List<Tag> allTags, AppDbContext db)
+    {
+        Log("DEBUG", $">> Парсинг статьи: {url}");
+
+        HtmlDocument doc;
+        string rawHtml;
+        try 
+        { 
+            doc = await DownloadHtmlDocumentAsync(http, url);
+            rawHtml = doc.DocumentNode.OuterHtml;
+        }
+        catch (Exception ex)
+        {
+            Log("WARN", $"Не удалось загрузить {url}: {ex.Message}");
+            return false;
+        }
+
+        var titleNode = ExtractNode(doc, source.TitleSelector);
+        var contentNode = ExtractBestContentNode(doc, source.ContentSelector);
+
+        var title = HtmlEntity.DeEntitize(titleNode?.InnerText ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            title = ExtractMeta(doc, "og:title")?.Trim() ?? "Без заголовка";
+        }
+
+        var contentRaw = contentNode?.InnerHtml;
+        if (string.IsNullOrWhiteSpace(contentRaw))
+        {
+            contentRaw = ExtractMeta(doc, "og:description") ?? "";
+        }
+
+        var image = ExtractImage(doc, source.ImageSelector) ?? ExtractMeta(doc, "og:image");
+        var dateStr = ExtractText(doc, source.DateSelector);
+        var date = TryParseDate(dateStr) ?? DateTime.UtcNow;
+        var domPlainText = TagMappingService.StripHtml(contentRaw);
+
+        var jsonLd = ExtractNewsArticleJsonLd(doc);
+        if (jsonLd is not null)
+        {
+            title = FirstNotEmpty(title, jsonLd.Headline, jsonLd.AlternateName) ?? title;
+
+            // Не перетираем полноценный DOM-контент коротким лидом из JSON-LD.
+            if (domPlainText.Trim().Length < 220)
+            {
+                contentRaw = FirstNotEmpty(jsonLd.ArticleBody, jsonLd.Body, contentRaw, jsonLd.Description) ?? contentRaw;
+            }
+
+            image = FirstNotEmpty(image, jsonLd.Image, jsonLd.ThumbnailUrl);
+            if (!string.IsNullOrWhiteSpace(jsonLd.DatePublished))
+            {
+                date = TryParseDate(jsonLd.DatePublished) ?? date;
+            }
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Host.Contains("kp.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            // Для kp.ru берем полный body из json/скриптов, если DOM вернул только лид.
+            var fullBody = ExtractKpArticleBodyFromRawHtml(rawHtml);
+            if (!string.IsNullOrWhiteSpace(fullBody))
+            {
+                contentRaw = fullBody;
+            }
+        }
+
+        title = HtmlEntity.DeEntitize(title).Trim();
+        contentRaw = HtmlEntity.DeEntitize(contentRaw);
+
+        var plainTextContent = TagMappingService.StripHtml(contentRaw);
+
+        if (!LooksLikeArticlePage(url, title, plainTextContent))
+        {
+            Log("INFO", $"Пропуск не-статьи: {url}");
+            return false;
+        }
+
+        Log("DEBUG", $"Заголовок: '{title}'");
+
+        var searchableText = $"{title} {plainTextContent}";
+        var words = searchableText
+            .ToLowerInvariant()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        var matchedTags = tagMapping.Map(words).Select(name =>
+            allTags.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            .Where(t => t is not null).Select(t => t!).ToList();
+
+        Log("INFO", $"Найдено тегов: {matchedTags.Count}");
+
+        var article = new Article
+        {
+            Title       = title.Trim(),
+            Content     = plainTextContent,
+            ContentHtml = BuildReadableContentHtml(contentRaw, plainTextContent),
+            ImageUrl    = image,
+            SourceUrl   = url,
+            PublishedAt = date,
+            StatusId    = statusId,
+            RssSourceId = source.Id
+        };
+
+        db.Articles.Add(article);
+        await db.SaveChangesAsync();
+
+        if (matchedTags.Count > 0)
+        {
+            db.ArticleTags.AddRange(matchedTags.Select(t => new ArticleTag
+            {
+                ArticleId = article.Id,
+                TagId     = t.Id
+            }));
+            await db.SaveChangesAsync();
+        }
+
+        Log("INFO", $"Сохранено: '{article.Title}'");
+        return true;
+    }
+
+    // ? DownloadHtmlDocumentAsync : скачивает HTML, выбирает кодировку и возвращает распарсенный документ
+    // вызывается из ParseSourceAsync и ScrapeAndPersistArticleAsync
+    private async Task<HtmlDocument> DownloadHtmlDocumentAsync(HttpClient http, string url)
+    {
+        using var response = await http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        var headerCharset = response.Content.Headers.ContentType?.CharSet;
+        var html = DecodeHtml(bytes, headerCharset);
+
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return doc;
+    }
+
+    // ? DecodeHtml : определяет корректную кодировку HTML и декодирует байты без кракозябр
+    // вызывается из DownloadHtmlDocumentAsync
+    private static string DecodeHtml(byte[] bytes, string? headerCharset)
+    {
+        // 1) Если байты валидны как UTF-8, это почти всегда правильный вариант для современных сайтов.
+        if (IsValidUtf8(bytes))
+        {
+            var utf8Text = Encoding.UTF8.GetString(bytes);
+            if (!LooksLikeMojibake(utf8Text))
+            {
+                return utf8Text;
+            }
+        }
+
+        // 2) Уважаем явный charset из заголовка.
+        var headerEncoding = GetEncodingOrNull(headerCharset);
+        if (headerEncoding is not null)
+        {
+            var headerText = headerEncoding.GetString(bytes);
+            if (!LooksLikeMojibake(headerText))
+            {
+                return headerText;
+            }
+        }
+
+        // 3) Ищем charset в meta-теге по ASCII-срезу начала документа.
+        var ascii = Encoding.ASCII.GetString(bytes, 0, Math.Min(bytes.Length, 4096));
+        var metaCharset = TryGetMetaCharset(ascii);
+        var metaEncoding = GetEncodingOrNull(metaCharset);
+        if (metaEncoding is not null)
+        {
+            var metaText = metaEncoding.GetString(bytes);
+            if (!LooksLikeMojibake(metaText))
+            {
+                return metaText;
+            }
+        }
+
+        // 4) Fallback для старых русскоязычных сайтов.
+        var text1251 = Win1251.GetString(bytes);
+        if (!LooksLikeMojibake(text1251))
+        {
+            return text1251;
+        }
+
+        // 5) Последний fallback.
+        return Encoding.UTF8.GetString(bytes);
+    }
+
+    // ? LooksLikeMojibake : эвристика битой перекодировки (кракозябры)
+    // вызывается из DecodeHtml
+    private static bool LooksLikeMojibake(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return true;
+        }
+
+        var len = Math.Max(1, text.Length);
+        var controlCount = text.Count(c => char.IsControl(c) && c is not '\r' and not '\n' and not '\t');
+        var replacementCount = text.Count(c => c == '\uFFFD');
+
+        // Частая сигнатура битого UTF-8 в кириллице (например "п╣п╫я┌").
+        var mojibakePairs = Regex.Matches(text, "[пП][\\u2500-\\u257F\\w]").Count;
+
+        return (double)replacementCount / len > 0.01
+            || (double)controlCount / len > 0.01
+            || (double)mojibakePairs / len > 0.03;
+    }
+
+    // ? IsValidUtf8 : проверяет, что набор байтов корректно декодируется как UTF-8
+    // вызывается из DecodeHtml
+    private static bool IsValidUtf8(byte[] bytes)
+    {
+        try
+        {
+            _ = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true)
+                .GetString(bytes);
+            return true;
+        }
+        catch (DecoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    // ? TryGetMetaCharset : извлекает charset из meta-тегов HTML
+    // вызывается из DecodeHtml
+    private static string? TryGetMetaCharset(string htmlStart)
+    {
+        if (string.IsNullOrWhiteSpace(htmlStart))
+        {
+            return null;
+        }
+
+        var direct = Regex.Match(
+            htmlStart,
+            "<meta[^>]*charset\\s*=\\s*[\"']?([a-zA-Z0-9_\\-]+)",
+            RegexOptions.IgnoreCase);
+        if (direct.Success)
+        {
+            return direct.Groups[1].Value;
+        }
+
+        var contentType = Regex.Match(
+            htmlStart,
+            "<meta[^>]*http-equiv\\s*=\\s*[\"']content-type[\"'][^>]*content\\s*=\\s*[\"'][^\"']*charset=([a-zA-Z0-9_\\-]+)",
+            RegexOptions.IgnoreCase);
+        return contentType.Success ? contentType.Groups[1].Value : null;
+    }
+
+    private static Encoding? GetEncodingOrNull(string? charset)
+    {
+        if (string.IsNullOrWhiteSpace(charset))
+        {
+            return null;
+        }
+
+        try
+        {
+            return Encoding.GetEncoding(charset.Trim().Trim('"', '\''));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // --- Методы парсинга (XPath и прочее) без изменений ---
+
+    private static string ToXPath(string css)
+    {
+        var parts = css.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var xpath = string.Join("//", parts.Select(CssPartToXPath));
+        return "//" + xpath;
+    }
+
+    private static string CssPartToXPath(string part)
+    {
+        if (part.Contains('>'))
+        {
+            var sub = part.Split('>').Select(p => p.Trim()).ToArray();
+            return string.Join("/", sub.Select(CssPartToXPath));
+        }
+
+        var tag  = Regex.Match(part, @"^[a-zA-Z0-9]*").Value;
+        var node = string.IsNullOrEmpty(tag) ? "*" : tag;
+        var preds = new List<string>();
+
+        foreach (Match m in Regex.Matches(part, @"\.([a-zA-Z0-9_-]+)"))
+            preds.Add($"contains(@class,'{m.Groups[1].Value}')");
+
+        var id = Regex.Match(part, @"#([a-zA-Z0-9_-]+)").Groups[1].Value;
+        if (!string.IsNullOrEmpty(id)) preds.Add($"@id='{id}'");
+
+        return preds.Count > 0 ? $"{node}[{string.Join(" and ", preds)}]" : node;
+    }
+
+    private static HtmlNode? ExtractNode(HtmlDocument doc, string? selector)
+    {
+        if (string.IsNullOrWhiteSpace(selector))
+        {
+            return null;
+        }
+
+        try
+        {
+            return doc.DocumentNode.SelectSingleNode(ToXPath(selector));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? ExtractText(HtmlDocument doc, string? selector)
+    {
+        var node = ExtractNode(doc, selector);
+        return node is null ? null : HtmlEntity.DeEntitize(node.InnerText).Trim();
+    }
+
+    private static string? ExtractImage(HtmlDocument doc, string? selector)
+    {
+        var node = ExtractNode(doc, selector);
+        return node?.GetAttributeValue("src", null) ?? node?.GetAttributeValue("data-src", null);
+    }
+
+    private static string? ExtractLinkFromNode(HtmlNode node)
+    {
+        var href = node.GetAttributeValue("href", null);
+        if (!string.IsNullOrWhiteSpace(href))
+        {
+            return HtmlEntity.DeEntitize(href);
+        }
+
+        var anchor = node.SelectSingleNode(".//a[@href]");
+        var nestedHref = anchor?.GetAttributeValue("href", null);
+        return string.IsNullOrWhiteSpace(nestedHref) ? null : HtmlEntity.DeEntitize(nestedHref);
+    }
+
+    private static string? TryResolveAbsoluteUrl(Uri baseUri, string href)
+    {
+        var trimmed = href.Trim();
+        if (trimmed.StartsWith('#')
+            || trimmed.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        try
+        {
+            var resolved = Uri.TryCreate(trimmed, UriKind.Absolute, out var abs)
+                ? abs
+                : new Uri(baseUri, trimmed);
+            return NormalizeArticleUrl(resolved);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // ? IsLikelyArticleLink : отбрасывает разделы/витрины и оставляет ссылки на статьи
+    // вызывается из ParseSourceAsync
+    private static bool IsLikelyArticleLink(string sourceUrl, string link)
+    {
+        if (!Uri.TryCreate(sourceUrl, UriKind.Absolute, out var sourceUri)
+            || !Uri.TryCreate(link, UriKind.Absolute, out var articleUri))
+        {
+            return false;
+        }
+
+        var host = sourceUri.Host.ToLowerInvariant();
+        var path = articleUri.AbsolutePath.TrimEnd('/').ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(path) || path == "/")
+        {
+            return false;
+        }
+
+        // KP: статья обычно вида /daily/<sectionId>/<articleId>/.
+        if (host.Contains("kp.ru"))
+        {
+            return Regex.IsMatch(path, @"^/daily/\d+(?:\.\d+)?/\d+$", RegexOptions.IgnoreCase);
+        }
+
+        if (host.Contains("vedomosti.ru"))
+        {
+            // Ведомости: контент статьи в /<section>/articles/... или /<section>/news/...
+            return Regex.IsMatch(path, @"^/[a-z0-9_-]+/(articles|news)/\d{4}/\d{2}/\d{2}/\d+[-a-z0-9_]*$",
+                RegexOptions.IgnoreCase);
+        }
+
+        if (host.Contains("ria.ru"))
+        {
+            // РИА: статья чаще всего в формате /YYYYMMDD/<slug>.html.
+            return Regex.IsMatch(path, @"^/\d{8}/[a-z0-9_-]+\.html$", RegexOptions.IgnoreCase);
+        }
+
+        // Общие стоп-ветки для медиа-разделов.
+        var blockedPrefixes = new[]
+        {
+            "/photo", "/video", "/radio", "/tv", "/archive", "/tags", "/tag",
+            "/authors", "/author", "/themes", "/topic", "/topics", "/special"
+        };
+        if (blockedPrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // ? LooksLikeArticlePage : минимальная проверка, что страница действительно является статьей
+    // вызывается из ScrapeAndPersistArticleAsync
+    private static bool LooksLikeArticlePage(string url, string title, string plainTextContent)
+    {
+        if (string.IsNullOrWhiteSpace(title) || title.Equals("Без заголовка", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Host.Contains("kp.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (!Regex.IsMatch(path, @"^/daily/\d+(?:\.\d+)?/\d+$", RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+
+            var lowerTitle = title.ToLowerInvariant();
+            if (lowerTitle is "о кп" or "новое на сайте kp.ru")
+            {
+                return false;
+            }
+
+            // На kp часть контента рендерится клиентом, поэтому допускаем короткий текст,
+            // если есть адекватный заголовок и это URL статьи.
+            return plainTextContent.Trim().Length >= 20 || title.Length >= 20;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Host.Contains("vedomosti.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (!Regex.IsMatch(path, @"^/[a-z0-9_-]+/(articles|news)/\d{4}/\d{2}/\d{2}/\d+[-a-z0-9_]*$",
+                RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+
+            return plainTextContent.Trim().Length >= 80 || title.Length >= 20;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Host.Contains("ria.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (!Regex.IsMatch(path, @"^/\d{8}/[a-z0-9_-]+\.html$", RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+
+            return plainTextContent.Trim().Length >= 120 || title.Length >= 20;
+        }
+
+        // У остальных сайтов оставляем более строгий порог.
+        if (plainTextContent.Trim().Length < 200)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private sealed class JsonLdNewsArticle
+    {
+        public string? Headline { get; set; }
+        public string? AlternateName { get; set; }
+        public string? Description { get; set; }
+        public string? Body { get; set; }
+        public string? ArticleBody { get; set; }
+        public string? DatePublished { get; set; }
+        public string? Image { get; set; }
+        public string? ThumbnailUrl { get; set; }
+    }
+
+    private static JsonLdNewsArticle? ExtractNewsArticleJsonLd(HtmlDocument doc)
+    {
+        var scripts = doc.DocumentNode.SelectNodes("//script[@type='application/ld+json']");
+        if (scripts is null || scripts.Count == 0)
+        {
+            return null;
+        }
+
+        foreach (var script in scripts)
+        {
+            var json = script.InnerText?.Trim();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                continue;
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(json);
+                if (TryReadNewsArticle(document.RootElement, out var model))
+                {
+                    return model;
+                }
+            }
+            catch
+            {
+                // ignore malformed json-ld blocks
+            }
+        }
+
+        return null;
+    }
+
+    private static bool TryReadNewsArticle(JsonElement element, out JsonLdNewsArticle model)
+    {
+        model = new JsonLdNewsArticle();
+
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                if (TryReadNewsArticle(item, out model))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (!IsNewsArticleType(element))
+        {
+            if (element.TryGetProperty("@graph", out var graph))
+            {
+                return TryReadNewsArticle(graph, out model);
+            }
+
+            return false;
+        }
+
+        model.Headline = ReadJsonString(element, "headline");
+        model.AlternateName = ReadJsonString(element, "alternateName");
+        model.Description = ReadJsonString(element, "description");
+        model.Body = ReadJsonString(element, "body");
+        model.ArticleBody = ReadJsonString(element, "articleBody");
+        model.DatePublished = ReadJsonString(element, "datePublished");
+        model.Image = ReadJsonStringOrUrl(element, "image");
+        model.ThumbnailUrl = ReadJsonString(element, "thumbnailUrl");
+        return true;
+    }
+
+    private static bool IsNewsArticleType(JsonElement element)
+    {
+        if (!element.TryGetProperty("@type", out var type))
+        {
+            return false;
+        }
+
+        return type.ValueKind switch
+        {
+            JsonValueKind.String => type.GetString()?.Contains("Article", StringComparison.OrdinalIgnoreCase) == true,
+            JsonValueKind.Array => type.EnumerateArray().Any(t => t.ValueKind == JsonValueKind.String
+                && (t.GetString()?.Contains("Article", StringComparison.OrdinalIgnoreCase) == true)),
+            _ => false
+        };
+    }
+
+    private static string? ReadJsonString(JsonElement element, string name)
+    {
+        return element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
+    }
+
+    private static string? ReadJsonStringOrUrl(JsonElement element, string name)
+    {
+        if (!element.TryGetProperty(name, out var value))
+        {
+            return null;
+        }
+
+        if (value.ValueKind == JsonValueKind.String)
+        {
+            return value.GetString();
+        }
+
+        if (value.ValueKind == JsonValueKind.Object)
+        {
+            return ReadJsonString(value, "url");
+        }
+
+        if (value.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in value.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    return item.GetString();
+                }
+
+                if (item.ValueKind == JsonValueKind.Object)
+                {
+                    var url = ReadJsonString(item, "url");
+                    if (!string.IsNullOrWhiteSpace(url))
+                    {
+                        return url;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static string? FirstNotEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+    }
+
+    private static string NormalizeArticleUrl(Uri uri)
+    {
+        var builder = new UriBuilder(uri)
+        {
+            Fragment = string.Empty
+        };
+
+        if (!string.IsNullOrWhiteSpace(builder.Query))
+        {
+            var kept = builder.Query.TrimStart('?')
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Where(p => !p.StartsWith("utm_", StringComparison.OrdinalIgnoreCase)
+                    && !p.StartsWith("from=", StringComparison.OrdinalIgnoreCase)
+                    && !p.StartsWith("clid=", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            builder.Query = kept.Count > 0 ? string.Join("&", kept) : string.Empty;
+        }
+
+        return builder.Uri.ToString();
+    }
+
+    private static string? ExtractKpArticleBodyFromRawHtml(string rawHtml)
+    {
+        if (string.IsNullOrWhiteSpace(rawHtml))
+        {
+            return null;
+        }
+
+        var articleBodyMatch = Regex.Match(
+            rawHtml,
+            "\"articleBody\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])+)\"",
+            RegexOptions.Singleline);
+
+        if (articleBodyMatch.Success)
+        {
+            var decoded = DecodeJsonEscapedString(articleBodyMatch.Groups[1].Value);
+            if (!string.IsNullOrWhiteSpace(decoded) && decoded.Length > 250)
+            {
+                return decoded;
+            }
+        }
+
+        // Fallback: берем длинные текстовые блоки из preload json.
+        var textMatches = Regex.Matches(
+            rawHtml,
+            "\"text\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\]){120,})\"",
+            RegexOptions.Singleline);
+
+        if (textMatches.Count == 0)
+        {
+            return null;
+        }
+
+        var chunks = textMatches
+            .Select(m => DecodeJsonEscapedString(m.Groups[1].Value))
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Where(s => s.Any(ch => ch is >= 'А' and <= 'я'))
+            .Distinct()
+            .ToList();
+
+        var joined = string.Join("\n\n", chunks);
+        return joined.Length > 250 ? joined : null;
+    }
+
+    private static string DecodeJsonEscapedString(string value)
+    {
+        try
+        {
+            var wrapped = $"\"{value}\"";
+            var decoded = JsonSerializer.Deserialize<string>(wrapped) ?? value;
+            return HtmlEntity.DeEntitize(decoded).Trim();
+        }
+        catch
+        {
+            return HtmlEntity.DeEntitize(value).Trim();
+        }
+    }
+
+    private static string BuildReadableContentHtml(string rawContent, string plainText)
+    {
+        var raw = rawContent?.Trim() ?? "";
+        if (Regex.IsMatch(raw, "<\\s*(p|div|section|article|ul|ol|li|h[1-6])\\b", RegexOptions.IgnoreCase))
+        {
+            return TagMappingService.SanitizeHtml(raw);
+        }
+
+        var text = (plainText ?? "").Replace("\r\n", "\n").Replace('\r', '\n').Trim();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return "";
+        }
+
+        // Подготавливаем маркеры списка для более аккуратной верстки.
+        text = Regex.Replace(text, @"(?<=[:;])\s*-\s+", "\n- ");
+        text = Regex.Replace(text, @"\s+\n", "\n");
+        text = Regex.Replace(text, @"\n{3,}", "\n\n");
+
+        if (!text.Contains('\n') && text.Length > 700)
+        {
+            // Если всё пришло одной строкой, разбиваем по 2 предложения в абзац.
+            var sentences = Regex.Split(text, @"(?<=[.!?])\s+(?=[А-ЯЁA-Z])")
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+            if (sentences.Count > 2)
+            {
+                var chunks = new List<string>();
+                for (int i = 0; i < sentences.Count; i += 2)
+                {
+                    chunks.Add(string.Join(" ", sentences.Skip(i).Take(2)));
+                }
+
+                text = string.Join("\n\n", chunks);
+            }
+        }
+
+        var lines = text.Split('\n')
+            .Select(l => l.Trim())
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .ToList();
+
+        var html = new StringBuilder();
+        var listBuffer = new List<string>();
+
+        void FlushList()
+        {
+            if (listBuffer.Count == 0)
+            {
+                return;
+            }
+
+            html.Append("<ul>");
+            foreach (var item in listBuffer)
+            {
+                html.Append("<li>").Append(WebUtility.HtmlEncode(item)).Append("</li>");
+            }
+            html.Append("</ul>");
+            listBuffer.Clear();
+        }
+
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("- "))
+            {
+                listBuffer.Add(line[2..].Trim());
+                continue;
+            }
+
+            FlushList();
+            html.Append("<p>").Append(WebUtility.HtmlEncode(line)).Append("</p>");
+        }
+
+        FlushList();
+        return html.ToString();
+    }
+
+    private static HtmlNode? ExtractBestContentNode(HtmlDocument doc, string? sourceSelector)
+    {
+        var candidates = new List<HtmlNode>();
+        var sourceNode = ExtractNode(doc, sourceSelector);
+        if (sourceNode is not null)
+        {
+            candidates.Add(sourceNode);
+        }
+
+        var fallbackXPaths = new[]
+        {
+            "//article",
+            "//*[contains(@class,'article__body')]",
+            "//*[@itemprop='articleBody']",
+            "//*[contains(@class,'article') and contains(@class,'text')]",
+            "//*[contains(@class,'article__text')]",
+            "//*[contains(@class,'article-body')]",
+            "//*[contains(@class,'news-text')]",
+            "//*[contains(@class,'text-content')]"
+        };
+
+        foreach (var xpath in fallbackXPaths)
+        {
+            var node = doc.DocumentNode.SelectSingleNode(xpath);
+            if (node is not null)
+            {
+                candidates.Add(node);
+            }
+        }
+
+        return candidates
+            .OrderByDescending(n => HtmlEntity.DeEntitize(n.InnerText).Trim().Length)
+            .FirstOrDefault();
+    }
+
+    // ? ExtractLinksFromRawHtml : вытаскивает ссылки из скриптов/JSON, когда в DOM нет обычных <a>
+    // вызывается из ParseSourceAsync
+    private static IEnumerable<string> ExtractLinksFromRawHtml(string html, string sourceUrl)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+        {
+            return [];
+        }
+
+        var baseUri = new Uri(sourceUrl);
+        var host = baseUri.Host.ToLowerInvariant();
+        var normalized = html.Replace("\\/", "/");
+        var matches = Regex.Matches(
+            normalized,
+            @"https?://[^\s""'<>]+|/[a-zA-Z0-9_\-./]+",
+            RegexOptions.IgnoreCase);
+
+        bool HostSpecificFilter(string value)
+        {
+            if (host.Contains("kp.ru"))
+            {
+                return value.Contains("/daily/", StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (host.Contains("vedomosti.ru"))
+            {
+                return value.Contains("/articles/", StringComparison.OrdinalIgnoreCase)
+                    || value.Contains("/news/", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return true;
+        }
+
+        return matches
+            .Select(m => m.Value)
+            .Where(HostSpecificFilter)
+            .Select(v => TryResolveAbsoluteUrl(baseUri, v))
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Cast<string>();
+    }
+
+    private static string? ExtractMeta(HtmlDocument doc, string property)
+    {
+        var node = doc.DocumentNode.SelectSingleNode($"//meta[@property='{property}']")
+                ?? doc.DocumentNode.SelectSingleNode($"//meta[@name='{property}']");
+        return node?.GetAttributeValue("content", null);
+    }
+
+    private static DateTime? TryParseDate(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var formats = new[]
+        {
+            "dd.MM.yyyy", "dd.MM.yyyy HH:mm", "yyyy-MM-dd", "yyyy-MM-ddTHH:mm:ss",
+            "dd MMMM yyyy", "d MMMM yyyy HH:mm"
+        };
+        foreach (var fmt in formats)
+            if (DateTime.TryParseExact(raw.Trim(), fmt,
+                CultureInfo.GetCultureInfo("ru-RU"),
+                DateTimeStyles.None, out var dt))
+                return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+        if (DateTime.TryParse(raw, out var fallback))
+            return DateTime.SpecifyKind(fallback, DateTimeKind.Utc);
+
+        return null;
+    }
+}

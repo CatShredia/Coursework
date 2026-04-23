@@ -40,7 +40,7 @@ public class CommentService(AppDbContext db, IHubContext<CommentsHub> hub)
 
         var commentDto = new CommentDto(
             comment.Id, comment.Content, comment.User.Username,
-            comment.CreatedAt, comment.ParentCommentId, []);
+            comment.UserId, comment.CreatedAt, comment.ParentCommentId, []);
 
         await hub.Clients.Group($"article_{articleId}")
             .SendAsync("ReceiveComment", commentDto);
@@ -71,7 +71,7 @@ public class CommentService(AppDbContext db, IHubContext<CommentsHub> hub)
         return all
             .Where(c => c.ParentCommentId == parentId)
             .Select(c => new CommentDto(
-                c.Id, c.Content, c.User.Username, c.CreatedAt,
+                c.Id, c.Content, c.User.Username, c.UserId, c.CreatedAt,
                 c.ParentCommentId, BuildTree(all, c.Id)))
             .ToList();
     }

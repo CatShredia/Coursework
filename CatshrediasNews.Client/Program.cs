@@ -6,10 +6,11 @@ using CatshrediasNews.Client.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+const string apiBaseUrl = "https://localhost:7240/";
 
 builder.Services.AddScoped(_ => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7240/")
+    BaseAddress = new Uri(apiBaseUrl)
 });
 
 builder.Services.AddScoped<AuthService>();
@@ -19,6 +20,7 @@ builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<GigaChadService>();
 builder.Services.AddScoped<ArticleHeadingsService>();
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<CommentService>();
 
 var host = builder.Build();
 

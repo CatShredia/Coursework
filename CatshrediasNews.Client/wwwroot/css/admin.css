@@ -207,4 +207,31 @@
     outline: none;
 }
 
+.scraper-fields {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 4px;
+}
+
+.scraper-fields code {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 12px;
+}
+
+.scraper-fields kbd {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: 'Consolas', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
 .role-publicist { background: #f3e8ff; color: #7c3aed; }

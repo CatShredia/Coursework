@@ -170,6 +170,27 @@
 
 .search-modal-close:hover { background: var(--border); }
 
+.search-modal-filters {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px 6px;
+    border-bottom: 1px solid var(--border);
+}
+
+.search-filter-icon {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-modal-filters .feed-tags {
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
 .search-hint {
     padding: 10px 20px 4px;
     font-size: 13px;

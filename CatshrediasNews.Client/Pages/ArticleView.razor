@@ -4,6 +4,7 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject ArticleHeadingsService HeadingsSvc
+@inject CommentService CommentSvc
 @implements IDisposable
 
 <PageTitle>@(_article?.Title ?? "Статья") — Runews</PageTitle>
@@ -73,6 +74,15 @@ else
             </div>
         }
 
+        @if (!string.IsNullOrWhiteSpace(_article.ImageUrl))
+        {
+            <img class="article-view-image"
+                 src="@_article.ImageUrl"
+                 alt="@_article.Title"
+                 loading="lazy"
+                 referrerpolicy="no-referrer" />
+        }
+
         <!-- Контент -->
         <div class="article-view-content">
             @if (!string.IsNullOrEmpty(_article.ContentHtml))
@@ -113,6 +123,76 @@ else
             <button class="article-back" @onclick="() => Nav.NavigateTo(Nav.BaseUri)">
                 <i class="bi bi-arrow-left"></i> В ленту
             </button>
+        </div>
+
+        <!-- Комментарии -->
+        <div class="comments-section">
+            <h3 class="comments-title">
+                <i class="bi bi-chat-dots"></i>
+                Комментарии
+                @if (_comments.Any())
+                {
+                    <span class="comments-count">@CountAll(_comments)</span>
+                }
+            </h3>
+
+            @if (Auth.IsAuthenticated)
+            {
+                <div class="comment-form">
+                    @if (_replyTo is not null)
+                    {
+                        <div class="comment-reply-banner">
+                            <i class="bi bi-reply"></i>
+                            Ответ пользователю <strong>@_replyTo.Username</strong>
+                            <button @onclick="() => _replyTo = null" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-muted)">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    }
+                    <textarea class="comment-input" placeholder="Напишите комментарий..."
+                              rows="3" @bind="_newComment" @bind:event="oninput"></textarea>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                        @if (_replyTo is not null)
+                        {
+                            <button class="feed-sort-btn" @onclick="() => _replyTo = null">Отмена</button>
+                        }
+                        <button class="auth-btn" style="width:auto;padding:8px 20px"
+                                @onclick="PostComment" disabled="@(_sending || string.IsNullOrWhiteSpace(_newComment))">
+                            @if (_sending) { <span class="auth-spinner"></span> }
+                            else { <i class="bi bi-send"></i> }
+                            Отправить
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="comment-login-hint">
+                    <i class="bi bi-chat-square-text"></i>
+                    <a href="/login">Войдите</a>, чтобы оставить комментарий.
+                </div>
+            }
+
+            @if (_commentsLoading)
+            {
+                <div class="admin-loading" style="padding:20px 0">
+                    <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+                    Загрузка...
+                </div>
+            }
+            else if (!_comments.Any())
+            {
+                <p class="comments-empty">Комментариев пока нет. Будьте первым!</p>
+            }
+            else
+            {
+                <div class="comments-list">
+                    @foreach (var c in _comments)
+                    {
+                        @RenderComment(c, 0)
+                    }
+                </div>
+            }
         </div>
 
     </div>
@@ -166,9 +246,22 @@ else
     private string? _reportDesc;
     private bool _reportLoading, _reportSent;
 
+    private List<CommentDto> _comments = [];
+    private bool _commentsLoading = true;
+    private string _newComment = "";
+    private bool _sending;
+    private CommentDto? _replyTo;
+
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
+        _commentsLoading = true;
+        _comments = [];
+        _replyTo = null;
+
+        CommentSvc.OnCommentReceived -= OnCommentReceived;
+        CommentSvc.OnCommentDeleted  -= OnCommentDeleted;
+
         _article = await ArticleSvc.GetByIdAsync(Id);
 
         if (_article is not null)
@@ -179,9 +272,7 @@ else
             var source = !string.IsNullOrEmpty(_article.ContentHtml)
                     ? _article.ContentHtml
                     : _article.Content;
-
-            var headings = ParseHeadings(source);
-            HeadingsSvc.Set(headings);
+            HeadingsSvc.Set(ParseHeadings(source));
         }
         else
         {
@@ -189,6 +280,13 @@ else
         }
 
         _loading = false;
+
+        _comments = await CommentSvc.GetAsync(Id);
+        _commentsLoading = false;
+
+        CommentSvc.OnCommentReceived += OnCommentReceived;
+        CommentSvc.OnCommentDeleted  += OnCommentDeleted;
+        await CommentSvc.ConnectAsync(Id);
     }
 
     private async Task ToggleLike()
@@ -210,7 +308,119 @@ else
         catch { return url; }
     }
 
-    public void Dispose() => HeadingsSvc.Clear();
+    public void Dispose()
+    {
+        HeadingsSvc.Clear();
+        CommentSvc.OnCommentReceived -= OnCommentReceived;
+        CommentSvc.OnCommentDeleted  -= OnCommentDeleted;
+        _ = CommentSvc.DisconnectAsync();
+    }
+
+    private void OnCommentReceived(CommentDto c)
+    {
+        if (FindComment(_comments, c.Id) is not null) return;
+        if (c.ParentCommentId is null)
+            _comments.Add(c);
+        else
+        {
+            var parent = FindComment(_comments, c.ParentCommentId.Value);
+            parent?.Replies.Add(c);
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnCommentDeleted(int id)
+    {
+        RemoveComment(_comments, id);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private static CommentDto? FindComment(List<CommentDto> list, int id)
+    {
+        foreach (var c in list)
+        {
+            if (c.Id == id) return c;
+            var found = FindComment(c.Replies, id);
+            if (found is not null) return found;
+        }
+        return null;
+    }
+
+    private static bool RemoveComment(List<CommentDto> list, int id)
+    {
+        var c = list.FirstOrDefault(x => x.Id == id);
+        if (c is not null) { list.Remove(c); return true; }
+        return list.Any(x => RemoveComment(x.Replies, id));
+    }
+
+    private static int CountAll(List<CommentDto> list) =>
+        list.Count + list.Sum(c => CountAll(c.Replies));
+
+    private async Task PostComment()
+    {
+        if (string.IsNullOrWhiteSpace(_newComment)) return;
+        _sending = true;
+        await CommentSvc.SendAsync(Id, _newComment.Trim(), _replyTo?.Id);
+        _newComment = "";
+        _replyTo    = null;
+        _sending    = false;
+    }
+
+    private async Task DeleteComment(int commentId) =>
+        await CommentSvc.DeleteAsync(Id, commentId);
+
+    private RenderFragment RenderComment(CommentDto c, int depth) => __builder =>
+    {
+        __builder.OpenElement(0, "div");
+        __builder.AddAttribute(1, "class", $"comment-item{(depth > 0 ? " comment-reply" : "")}");
+
+        __builder.OpenElement(2, "div");
+        __builder.AddAttribute(3, "class", "comment-header");
+        __builder.OpenElement(4, "span");
+        __builder.AddAttribute(5, "class", "comment-author");
+        __builder.AddContent(6, c.Username);
+        __builder.CloseElement();
+        __builder.OpenElement(7, "span");
+        __builder.AddAttribute(8, "class", "comment-date");
+        __builder.AddContent(9, c.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"));
+        __builder.CloseElement();
+
+        if (Auth.IsAuthenticated)
+        {
+            __builder.OpenElement(10, "button");
+            __builder.AddAttribute(11, "class", "comment-reply-btn");
+            __builder.AddAttribute(12, "onclick", EventCallback.Factory.Create(this, () => _replyTo = c));
+            __builder.AddContent(13, "Ответить");
+            __builder.CloseElement();
+
+            if (Auth.CurrentUser?.Id == c.AuthorId ||
+                Auth.CurrentUser?.Role is "Moderator" or "Admin")
+            {
+                __builder.OpenElement(14, "button");
+                __builder.AddAttribute(15, "class", "comment-delete-btn");
+                __builder.AddAttribute(16, "onclick", EventCallback.Factory.Create(this, () => DeleteComment(c.Id)));
+                __builder.AddContent(17, "Удалить");
+                __builder.CloseElement();
+            }
+        }
+        __builder.CloseElement(); // comment-header
+
+        __builder.OpenElement(18, "p");
+        __builder.AddAttribute(19, "class", "comment-content");
+        __builder.AddContent(20, c.Content);
+        __builder.CloseElement();
+
+        if (c.Replies.Any())
+        {
+            __builder.OpenElement(21, "div");
+            __builder.AddAttribute(22, "class", "comment-replies");
+            foreach (var reply in c.Replies)
+                __builder.AddContent(23, RenderComment(reply, depth + 1));
+            __builder.CloseElement();
+        }
+
+        __builder.CloseElement(); // comment-item
+    };
 
     private static List<ArticleHeadingsService.Heading> ParseHeadings(string source)
     {
