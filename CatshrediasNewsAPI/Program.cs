@@ -4,6 +4,7 @@ using CatshrediasNewsAPI.Hubs;
 using CatshrediasNewsAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
@@ -11,13 +12,16 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 const string apiHttpUrl = "http://localhost:5070";
 const string apiHttpsUrl = "https://localhost:7240";
-var blazorOrigins = new[]
+var blazorOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[]
 {
     "http://localhost:5110",
     "https://localhost:7255"
 };
 
-builder.WebHost.UseUrls(apiHttpsUrl, apiHttpUrl);
+if (builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls(apiHttpsUrl, apiHttpUrl);
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -157,6 +161,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseHttpsRedirection();
 
 // Раздаём загруженные файлы из папки uploads рядом с проектом
@@ -173,5 +181,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<CommentsHub>("/hubs/comments");
+app.MapGet("/health", () => Results.Ok(new { status = "ok", utc = DateTime.UtcNow }));
 
 app.Run();
