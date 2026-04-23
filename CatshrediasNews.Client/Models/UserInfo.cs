@@ -50,4 +50,5 @@ public class RegisterRequest
     public string Email       { get; set; } = "";
     public string Password    { get; set; } = "";
     public string AvatarColor { get; set; } = "#1a73e8";
+    public string? AvatarDataUrl { get; set; }
 }

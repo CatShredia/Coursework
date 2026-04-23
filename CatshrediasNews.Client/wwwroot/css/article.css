@@ -93,6 +93,28 @@
 
 .article-read-full:hover { opacity: .85; }
 
+.article-comments-jump-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    background: var(--bg);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.article-comments-jump-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
 .article-view-content {
     font-size: 15px;
     line-height: 1.8;

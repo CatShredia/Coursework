@@ -1,13 +1,11 @@
-@inject NavigationManager Nav
-
-<a href="@Href" class="sidebar-item @(IsActive ? "active" : "")">
+<NavLink href="@Href" class="sidebar-item" ActiveClass="active" Match="@GetMatch()">
     <i class="bi @Icon item-icon"></i>
     <span>@Label</span>
     @if (!string.IsNullOrEmpty(Badge))
     {
         <span class="item-badge">@Badge</span>
     }
-</a>
+</NavLink>
 
 @code {
     [Parameter] public string Href { get; set; } = "/";
@@ -15,7 +13,5 @@
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string? Badge { get; set; }
 
-    private bool IsActive => Href == "/"
-        ? Nav.Uri.TrimEnd('/') == Nav.BaseUri.TrimEnd('/')
-        : Nav.Uri.Contains(Href, StringComparison.OrdinalIgnoreCase);
+    private NavLinkMatch GetMatch() => Href == "/" ? NavLinkMatch.All : NavLinkMatch.Prefix;
 }

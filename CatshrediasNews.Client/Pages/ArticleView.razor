@@ -83,6 +83,10 @@ else
                  referrerpolicy="no-referrer" />
         }
 
+        <a href="@($"/articles/{Id}/#comments-section")" class="article-comments-jump-btn">
+            <i class="bi bi-chat-dots"></i> Перейти к комментариям
+        </a>
+
         <!-- Контент -->
         <div class="article-view-content">
             @if (!string.IsNullOrEmpty(_article.ContentHtml))
@@ -126,7 +130,7 @@ else
         </div>
 
         <!-- Комментарии -->
-        <div class="comments-section">
+        <div class="comments-section" id="comments-section">
             <h3 class="comments-title">
                 <i class="bi bi-chat-dots"></i>
                 Комментарии

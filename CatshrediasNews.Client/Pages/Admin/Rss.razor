@@ -1,8 +1,10 @@
 @page "/admin/rss"
 @using CatshrediasNews.Client.Models
+@using Microsoft.JSInterop
 @inject AuthService Auth
 @inject AdminService AdminSvc
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Сторонние Источники — Runews</PageTitle>
 
@@ -448,26 +450,16 @@
     private async Task SaveExternalSources()
     {
         _savingSources = true;
-
-        var allOk = true;
-        foreach (var src in _sources)
+        var (ok, fileName, content) = await AdminSvc.ExportSourcesSqlAsync();
+        if (ok && fileName is not null && content is not null)
         {
-            var ok = await AdminSvc.UpdateSourceAsync(
-                src.Id,
-                src.Name,
-                src.Url,
-                src.IsTrusted,
-                src.SourceType,
-                src.LinkSelector,
-                src.TitleSelector,
-                src.ContentSelector,
-                src.DateSelector,
-                src.ImageSelector);
-
-            allOk &= ok;
+            await JS.InvokeVoidAsync("runews.downloadTextFile", fileName, content, "application/sql;charset=utf-8");
+            ShowMsg("SQL-файл со сторонними источниками выгружен.", false);
         }
-
-        ShowMsg(allOk ? "Сторонние источники сохранены." : "Часть источников не удалось сохранить.", !allOk);
+        else
+        {
+            ShowMsg("Не удалось выгрузить SQL-файл.", true);
+        }
         _savingSources = false;
     }
 }
