@@ -599,6 +599,12 @@ public class ScraperService(
                 RegexOptions.IgnoreCase);
         }
 
+        if (host.Contains("ria.ru"))
+        {
+            // РИА: статья чаще всего в формате /YYYYMMDD/<slug>.html.
+            return Regex.IsMatch(path, @"^/\d{8}/[a-z0-9_-]+\.html$", RegexOptions.IgnoreCase);
+        }
+
         // Общие стоп-ветки для медиа-разделов.
         var blockedPrefixes = new[]
         {
@@ -651,6 +657,17 @@ public class ScraperService(
             }
 
             return plainTextContent.Trim().Length >= 80 || title.Length >= 20;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out uri) && uri.Host.Contains("ria.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = uri.AbsolutePath.TrimEnd('/');
+            if (!Regex.IsMatch(path, @"^/\d{8}/[a-z0-9_-]+\.html$", RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+
+            return plainTextContent.Trim().Length >= 120 || title.Length >= 20;
         }
 
         // У остальных сайтов оставляем более строгий порог.
