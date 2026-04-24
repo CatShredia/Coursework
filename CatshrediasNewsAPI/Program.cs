@@ -155,6 +155,28 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupMigrations");
+    const int maxRetries = 10;
+    var delay = TimeSpan.FromSeconds(3);
+    for (var attempt = 1; attempt <= maxRetries; attempt++)
+    {
+        try
+        {
+            db.Database.Migrate();
+            logger.LogInformation("Миграции БД применены успешно.");
+            break;
+        }
+        catch (Exception ex) when (attempt < maxRetries)
+        {
+            logger.LogWarning(ex, "Не удалось применить миграции (попытка {Attempt}/{Max}). Повтор через {Delay}s.", attempt, maxRetries, delay.TotalSeconds);
+            Thread.Sleep(delay);
+        }
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

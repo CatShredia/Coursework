@@ -116,16 +116,11 @@ public class ArticleService(HttpClient http)
         return (obj?.Url, null);
     }
 
-    public async Task<List<ArticleDto>> SearchAsync(string query, string? source = null)
+    public async Task<List<ArticleDto>> SearchAsync(string query)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
-        var url = $"api/articles/search?q={Uri.EscapeDataString(query)}";
-        if (!string.IsNullOrWhiteSpace(source))
-        {
-            url += $"&source={Uri.EscapeDataString(source)}";
-        }
-
-        return await http.GetFromJsonAsync<List<ArticleDto>>(url) ?? [];
+        return await http.GetFromJsonAsync<List<ArticleDto>>(
+            $"api/articles/search?q={Uri.EscapeDataString(query)}") ?? [];
     }
 
     public async Task<List<ArticleDto>> GetSavedAsync()
@@ -137,12 +132,5 @@ public class ArticleService(HttpClient http)
     {
         var res = await http.PostAsync($"api/articles/{articleId}/save", null);
         return res.IsSuccessStatusCode;
-    }
-
-    public async Task<TagDto?> CreateTagAsync(string name)
-    {
-        var res = await http.PostAsJsonAsync("api/tags", new { name });
-        if (!res.IsSuccessStatusCode) return null;
-        return await res.Content.ReadFromJsonAsync<TagDto>();
     }
 }

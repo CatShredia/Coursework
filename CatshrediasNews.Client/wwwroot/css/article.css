@@ -24,7 +24,9 @@
     width: fit-content;
 }
 
-.article-back:hover { color: var(--accent); }
+.article-back:hover {
+    color: var(--accent);
+}
 
 .article-view-title {
     font-size: 26px;
@@ -61,7 +63,9 @@
     transition: opacity var(--transition);
 }
 
-.article-view-source:hover { opacity: .75; }
+.article-view-source:hover {
+    opacity: .75;
+}
 
 .article-view-author {
     display: flex;
@@ -73,7 +77,9 @@
     transition: opacity var(--transition);
 }
 
-.article-view-author:hover { opacity: .75; }
+.article-view-author:hover {
+    opacity: .75;
+}
 
 .article-read-full {
     display: inline-flex;
@@ -91,28 +97,8 @@
     margin-top: 8px;
 }
 
-.article-read-full:hover { opacity: .85; }
-
-.article-comments-jump-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    width: fit-content;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    background: var(--bg);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    transition: background var(--transition), color var(--transition), border-color var(--transition);
-}
-
-.article-comments-jump-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--accent-light);
+.article-read-full:hover {
+    opacity: .85;
 }
 
 .article-view-content {
@@ -224,7 +210,9 @@
     margin: 8px 0;
 }
 
-.article-view-content li { margin-bottom: 4px; }
+.article-view-content li {
+    margin-bottom: 4px;
+}
 
 .article-view-content blockquote {
     border-left: 3px solid var(--accent);
@@ -290,7 +278,10 @@
     border: 1px solid var(--border);
 }
 
-.comment-login-hint a { color: var(--accent); font-weight: 600; }
+.comment-login-hint a {
+    color: var(--accent);
+    font-weight: 600;
+}
 
 .comment-form {
     display: flex;
@@ -327,9 +318,16 @@
     transition: border-color var(--transition);
 }
 
-.comment-input:focus { border-color: var(--accent); background: var(--bg-white); }
+.comment-input:focus {
+    border-color: var(--accent);
+    background: var(--bg-white);
+}
 
-.comments-list { display: flex; flex-direction: column; gap: 12px; }
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
 .comment-item {
     background: var(--bg-white);
@@ -394,7 +392,9 @@
     transition: background var(--transition);
 }
 
-.comment-reply-btn:hover { background: var(--accent-light); }
+.comment-reply-btn:hover {
+    background: var(--accent-light);
+}
 
 .comment-delete-btn {
     background: none;
@@ -408,7 +408,9 @@
     transition: background var(--transition);
 }
 
-.comment-delete-btn:hover { background: #fdecea; }
+.comment-delete-btn:hover {
+    background: #fdecea;
+}
 
 .article-view-actions {
     display: flex;

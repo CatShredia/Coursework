@@ -117,34 +117,6 @@ public class ModerationService(AppDbContext db)
         return true;
     }
 
-    // ? ConfirmReportAsync : подтверждает жалобу и снимает статью с публикации
-    // вызывается из ModerationController.ConfirmReport (Moderator)
-    public async Task<bool> ConfirmReportAsync(int reportId, int moderatorId)
-    {
-        var report = await db.Reports
-            .Include(r => r.Article)
-            .FirstOrDefaultAsync(r => r.Id == reportId);
-        if (report is null) return false;
-
-        var moderatorExists = await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == moderatorId);
-        if (!moderatorExists) return false;
-
-        var rejectedStatus = await db.PublicationStatuses.FirstAsync(s => s.Name == "Rejected");
-        report.Article.StatusId = rejectedStatus.Id;
-        report.DeletedAt = DateTime.UtcNow;
-
-        db.ModerationLogs.Add(new ModerationLog
-        {
-            ArticleId = report.ArticleId,
-            ModeratorId = moderatorId,
-            Action = "ReportConfirmed",
-            Reason = report.Description
-        });
-
-        await db.SaveChangesAsync();
-        return true;
-    }
-
     private static ArticleDto MapToDto(Article a) => new(
         a.Id, a.Title, a.Content, a.ContentHtml, a.ImageUrl, a.RssAuthor,
         a.SourceUrl, a.PublishedAt,

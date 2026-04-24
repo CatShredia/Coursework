@@ -127,35 +127,6 @@
                 </button>
             }
         </div>
-
-        <div class="editor-tags-row" style="margin-top:8px;align-items:flex-start">
-            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap;padding-top:10px">Поиск:</span>
-            <div style="display:flex;flex-direction:column;gap:8px;flex:1">
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                    <input class="admin-inline-input"
-                           style="min-width:260px"
-                           placeholder="Введите тег для поиска или создания"
-                           @bind="_tagQuery"
-                           @bind:event="oninput" />
-                    <button class="feed-sort-btn"
-                            disabled="@(!CanCreateTag)"
-                            @onclick="CreateTagFromQuery">
-                        <i class="bi bi-plus-lg"></i> Создать тег
-                    </button>
-                </div>
-                @if (_tagSuggestions.Any())
-                {
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
-                        @foreach (var tag in _tagSuggestions)
-                        {
-                            <button class="feed-tag-btn" @onclick="() => AddTag(tag.Id)">
-                                @tag.Name
-                            </button>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
     }
 
     @if (!_preview)
@@ -322,7 +293,6 @@
     private string? _gigaError;
     private string? _gigaAction;
     private bool    _draftRestored;
-    private string _tagQuery = "";
 
     private string DraftKey => $"draft_{EditId?.ToString() ?? "new"}";
 
@@ -362,42 +332,6 @@
     private void ToggleTag(int id)
     {
         if (!_selectedTags.Remove(id)) _selectedTags.Add(id);
-    }
-
-    private List<TagDto> _tagSuggestions => string.IsNullOrWhiteSpace(_tagQuery)
-        ? []
-        : _tags
-            .Where(t => !_selectedTags.Contains(t.Id)
-                && t.Name.Contains(_tagQuery.Trim(), StringComparison.OrdinalIgnoreCase))
-            .OrderBy(t => t.Name)
-            .Take(12)
-            .ToList();
-
-    private bool CanCreateTag =>
-        !string.IsNullOrWhiteSpace(_tagQuery)
-        && !_tags.Any(t => string.Equals(t.Name, _tagQuery.Trim(), StringComparison.OrdinalIgnoreCase));
-
-    private void AddTag(int tagId)
-    {
-        _selectedTags.Add(tagId);
-        _tagQuery = "";
-    }
-
-    private async Task CreateTagFromQuery()
-    {
-        if (!CanCreateTag) return;
-        var created = await ArticleSvc.CreateTagAsync(_tagQuery.Trim());
-        if (created is null)
-        {
-            _error = "Не удалось создать тег.";
-            return;
-        }
-
-        if (_tags.All(t => t.Id != created.Id))
-            _tags.Add(created);
-
-        _selectedTags.Add(created.Id);
-        _tagQuery = "";
     }
 
     private async Task SaveDbDraft()

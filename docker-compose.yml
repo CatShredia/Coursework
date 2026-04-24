@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: runews-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-news_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    container_name: runews-api
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-news_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__Key: ${JWT_KEY:-CHANGE_ME_TO_32_PLUS_SECRET}
+      Jwt__Issuer: ${PUBLIC_URL:-http://localhost}
+      Jwt__Audience: ${PUBLIC_URL:-http://localhost}
+      App__BaseUrl: ${PUBLIC_URL:-http://localhost}
+      Api__BaseUrl: ${PUBLIC_URL:-http://localhost}
+      Cors__AllowedOrigins__0: ${PUBLIC_URL:-http://localhost}
+      Smtp__Host: ${SMTP_HOST:-localhost}
+      Smtp__Port: ${SMTP_PORT:-1025}
+      Smtp__From: ${SMTP_FROM:-noreply@runews.local}
+    volumes:
+      - api_uploads:/app/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    container_name: runews-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+  api_uploads:

@@ -50,5 +50,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\apply-ngrok.ps1
 ```
 
 Скрипт автоматически обновляет:
+
 - `CatshrediasNewsAPI/appsettings.json` (`Cors:AllowedOrigins`, `App:BaseUrl`, `Api:BaseUrl`)
 - `CatshrediasNews.Client/wwwroot/appsettings.json` (`Api:BaseUrl`)
+
+## Docker Postgres Port
+
+В `docker-compose.yml` PostgreSQL проброшен на хост-порт `55432`:
+
+- Host: `127.0.0.1`
+- Port: `55432`
+- Database/User/Password: значения из `.env`

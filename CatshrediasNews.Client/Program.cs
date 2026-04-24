@@ -6,9 +6,9 @@ using CatshrediasNews.Client.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7240/";
-if (!apiBaseUrl.EndsWith('/'))
-    apiBaseUrl += "/";
+
+var configuredApiBaseUrl = builder.Configuration["Api:BaseUrl"];
+var apiBaseUrl = ResolveApiBaseUrl(configuredApiBaseUrl, builder.HostEnvironment.BaseAddress);
 
 builder.Services.AddScoped<UnauthorizedLogoutHandler>();
 builder.Services.AddScoped(sp =>
@@ -38,3 +38,21 @@ await auth.InitAsync();
 await theme.InitAsync();
 
 await host.RunAsync();
+
+static string ResolveApiBaseUrl(string? configuredValue, string hostBaseAddress)
+{
+    var trimmed = configuredValue?.Trim();
+    if (string.IsNullOrWhiteSpace(trimmed) || trimmed == "/")
+        return EnsureTrailingSlash(hostBaseAddress);
+
+    if (Uri.TryCreate(trimmed, UriKind.Absolute, out var absolute))
+        return EnsureTrailingSlash(absolute.ToString());
+
+    if (Uri.TryCreate(new Uri(hostBaseAddress), trimmed, out var relative))
+        return EnsureTrailingSlash(relative.ToString());
+
+    return EnsureTrailingSlash(hostBaseAddress);
+}
+
+static string EnsureTrailingSlash(string value) =>
+    value.EndsWith('/') ? value : value + "/";

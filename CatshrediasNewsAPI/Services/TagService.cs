@@ -20,12 +20,7 @@ public class TagService(AppDbContext db)
     // вызывается из TagsController.Create (Admin)
     public async Task<TagDto> CreateAsync(CreateTagDto dto)
     {
-        var normalized = dto.Name.Trim();
-        var existing = await db.Tags.FirstOrDefaultAsync(t => t.Name.ToLower() == normalized.ToLower());
-        if (existing is not null)
-            return new TagDto(existing.Id, existing.Name);
-
-        var tag = new Tag { Name = normalized };
+        var tag = new Tag { Name = dto.Name };
         db.Tags.Add(tag);
         await db.SaveChangesAsync();
         return new TagDto(tag.Id, tag.Name);

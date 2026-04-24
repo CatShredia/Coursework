@@ -13,9 +13,9 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
     // ? Search : поиск статей по заголовку и тексту
     // вызывается клиентом (Public)
     [HttpGet("search")]
-    public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] string? source = null)
+    public async Task<IActionResult> Search([FromQuery] string q)
     {
-        return Ok(await articleService.SearchAsync(q, source));
+        return Ok(await articleService.SearchAsync(q));
     }
 
     // ? GetSaved : возвращает сохранённые статьи пользователя
