@@ -7,7 +7,7 @@ RUN dotnet restore "CatshrediasNews.Client/CatshrediasNews.Client.csproj"
 COPY . .
 RUN dotnet publish "CatshrediasNews.Client/CatshrediasNews.Client.csproj" -c Release -o /app/publish
 
-FROM nginx:1.27-alpine AS final
+FROM nginx:stable-alpine AS final
 WORKDIR /usr/share/nginx/html
 
 COPY --from=build /app/publish/wwwroot ./

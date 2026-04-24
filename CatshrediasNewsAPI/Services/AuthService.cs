@@ -24,15 +24,35 @@ public class AuthService(
     // вызывается из AuthController.Register (Public)
     public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
     {
-        if (await db.Users.AnyAsync(u => u.Email == dto.Email))
-            return null;
+        var email = dto.Email.Trim().ToLowerInvariant();
+        var existing = await db.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+
+        if (existing is not null)
+        {
+            // Если аккаунт уже подтверждён — это реальный конфликт регистрации
+            if (existing.EmailConfirmed)
+                return null;
+
+            // Если аккаунт не подтверждён — переотправляем подтверждение вместо ошибки
+            existing.Username = dto.Username;
+            existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            existing.AvatarColor = string.IsNullOrWhiteSpace(dto.AvatarColor) ? existing.AvatarColor : dto.AvatarColor;
+            existing.EmailConfirmToken = Guid.NewGuid().ToString("N");
+            existing.EmailConfirmTokenExpiry = DateTime.UtcNow.AddHours(24);
+            await db.SaveChangesAsync();
+
+            await emailService.SendConfirmationAsync(existing.Email, existing.Username, existing.EmailConfirmToken);
+            return new AuthResponseDto(GenerateToken(existing), MapToDto(existing));
+        }
 
         var userRole = await db.Roles.FirstAsync(r => r.Name == "User");
 
         var user = new User
         {
             Username     = dto.Username,
-            Email        = dto.Email,
+            Email        = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             RoleId       = userRole.Id,
             AvatarColor  = string.IsNullOrWhiteSpace(dto.AvatarColor) ? "#1a73e8" : dto.AvatarColor,

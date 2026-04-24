@@ -8,11 +8,14 @@ public class EmailService(IConfiguration config)
     private readonly string _host = config["Smtp:Host"] ?? "localhost";
     private readonly int    _port = int.Parse(config["Smtp:Port"] ?? "1025");
     private readonly string _from = config["Smtp:From"] ?? "noreply@runews.local";
+    private readonly string? _username = config["Smtp:Username"];
+    private readonly string? _password = config["Smtp:Password"];
+    private readonly bool _useSsl = bool.TryParse(config["Smtp:UseSsl"], out var useSsl) && useSsl;
 
     public async Task SendConfirmationAsync(string toEmail, string username, string token)
     {
-        var baseUrl    = config["App:BaseUrl"] ?? "http://localhost:5110";
-        var confirmUrl = $"{baseUrl}/confirm-email?token={token}";
+        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5110").TrimEnd('/');
+        var confirmUrl = $"{baseUrl}/confirm-email?token={Uri.EscapeDataString(token)}";
 
         var body = $"""
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
@@ -34,8 +37,8 @@ public class EmailService(IConfiguration config)
 
     public async Task SendPasswordResetAsync(string toEmail, string username, string token)
     {
-        var baseUrl  = config["App:BaseUrl"] ?? "http://localhost:5110";
-        var resetUrl = $"{baseUrl}/reset-password?token={token}";
+        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5110").TrimEnd('/');
+        var resetUrl = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(token)}";
 
         var body = $"""
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
@@ -57,7 +60,22 @@ public class EmailService(IConfiguration config)
 
     private async Task SendAsync(string toEmail, string subject, string body)
     {
-        using var client  = new SmtpClient(_host, _port) { EnableSsl = false, Credentials = CredentialCache.DefaultNetworkCredentials };
+        using var client  = new SmtpClient(_host, _port)
+        {
+            EnableSsl = _useSsl
+        };
+
+        if (!string.IsNullOrWhiteSpace(_username))
+        {
+            client.UseDefaultCredentials = false;
+            client.Credentials = new NetworkCredential(_username, _password ?? string.Empty);
+        }
+        else
+        {
+            client.UseDefaultCredentials = true;
+            client.Credentials = CredentialCache.DefaultNetworkCredentials;
+        }
+
         using var message = new MailMessage(_from, toEmail, subject, body) { IsBodyHtml = true };
         await client.SendMailAsync(message);
     }

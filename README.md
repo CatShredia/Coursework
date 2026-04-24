@@ -61,3 +61,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\apply-ngrok.ps1
 - Host: `127.0.0.1`
 - Port: `55432`
 - Database/User/Password: значения из `.env`
+
+## Email в Docker
+
+Для локальной отправки писем в `docker-compose.yml` добавлен `mailpit`:
+
+- SMTP сервер внутри Docker: `mailpit:1025`
+- Web-интерфейс писем: `http://localhost:8025`
+
+Переменные в `.env`:
+
+- `SMTP_HOST` (по умолчанию `mailpit`)
+- `SMTP_PORT` (по умолчанию `1025`)
+- `SMTP_FROM`
+- `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_SSL` — для внешнего SMTP (например, Яндекс/Gmail/SendGrid).
