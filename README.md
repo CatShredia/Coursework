@@ -1,101 +1,55 @@
-# Coursework
+# Runews
 
-## Deployment Ready
+## Цель Приложения
 
-Проект подготовлен для выгрузки на сервер:
+`Runews` - это новостной агрегатор с пользовательскими статьями, внешними источниками, системой модерации, комментариями и персональной лентой. Приложение помогает собрать новости из разных источников в одном интерфейсе, дополнить их авторским контентом и дать пользователям инструменты для чтения, сохранения, обсуждения и фильтрации материалов по интересам.
 
-- API больше не привязан к `localhost` в runtime (жесткие URL остаются только для `Development`);
-- CORS вынесен в конфиг `Cors:AllowedOrigins`;
-- клиентский Blazor берет API URL из `CatshrediasNews.Client/wwwroot/appsettings*.json` (`Api:BaseUrl`);
-- добавлены production-шаблоны:
-  - `CatshrediasNewsAPI/appsettings.Production.json`
-  - `CatshrediasNews.Client/wwwroot/appsettings.Production.json`
-- добавлен health endpoint API: `/health`.
+Основная аудитория проекта - читатели новостей, авторы публикаций, модераторы и администраторы платформы. Читатели получают ленту и подписки на теги, авторы могут публиковать статьи, модераторы проверяют материалы и жалобы, а администраторы управляют пользователями, тегами и сторонними источниками.
 
-## Что заполнить перед деплоем
+## Архитектура Приложения
 
-1. В `CatshrediasNewsAPI/appsettings.Production.json`:
-   - `ConnectionStrings:DefaultConnection`
-   - `Jwt:Key` (секрет 32+ символов)
-   - `Jwt:Issuer` (URL API, например `https://api.example.com`)
-   - `Jwt:Audience` (URL фронтенда, например `https://example.com`)
-   - `Smtp:*`
-   - `Cors:AllowedOrigins` (домен фронтенда)
+Проект состоит из Blazor WebAssembly клиента, ASP.NET Core Web API, PostgreSQL и Docker-инфраструктуры. В hosted-сценарии Nginx отдает статические файлы Blazor и проксирует `/api`, `/hubs` и `/uploads` в API-контейнер. Внешний доступ локально можно открыть через HTTP-туннель Tuna на порт `80`.
 
-2. В `CatshrediasNews.Client/wwwroot/appsettings.Production.json`:
-   - `Api:BaseUrl` (публичный URL API с `/` в конце)
-
-## Публикация
-
-```bash
-dotnet publish CatshrediasNewsAPI/CatshrediasNewsAPI.csproj -c Release -o publish/api
-dotnet publish CatshrediasNews.Client/CatshrediasNews.Client.csproj -c Release -o publish/client
+```mermaid
+flowchart LR
+    User[Пользователь] --> Tuna[Tuna HTTP tunnel]
+    Tuna --> Nginx[Nginx / Blazor Web]
+    Nginx --> Blazor[Blazor WebAssembly]
+    Nginx --> API[ASP.NET Core API]
+    Blazor --> API
+    API --> DB[(PostgreSQL)]
+    API --> SMTP[SMTP provider / Mailpit]
+    API --> Sources[RSS / scraper sources]
+    API --> Uploads[(Uploads volume)]
 ```
 
-## Проверка после запуска
+Основные части:
 
-- API health: `https://<api-domain>/health`
-- Swagger (если `Development`): `https://<api-domain>/swagger`
+- `CatshrediasNewsAPI` - backend: REST API, JWT, EF Core, PostgreSQL, SignalR, модерация, RSS/scraper, email.
+- `CatshrediasNews.Client` - frontend: Blazor WebAssembly, страницы ленты, профиля, админки, модерации и редактора статей.
+- `docker` - Dockerfile для API и клиента, Nginx-конфигурация для hosted-развертывания.
+- `docker-compose.yml` - локальный/серверный запуск PostgreSQL, API, web и Mailpit.
 
-## Единая настройка ngrok
+## Документация Модулей
 
-Чтобы указывать ngrok URL в одном месте для API и Blazor:
+- [README_for_API](CatshrediasNewsAPI/README_for_API.md)
+- [README_for_Blazor](CatshrediasNews.Client/README_for_Blazor.md)
 
-1. Открой `ngrok.settings.json` в корне проекта и задай:
-   - `PublicUrl`: твой URL ngrok (без завершающего `/`).
-2. Примени настройки командой:
+## Запуск Через Tuna
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\apply-ngrok.ps1
-```
+Tuna используется как внешний HTTP-туннель к Docker-приложению. Приложение внутри Docker продолжает работать на локальном `localhost:80`, а Tuna выдает публичный HTTPS URL.
 
-Скрипт автоматически обновляет:
-
-- `CatshrediasNewsAPI/appsettings.json` (`Cors:AllowedOrigins`, `App:BaseUrl`, `Api:BaseUrl`)
-- `CatshrediasNews.Client/wwwroot/appsettings.json` (`Api:BaseUrl`)
-
-## Docker Postgres Port
-
-В `docker-compose.yml` PostgreSQL проброшен на хост-порт `55432`:
-
-- Host: `127.0.0.1`
-- Port: `55432`
-- Database/User/Password: значения из `.env`
-
-## Email в Docker
-
-Для локальной отправки писем в `docker-compose.yml` добавлен `mailpit`:
-
-- SMTP сервер внутри Docker: `mailpit:1025`
-- Web-интерфейс писем: `http://localhost:8025`
-
-Переменные в `.env`:
-
-- `SMTP_HOST` (по умолчанию `mailpit`)
-- `SMTP_PORT` (по умолчанию `1025`)
-- `SMTP_FROM`
-- `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_SSL` — для внешнего SMTP (например, Яндекс/Gmail/SendGrid).
-
-## Вариант A: Tuna + внешний SMTP
-
-Рекомендуемая схема для твоего случая (когда ngrok зависит от VPN, а Gmail SMTP нестабилен):
-
-1. Подними Docker-стек приложения:
-
-```bash
-docker compose up -d --build
-```
-
-2. Создай HTTP-туннель в Tuna на локальный `80` порт (web-контейнер):
-   - локальная точка: `http://localhost:80`
-   - получи публичный URL в домене Tuna.
-
-3. Пропиши полученный Tuna URL в `.env` (без завершающего `/`):
+1. Подготовь `.env` в корне проекта:
 
 ```env
 PUBLIC_URL=https://your-tuna-domain
 
-# SMTP (пример: Brevo)
+POSTGRES_DB=news_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+JWT_KEY=CHANGE_ME_TO_A_SECURE_32_PLUS_CHAR_SECRET
+
 SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
 SMTP_FROM=noreply@your-domain.com
@@ -105,15 +59,32 @@ SMTP_USE_SSL=true
 SMTP_PREFER_IPV4=false
 ```
 
-4. Перезапусти API и web после обновления `.env`:
+`PUBLIC_URL` должен быть URL, который выдал Tuna, без завершающего `/`.
+
+2. Запусти Docker-стек:
+
+```bash
+docker compose up -d --build
+```
+
+3. В Tuna создай HTTP-туннель на локальный адрес:
+
+```text
+tuna http 80
+```
+
+4. Если Tuna выдал новый URL, обнови `PUBLIC_URL` в `.env` и перезапусти API/web:
 
 ```bash
 docker compose up -d --build api web
 ```
 
-5. Проверь:
-   - приложение: `PUBLIC_URL`
-   - API health: `PUBLIC_URL/health`
-   - регистрация отправляет письмо через внешний SMTP.
+## Возможные Улучшения
 
-Если нужно локальное тестирование почты без внешнего SMTP, оставь `mailpit` (`SMTP_HOST=mailpit`, `SMTP_PORT=1025`) и открой `http://localhost:8025`.
+- Вынести отправку email в очередь/фоновые задачи, чтобы сбой SMTP не ломал регистрацию.
+- Добавить полноценный CI/CD pipeline с проверкой сборки, тестов и Docker-образов.
+- Расширить покрытие тестами для авторизации, модерации, scraper/RSS и клиентских сценариев.
+- Добавить наблюдаемость: структурированные логи, метрики, health-check для БД/SMTP/источников.
+- Улучшить рекомендации за счет истории просмотров, весов по категориям и скрытия неинтересных тем.
+- Добавить object storage для загрузок вместо локального Docker volume.
+- Разделить production-секреты и локальные `.env` через секрет-хранилище или переменные окружения сервера.
