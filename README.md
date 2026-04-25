@@ -75,3 +75,45 @@ powershell -ExecutionPolicy Bypass -File .\scripts\apply-ngrok.ps1
 - `SMTP_PORT` (по умолчанию `1025`)
 - `SMTP_FROM`
 - `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_SSL` — для внешнего SMTP (например, Яндекс/Gmail/SendGrid).
+
+## Вариант A: Tuna + внешний SMTP
+
+Рекомендуемая схема для твоего случая (когда ngrok зависит от VPN, а Gmail SMTP нестабилен):
+
+1. Подними Docker-стек приложения:
+
+```bash
+docker compose up -d --build
+```
+
+2. Создай HTTP-туннель в Tuna на локальный `80` порт (web-контейнер):
+   - локальная точка: `http://localhost:80`
+   - получи публичный URL в домене Tuna.
+
+3. Пропиши полученный Tuna URL в `.env` (без завершающего `/`):
+
+```env
+PUBLIC_URL=https://your-tuna-domain
+
+# SMTP (пример: Brevo)
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_FROM=noreply@your-domain.com
+SMTP_USERNAME=your-smtp-login
+SMTP_PASSWORD=your-smtp-password-or-api-key
+SMTP_USE_SSL=true
+SMTP_PREFER_IPV4=false
+```
+
+4. Перезапусти API и web после обновления `.env`:
+
+```bash
+docker compose up -d --build api web
+```
+
+5. Проверь:
+   - приложение: `PUBLIC_URL`
+   - API health: `PUBLIC_URL/health`
+   - регистрация отправляет письмо через внешний SMTP.
+
+Если нужно локальное тестирование почты без внешнего SMTP, оставь `mailpit` (`SMTP_HOST=mailpit`, `SMTP_PORT=1025`) и открой `http://localhost:8025`.
