@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using System.Net.Sockets;
 
 namespace CatshrediasNewsAPI.Services;
 
@@ -11,6 +12,7 @@ public class EmailService(IConfiguration config)
     private readonly string? _username = config["Smtp:Username"];
     private readonly string? _password = config["Smtp:Password"];
     private readonly bool _useSsl = bool.TryParse(config["Smtp:UseSsl"], out var useSsl) && useSsl;
+    private readonly bool _preferIpv4 = !bool.TryParse(config["Smtp:PreferIpv4"], out var preferIpv4) || preferIpv4;
 
     public async Task SendConfirmationAsync(string toEmail, string username, string token)
     {
@@ -60,7 +62,8 @@ public class EmailService(IConfiguration config)
 
     private async Task SendAsync(string toEmail, string subject, string body)
     {
-        using var client  = new SmtpClient(_host, _port)
+        var smtpHost = ResolveSmtpHost(_host);
+        using var client  = new SmtpClient(smtpHost, _port)
         {
             EnableSsl = _useSsl
         };
@@ -78,5 +81,27 @@ public class EmailService(IConfiguration config)
 
         using var message = new MailMessage(_from, toEmail, subject, body) { IsBodyHtml = true };
         await client.SendMailAsync(message);
+    }
+
+    private string ResolveSmtpHost(string host)
+    {
+        // Для TLS SMTP (Gmail и т.п.) подключение должно идти по доменному имени,
+        // иначе проверка сертификата падает с RemoteCertificateNameMismatch.
+        if (_useSsl)
+            return host;
+
+        if (!_preferIpv4)
+            return host;
+
+        try
+        {
+            var addresses = Dns.GetHostAddresses(host);
+            var ipv4 = addresses.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+            return ipv4?.ToString() ?? host;
+        }
+        catch
+        {
+            return host;
+        }
     }
 }
