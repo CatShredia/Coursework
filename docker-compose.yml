@@ -45,6 +45,8 @@ services:
       Smtp__Password: ${SMTP_PASSWORD:-}
       Smtp__UseSsl: ${SMTP_USE_SSL:-false}
       Smtp__PreferIpv4: ${SMTP_PREFER_IPV4:-true}
+      GigaChat__ClientId: ${GIGACHAT_CLIENT_ID:-}
+      GigaChat__ClientSecret: ${GIGACHAT_CLIENT_SECRET:-}
     volumes:
       - api_uploads:/app/uploads
 
