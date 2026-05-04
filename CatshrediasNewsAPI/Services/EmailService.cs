@@ -62,15 +62,19 @@ public class EmailService(IConfiguration config)
 
     private async Task SendAsync(string toEmail, string subject, string body)
     {
+        if (!IsLocalSmtp() && (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password)))
+            throw new InvalidOperationException("SMTP username and password are required for external mail server.");
+
         var smtpHost = ResolveSmtpHost(_host);
         using var client  = new SmtpClient(smtpHost, _port)
         {
-            EnableSsl = _useSsl
+            EnableSsl = _useSsl,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            UseDefaultCredentials = false
         };
 
         if (!string.IsNullOrWhiteSpace(_username))
         {
-            client.UseDefaultCredentials = false;
             client.Credentials = new NetworkCredential(_username, _password ?? string.Empty);
         }
         else
@@ -82,6 +86,11 @@ public class EmailService(IConfiguration config)
         using var message = new MailMessage(_from, toEmail, subject, body) { IsBodyHtml = true };
         await client.SendMailAsync(message);
     }
+
+    private bool IsLocalSmtp() =>
+        _host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+        _host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+        _host.Equals("mailpit", StringComparison.OrdinalIgnoreCase);
 
     private string ResolveSmtpHost(string host)
     {
