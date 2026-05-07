@@ -43,7 +43,14 @@ public class RssFetcherService(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            await FetchAllAsync(stoppingToken);
+            try
+            {
+                await FetchAllAsync(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ошибка фонового парсинга RSS. Повтор будет выполнен в следующем цикле.");
+            }
 
             // Ждём либо истечения интервала, либо принудительного сигнала
             var delayTask  = Task.Delay(_interval, stoppingToken);

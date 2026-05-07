@@ -74,7 +74,15 @@ public class AuthService
     {
         var response = await _http.PostAsJsonAsync("api/auth/register", request);
         if (!response.IsSuccessStatusCode)
-            return "Пользователь с таким email уже существует.";
+        {
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                return "Пользователь с таким email уже существует.";
+
+            var body = (await response.Content.ReadAsStringAsync()).Trim();
+            return string.IsNullOrWhiteSpace(body)
+                ? "Не удалось зарегистрироваться. Проверьте настройки сервера email."
+                : $"Ошибка регистрации: {body}";
+        }
         // Не сохраняем сессию — пользователь должен подтвердить email
         return "email_sent";
     }

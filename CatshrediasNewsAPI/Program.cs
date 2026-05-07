@@ -4,6 +4,7 @@ using CatshrediasNewsAPI.Hubs;
 using CatshrediasNewsAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
@@ -11,13 +12,16 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 const string apiHttpUrl = "http://localhost:5070";
 const string apiHttpsUrl = "https://localhost:7240";
-var blazorOrigins = new[]
+var blazorOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[]
 {
     "http://localhost:5110",
     "https://localhost:7255"
 };
 
-builder.WebHost.UseUrls(apiHttpsUrl, apiHttpUrl);
+if (builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls(apiHttpsUrl, apiHttpUrl);
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -151,12 +155,38 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<RssFetcherService>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupMigrations");
+    const int maxRetries = 10;
+    var delay = TimeSpan.FromSeconds(3);
+    for (var attempt = 1; attempt <= maxRetries; attempt++)
+    {
+        try
+        {
+            db.Database.Migrate();
+            logger.LogInformation("Миграции БД применены успешно.");
+            break;
+        }
+        catch (Exception ex) when (attempt < maxRetries)
+        {
+            logger.LogWarning(ex, "Не удалось применить миграции (попытка {Attempt}/{Max}). Повтор через {Delay}s.", attempt, maxRetries, delay.TotalSeconds);
+            Thread.Sleep(delay);
+        }
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseHttpsRedirection();
 
 // Раздаём загруженные файлы из папки uploads рядом с проектом
@@ -173,5 +203,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<CommentsHub>("/hubs/comments");
+app.MapGet("/health", () => Results.Ok(new { status = "ok", utc = DateTime.UtcNow }));
 
 app.Run();

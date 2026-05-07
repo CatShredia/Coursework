@@ -1,387 +1,198 @@
-# CatshrediasNews API
+# README for API
 
-REST API для новостного агрегатора с системой модерации, персональными рекомендациями и RSS-интеграцией.
+`CatshrediasNewsAPI` - серверная часть Runews. API отвечает за пользователей, авторизацию, статьи, комментарии, модерацию, теги, внешние источники, email-подтверждение и realtime-обновления через SignalR.
 
----
+## Технологии
 
-## Стек технологий
+- ASP.NET Core 8 Web API
+- Entity Framework Core
+- PostgreSQL
+- JWT Bearer authentication
+- BCrypt для паролей
+- SignalR для комментариев
+- HtmlAgilityPack и FeedReader для scraper/RSS
+- SMTP для подтверждения email и восстановления пароля
 
-| Компонент | Технология |
-|---|---|
-| Фреймворк | ASP.NET Core 8 Web API |
-| ORM | Entity Framework Core 8 |
-| База данных | PostgreSQL |
-| Аутентификация | JWT Bearer |
-| Хеширование паролей | BCrypt.Net |
-| Реалтайм | SignalR |
-| RSS-парсинг | CodeHollow.FeedReader |
-| Очистка HTML | HtmlAgilityPack |
-| Документация | Swagger / OpenAPI |
+## Структура Проекта
 
----
+```text
+CatshrediasNewsAPI/
+├── Controllers/        HTTP endpoints
+├── Services/           бизнес-логика приложения
+├── Models/             EF Core сущности
+├── DTOs/               контракты API
+├── Data/               AppDbContext и seed.sql
+├── Hubs/               SignalR hubs
+├── Migrations/         EF Core migrations
+├── wwwroot/            uploads и dev/test статические файлы
+├── Program.cs          DI, middleware, auth, CORS, migrations
+└── appsettings*.json   конфигурация окружений
+```
 
-## Быстрый старт
+## Основные Слои
 
-### 1. Требования
+### Controllers
 
-- .NET 8 SDK
-- PostgreSQL 14+
+Контроллеры принимают HTTP-запросы, валидируют доступ через атрибуты авторизации и вызывают сервисы.
 
-### 2. Настройка `appsettings.json`
+- `AuthController` - регистрация, вход, подтверждение email, сброс пароля.
+- `ArticlesController` - лента, детали статьи, создание/редактирование, лайки, сохраненные статьи.
+- `CommentsController` - получение, создание и удаление комментариев.
+- `TagsController` - теги и подписки пользователя.
+- `UsersController` - профиль, аватар, удаление аккаунта.
+- `ModerationController` - очередь модерации, жалобы, подтверждение/отклонение.
+- `AdminController` - пользователи, теги, сторонние источники, экспорт SQL.
+- `GigaChadAIController` - вспомогательные AI-функции редактора.
+- `RssTestController` - dev/test endpoints для проверки источников.
+
+### Services
+
+Сервисы содержат основную бизнес-логику и изолируют контроллеры от деталей БД, SMTP и парсинга.
+
+- `AuthService` - JWT, регистрация, email-confirmation, password reset, инвалидация сессий через версию пароля.
+- `EmailService` - отправка писем через SMTP.
+- `ArticleService` - статьи, лента, лайки, сохранение, теги.
+- `CommentService` - дерево комментариев и права удаления.
+- `ModerationService` - проверка статей, жалобы, moderation logs.
+- `UserService` - профиль, аватары, блокировка/удаление.
+- `TagService` и `TagMappingService` - теги, подписки, сопоставление категорий источников.
+- `RssFetcherService`, `RssParserService`, `RssSourceService` - RSS-источники и фоновая загрузка.
+- `ScraperService` - загрузка HTML-страниц, извлечение заголовка, текста, даты и изображения по селекторам.
+- `GigaChatService` - интеграция с AI-помощником.
+
+### Models
+
+`Models` описывают таблицы и связи PostgreSQL:
+
+- пользователи, роли и профиль: `User`, `Role`;
+- публикации: `Article`, `ArticleTag`, `PublicationStatus`, `SavedArticle`, `Like`;
+- теги и интересы: `Tag`, `UserTagWeight`;
+- обсуждения: `Comment`;
+- модерация: `Report`, `ReportType`, `ModerationLog`;
+- внешние источники: `RssSource`.
+
+### DTOs
+
+`DTOs` отделяют внутренние EF-сущности от публичного API. Через них передаются данные регистрации, статей, тегов, комментариев, модерации и RSS-источников.
+
+### Data
+
+- `AppDbContext.cs` - схема БД, связи, индексы и настройки EF Core.
+- `seed.sql` - стартовые роли, статусы, теги, типы жалоб, пользователи и внешние источники.
+
+### Hubs
+
+`CommentsHub` используется для realtime-комментариев. Клиент подключается к `/hubs/comments`, подписывается на конкретную статью и получает события о новых/удаленных комментариях.
+
+## Конфигурация
+
+Ключевые секции:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=<host>;Port=5432;Database=<db>;Username=<user>;Password=<password>"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=news_db;Username=postgres;Password=postgres"
   },
   "Jwt": {
-    "Key": "<секретный_ключ_минимум_32_символа>",
-    "Issuer": "CatshrediasNewsAPI",
-    "Audience": "CatshrediasNewsClient"
+    "Key": "32+ chars secret",
+    "Issuer": "https://public-url",
+    "Audience": "https://public-url"
   },
-  "RssFetcher": {
-    "IntervalMinutes": 15,
-    "TagMappingRules": { ... }
+  "App": {
+    "BaseUrl": "https://public-url"
+  },
+  "Api": {
+    "BaseUrl": "https://public-url"
+  },
+  "Cors": {
+    "AllowedOrigins": ["https://public-url"]
+  },
+  "Smtp": {
+    "Host": "smtp-relay.example.com",
+    "Port": "587",
+    "From": "noreply@example.com",
+    "Username": "login",
+    "Password": "password-or-api-key",
+    "UseSsl": "true",
+    "PreferIpv4": "false"
   }
 }
 ```
 
-### 3. Применение миграций и запуск
+В Docker эти значения прокидываются через переменные окружения из `.env`.
+
+## Аутентификация И Сессии
+
+API использует JWT Bearer. Токен содержит:
+
+- id пользователя;
+- email;
+- роль;
+- claim версии пароля (`pwdv`).
+
+При каждом защищенном запросе API проверяет, что пользователь существует, не заблокирован и версия пароля в токене совпадает с текущим `PasswordHash`. Если пароль изменен или аккаунт удален/заблокирован, старые токены становятся недействительными.
+
+## Email
+
+Email используется для:
+
+- подтверждения аккаунта после регистрации;
+- повторной отправки подтверждения для неподтвержденных аккаунтов;
+- восстановления пароля.
+
+Ссылки строятся от `App:BaseUrl`, поэтому для туннелей Tuna или production-домена важно корректно заполнить `PUBLIC_URL`.
+
+## RSS И Scraper
+
+Внешние источники хранятся в таблице `RssSources`.
+
+- RSS-источники обрабатываются через `RssFetcherService` и `RssParserService`.
+- Scraper-источники используют CSS/XPath-селекторы из БД.
+- Доверенные источники могут публиковаться сразу, остальные проходят модерацию.
+- Админка умеет экспортировать текущие источники в SQL.
+
+## Модерация
+
+Модераторы работают с очередью статей и жалобами:
+
+- одобряют или отклоняют статьи;
+- подтверждают или отклоняют жалобы;
+- не могут модерировать собственные статьи;
+- действия фиксируются в `ModerationLogs`.
+
+## Запуск
+
+Локально через .NET:
 
 ```bash
+dotnet restore
 dotnet ef database update
-dotnet run
+dotnet run --project CatshrediasNewsAPI/CatshrediasNewsAPI.csproj
 ```
 
-### 4. Тестовые данные
+Через Docker из корня проекта:
 
 ```bash
-psql -U <user> -d <db> -f Data/seed.sql
+docker compose up -d --build
 ```
 
-### 5. Swagger UI
+Проверка:
 
-```
-https://localhost:7240/swagger
-```
+- `/health` - health endpoint;
+- `/swagger` - Swagger UI в Development;
+- `/hubs/comments` - SignalR hub.
 
-Для авторизованных запросов нажмите **Authorize** и вставьте JWT-токен **без** префикса `Bearer`.
+## Seed.sql
 
----
+В Docker:
 
-## Структура проекта
-
-```
-CatshrediasNewsAPI/
-├── Controllers/       — HTTP-эндпоинты
-├── Services/          — бизнес-логика
-├── Models/            — сущности БД
-├── DTOs/              — объекты передачи данных
-├── Data/              — DbContext, seed.sql
-├── Hubs/              — SignalR хабы
-├── Migrations/        — миграции EF Core
-└── wwwroot/           — статические страницы для тестирования
+```bash
+docker compose exec -T db psql -U postgres -d news_db < CatshrediasNewsAPI/Data/seed.sql
 ```
 
----
-
-## Аутентификация
-
-Все защищённые эндпоинты требуют заголовок:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
-Токен получается при регистрации или входе. Срок действия — 7 дней.
-
-### Роли
-
-| Роль | Описание |
-|---|---|
-| `User` | Обычный пользователь |
-| `Moderator` | Модерация контента и жалоб |
-| `Admin` | Полный доступ, управление источниками и тегами |
-
----
-
-## API Endpoints
-
-### Auth — `/api/auth`
-
-| Метод | Путь | Описание | Доступ |
-|---|---|---|---|
-| POST | `/register` | Регистрация нового пользователя | Public |
-| POST | `/login` | Вход, возвращает JWT-токен | Public |
-
-**Пример запроса регистрации:**
-```json
-POST /api/auth/register
-{
-  "username": "alex",
-  "email": "alex@example.com",
-  "password": "password123"
-}
-```
-
-**Пример ответа:**
-```json
-{
-  "token": "eyJhbGci...",
-  "user": {
-    "id": 1,
-    "username": "alex",
-    "email": "alex@example.com",
-    "role": "User",
-    "isBlocked": false
-  }
-}
-```
-
----
-
-### Users — `/api/users`
-
-| Метод | Путь | Описание | Доступ |
-|---|---|---|---|
-| GET | `/{id}` | Публичный профиль пользователя | Public |
-| GET | `/me` | Профиль текущего пользователя | Auth |
-| PUT | `/me` | Редактирование профиля | Auth |
-| DELETE | `/me` | Удаление аккаунта | Auth |
-
-**Пример тела PUT `/me`** (все поля опциональны):
-```json
-{
-  "username": "new_name",
-  "email": "new@example.com",
-  "password": "newpassword"
-}
-```
-
----
-
-### Articles — `/api/articles`
-
-| Метод | Путь | Описание | Доступ |
-|---|---|---|---|
-| GET | `/` | Хронологическая лента | Public |
-| GET | `/feed` | Персональная лента (по весам тегов) | Auth |
-| GET | `/{id}` | Детальная страница статьи | Public |
-| POST | `/` | Создать статью (статус PendingReview) | Auth |
-| POST | `/{id}/like` | Поставить / снять лайк | Auth |
-
-Параметры пагинации: `?page=1&pageSize=20`
-
-**Пример тела POST `/`:**
-```json
-{
-  "title": "Заголовок статьи",
-  "content": "Текст статьи...",
-  "sourceUrl": null,
-  "publishedAt": "2026-04-17T12:00:00Z",
-  "tagIds": [1, 6]
-}
-```
-
----
-
-### Tags — `/api/tags`
-
-| Метод | Путь | Описание | Доступ |
-|---|---|---|---|
-| GET | `/` | Список всех тегов | Public |
-| POST | `/` | Создать тег | Admin |
-| DELETE | `/{id}` | Удалить тег | Admin |
-| PUT | `/subscriptions` | Обновить подписки на теги | Auth |
-
-**Пример тела PUT `/subscriptions`:**
-```json
-{ "tagIds": [1, 3, 6] }
-```
-
----
-
-### Comments — `/api/articles/{articleId}/comments`
-
-| Метод | Путь | Описание | Доступ |
-|---|---|---|---|
-| GET | `/` | Дерево комментариев статьи | Public |
-| POST | `/` | Добавить комментарий | Auth |
-| DELETE | `/{commentId}` | Удалить комментарий | Auth (автор или модератор) |
-
-**Пример тела POST:**
-```json
-{
-  "content": "Текст комментария",
-  "parentCommentId": null
-}
-```
-
----
-
-### Moderation — `/api/moderation`
-
-| Метод | Путь | Описание | Доступ |
-|---|---|---|---|
-| GET | `/queue` | Очередь статей на проверку | Moderator |
-| POST | `/{id}/approve` | Одобрить статью | Moderator |
-| POST | `/{id}/reject` | Отклонить статью с причиной | Moderator |
-| GET | `/reports` | Список жалоб | Moderator |
-| POST | `/articles/{articleId}/report` | Пожаловаться на статью | Auth |
-
-**Пример тела POST `/{id}/reject`:**
-```json
-{ "reason": "Нарушение правил сообщества" }
-```
-
-**Пример тела POST `/articles/{id}/report`:**
-```json
-{
-  "reportTypeId": 3,
-  "description": "Статья содержит недостоверную информацию"
-}
-```
-
-Типы жалоб: `1 — Spam`, `2 — Hate`, `3 — Fake`, `4 — Violence`, `5 — Copyright`
-
----
-
-### Admin — `/api/admin`
-
-#### RSS-источники
-
-| Метод | Путь | Описание |
-|---|---|---|
-| GET | `/sources` | Список всех источников |
-| POST | `/sources` | Добавить источник |
-| PUT | `/sources/{id}` | Обновить источник |
-| DELETE | `/sources/{id}` | Удалить источник |
-| POST | `/sources/{id}/enable` | Включить источник |
-| POST | `/sources/{id}/disable` | Отключить источник |
-
-**Пример тела POST `/sources`:**
-```json
-{
-  "name": "Habr",
-  "url": "https://habr.com/ru/rss/articles/",
-  "isTrusted": true
-}
-```
-
-#### Управление RSS-фетчером
-
-| Метод | Путь | Описание |
-|---|---|---|
-| GET | `/rss/status` | Текущий интервал парсинга |
-| PUT | `/rss/interval` | Изменить интервал (в минутах) |
-| POST | `/rss/trigger` | Принудительно запустить парсинг |
-
-**Пример тела PUT `/rss/interval`:**
-```json
-{ "intervalMinutes": 30 }
-```
-
-#### Теги
-
-| Метод | Путь | Описание |
-|---|---|---|
-| GET | `/tags` | Список всех тегов |
-| POST | `/tags` | Создать тег |
-| DELETE | `/tags/{id}` | Удалить тег |
-
----
-
-## SignalR — Хаб комментариев
-
-**URL подключения:** `/hubs/comments`
-
-JWT-токен передаётся через `accessTokenFactory`:
-
-```js
-const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/hubs/comments", { accessTokenFactory: () => token })
-    .build();
-```
-
-### Методы (клиент → сервер)
-
-| Метод | Параметры | Описание |
-|---|---|---|
-| `JoinArticle` | `articleId: int` | Подписаться на комментарии статьи |
-| `LeaveArticle` | `articleId: int` | Отписаться от комментариев статьи |
-
-### События (сервер → клиент)
-
-| Событие | Данные | Когда |
-|---|---|---|
-| `ReceiveComment` | `CommentDto` | После добавления нового комментария |
-| `CommentDeleted` | `commentId: int` | После удаления комментария |
-
----
-
-## RSS-интеграция
-
-### Как работает
-
-1. Источники хранятся в таблице `RssSources`. Поле `IsEnabled` включает/отключает источник без удаления.
-2. `RssFetcherService` — фоновый сервис, запускается при старте и обходит все включённые источники по расписанию.
-3. `RssParserService` парсит фид, очищает HTML из `<description>`, проверяет дубли по `guid`.
-4. Статус новой статьи: `Published` — для доверенных источников (`IsTrusted = true`), `PendingReview` — для остальных.
-5. `TagMappingService` сопоставляет RSS-категории с тегами БД по правилам из `appsettings.json`.
-
-### Настройка правил маппинга тегов
-
-```json
-"TagMappingRules": {
-  "IT":         ["rust", "c#", "python", "docker"],
-  "Технологии": ["ai", "нейросети", "llm"],
-  "Наука":      ["физика", "биология", "квантовые"]
-}
-```
-
-Ключ — название тега в БД, значение — список ключевых слов для поиска в RSS-категориях статьи.
-
----
-
-## Система рекомендаций
-
-Персональная лента (`GET /api/articles/feed`) сортирует статьи по сумме весов тегов пользователя:
-
-- Лайк статьи → вес тегов этой статьи увеличивается на `+0.5`
-- Снятие лайка → вес уменьшается на `-0.5`
-- Подписка на тег → `IsSubscribed = true`, начальный вес `1.0`
-
-Для новых пользователей без истории возвращается хронологическая лента.
-
----
-
-## Схема базы данных
-
-| Таблица | Описание |
-|---|---|
-| `Roles` | Справочник ролей (Admin, Moderator, User) |
-| `Users` | Пользователи |
-| `PublicationStatuses` | Статусы статей (Draft, PendingReview, Published, Rejected) |
-| `RssSources` | RSS-источники |
-| `Tags` | Глобальный список тегов |
-| `Articles` | Статьи и новости |
-| `ArticleTags` | Many-to-Many: статьи ↔ теги |
-| `UserTagWeights` | Профиль интересов пользователя (теги + веса) |
-| `Likes` | История лайков |
-| `SavedArticles` | Сохранённые статьи |
-| `Comments` | Комментарии (древовидные) |
-| `ReportTypes` | Типы жалоб (Spam, Hate, Fake, Violence, Copyright) |
-| `Reports` | Жалобы пользователей |
-| `ModerationLogs` | Журнал действий модераторов |
-
----
-
-## Тестовые страницы
-
-Доступны только в режиме разработки.
-
-| URL | Описание |
-|---|---|
-| `/swagger` | Swagger UI — документация и тестирование всех эндпоинтов |
-| `/hub-test.html` | Тестирование SignalR хаба комментариев |
-| `/rss-test.html` | Тестирование RSS-интеграции: предпросмотр фидов, ручной запуск парсинга, просмотр результатов |
+Из DataGrip:
+
+- Host: `127.0.0.1`
+- Port: `55432`
+- Database: значение `POSTGRES_DB`
+- User/Password: значения из `.env`
