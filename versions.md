@@ -10,4 +10,7 @@ v.0.0.3 - add comments hub to article view page and scraping parser integration 
 v.0.0.4 - review_code_1
     add tags to article editor;
     unauthorized status fix;
-    avarat uplouding during registering.
+    avatar uplouding during registering.
+v.0.0.5 - 
+    ngrok/tuna mailpit/google/bravo configs
+    unused code need to delete
