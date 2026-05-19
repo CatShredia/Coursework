@@ -5,7 +5,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<PageTitle>Проверка статьи — Runews</PageTitle>
+<PageTitle>@L["Mod_ReviewTitle"]</PageTitle>
 
 @if (Auth.CurrentUser?.Role is not ("Moderator" or "Admin"))
 {
@@ -16,7 +16,7 @@
 <div class="admin-page mod-review-page">
     <div class="mod-review-header">
         <a href="/moderation/queue" class="article-back">
-            <i class="bi bi-arrow-left"></i> Очередь
+            <i class="bi bi-arrow-left"></i> @L["Mod_BackQueue"]
         </a>
         @if (_article is not null)
         {
@@ -47,38 +47,38 @@
     {
         <div class="admin-loading">
             <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
-            Загрузка...
+            @L["Common_Loading"]
         </div>
     }
     else if (_article is null)
     {
         <div class="feed-empty">
             <i class="bi bi-file-earmark-x"></i>
-            <p>Статья не найдена в очереди.</p>
-            <a href="/moderation/queue" style="color:var(--accent)">Вернуться в очередь</a>
+            <p>@L["Mod_NotInQueue"]</p>
+            <a href="/moderation/queue" style="color:var(--accent)">@L["Mod_ReturnQueue"]</a>
         </div>
     }
     else
     {
         <div class="mod-review-actions-top">
             <button class="mod-btn mod-btn-approve" disabled="@_busy" @onclick="Approve">
-                <i class="bi bi-check-lg"></i> Одобрить
+                <i class="bi bi-check-lg"></i> @L["Mod_Approve"]
             </button>
             <button class="mod-btn mod-btn-reject" disabled="@(_busy || _notes.Count == 0)" @onclick="Reject">
-                <i class="bi bi-x-lg"></i> Отклонить (@_notes.Count)
+                <i class="bi bi-x-lg"></i> @L["Mod_Reject"] (@_notes.Count)
             </button>
         </div>
 
         <div class="mod-review-columns">
             <div class="mod-review-col">
-                <h3 class="mod-review-col-title">Исходный текст (выделяйте здесь)</h3>
+                <h3 class="mod-review-col-title">@L["Mod_SourceText"]</h3>
                 <pre id="mod-review-source" class="mod-review-source">@_article.Content</pre>
                 <button class="feed-sort-btn" style="margin-top:8px" @onclick="StartAddNote">
-                    <i class="bi bi-plus-circle"></i> Добавить замечание по выделению
+                    <i class="bi bi-plus-circle"></i> @L["Mod_AddNote"]
                 </button>
             </div>
             <div class="mod-review-col">
-                <h3 class="mod-review-col-title">Предпросмотр</h3>
+                <h3 class="mod-review-col-title">@L["Mod_Preview"]</h3>
                 <div class="mod-review-preview editor-preview">
                     @((MarkupString)RenderMarkdown(_article.Content))
                 </div>
@@ -86,10 +86,10 @@
         </div>
 
         <div class="mod-notes-panel">
-            <h3 class="mod-review-col-title">Замечания (@_notes.Count)</h3>
+            <h3 class="mod-review-col-title">@L["Mod_Notes", _notes.Count]</h3>
             @if (_notes.Count == 0)
             {
-                <p class="mod-notes-empty">Выделите фрагмент слева и добавьте хотя бы одно замечание перед отклонением.</p>
+                <p class="mod-notes-empty">@L["Mod_NotesEmpty"]</p>
             }
             else
             {
@@ -101,13 +101,13 @@
                         <div class="mod-note-card-header">
                             <span class="mod-note-num">@(idx + 1)</span>
                             <div class="mod-note-actions">
-                                <button class="action-btn" title="Выше" disabled="@(idx == 0)" @onclick="() => MoveNote(idx, -1)">
+                                <button class="action-btn" title="@L["Common_MoveUp"]" disabled="@(idx == 0)" @onclick="() => MoveNote(idx, -1)">
                                     <i class="bi bi-arrow-up"></i>
                                 </button>
-                                <button class="action-btn" title="Ниже" disabled="@(idx == _notes.Count - 1)" @onclick="() => MoveNote(idx, 1)">
+                                <button class="action-btn" title="@L["Common_MoveDown"]" disabled="@(idx == _notes.Count - 1)" @onclick="() => MoveNote(idx, 1)">
                                     <i class="bi bi-arrow-down"></i>
                                 </button>
-                                <button class="action-btn action-btn-danger" title="Удалить" @onclick="() => RemoveNote(idx)">
+                                <button class="action-btn action-btn-danger" title="@L["Common_Delete"]" @onclick="() => RemoveNote(idx)">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </div>
@@ -118,8 +118,8 @@
                 }
             }
 
-            <label class="mod-review-summary-label">Общий комментарий (необязательно)</label>
-            <textarea class="mod-reason-input" rows="2" placeholder="Краткий итог для автора"
+            <label class="mod-review-summary-label">@L["Mod_Summary"]</label>
+            <textarea class="mod-reason-input" rows="2" placeholder="@L["Mod_SummaryPlaceholder"]"
                       @bind="_summaryReason"></textarea>
         </div>
     }
@@ -129,18 +129,18 @@
 {
     <div class="modal-overlay" @onclick="CancelNoteForm">
         <div class="modal-box mod-note-form-box" @onclick:stopPropagation="true">
-            <h3 class="modal-title">Замечание к фрагменту</h3>
+            <h3 class="modal-title">@L["Mod_NoteTitle"]</h3>
             <blockquote class="mod-note-excerpt">@_pendingExcerpt</blockquote>
-            <textarea class="mod-reason-input" rows="3" placeholder="Причина (обязательно)"
+            <textarea class="mod-reason-input" rows="3" placeholder="@L["Mod_NoteReason"]"
                       @bind="_pendingReason"></textarea>
             @if (_noteFormError)
             {
-                <p style="color:#e53935;font-size:12px;margin:0">Укажите причину (минимум 3 символа).</p>
+                <p style="color:#e53935;font-size:12px;margin:0">@L["Mod_NoteReasonMin"]</p>
             }
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="CancelNoteForm">Отмена</button>
+                <button class="modal-btn-cancel" @onclick="CancelNoteForm">@L["Common_Cancel"]</button>
                 <button class="modal-btn-confirm" style="background:#e53935" @onclick="ConfirmNote">
-                    Добавить
+                    @L["Common_Add"]
                 </button>
             </div>
         </div>
@@ -172,13 +172,13 @@
         var excerpt = await JS.InvokeAsync<string?>("moderationSelection.getSelection", "#mod-review-source");
         if (string.IsNullOrWhiteSpace(excerpt))
         {
-            _message = "Выделите фрагмент в левой панели (минимум 3 символа).";
+            _message = L["Mod_SelectFragment"];
             _isError = true;
             return;
         }
         if (_notes.Any(n => n.Excerpt == excerpt))
         {
-            _message = "Этот фрагмент уже добавлен.";
+            _message = L["Mod_DuplicateFragment"];
             _isError = true;
             return;
         }
@@ -214,17 +214,17 @@
         var ok = await ModerationSvc.ApproveAsync(ArticleId);
         _busy = false;
         if (ok) Nav.NavigateTo("/moderation/queue");
-        else ShowMsg("Ошибка при одобрении.", true);
+        else ShowMsg(L["Mod_ErrorApprove"], true);
     }
 
     private async Task Reject()
     {
-        if (_notes.Count == 0) { ShowMsg("Добавьте хотя бы одно замечание.", true); return; }
+        if (_notes.Count == 0) { ShowMsg(L["Mod_AddNoteBeforeReject"], true); return; }
         _busy = true;
         var (ok, error) = await ModerationSvc.RejectAsync(ArticleId, _summaryReason, _notes);
         _busy = false;
         if (ok) Nav.NavigateTo("/moderation/queue");
-        else ShowMsg(error ?? "Ошибка при отклонении.", true);
+        else ShowMsg(error ?? L["Mod_ErrorReject"], true);
     }
 
     private void ShowMsg(string msg, bool isError) { _message = msg; _isError = isError; }

@@ -37,13 +37,13 @@
                 @onclick="CreateTag" disabled="@(string.IsNullOrWhiteSpace(_newTagName) || _actionLoading)">
             @if (_actionLoading) { <span class="auth-spinner"></span> }
             else { <i class="bi bi-plus-lg"></i> }
-            Добавить
+            @L["Common_Add"]
         </button>
     </div>
 
     @if (_loading)
     {
-        <div class="admin-loading"><span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span> Загрузка...</div>
+        <div class="admin-loading"><span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span> @L["Common_Loading"]</div>
     }
     else if (!_tags.Any())
     {
@@ -80,7 +80,7 @@
                 Все статьи потеряют этот тег.
             </p>
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
+                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">@L["Common_Cancel"]</button>
                 <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_deleteLoading">
                     @if (_deleteLoading) { <span class="auth-spinner"></span> }
                     else { <span>Удалить</span> }

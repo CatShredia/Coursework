@@ -52,4 +52,11 @@ public class RegisterRequest
     public string Password    { get; set; } = "";
     public string AvatarColor { get; set; } = "#1a73e8";
     public string? AvatarDataUrl { get; set; }
+    public string? Culture { get; set; }
+}
+
+public class ForgotPasswordRequest
+{
+    public string Email { get; set; } = "";
+    public string? Culture { get; set; }
 }

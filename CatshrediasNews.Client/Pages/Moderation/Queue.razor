@@ -3,7 +3,7 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 
-<PageTitle>Очередь модерации — Runews</PageTitle>
+<PageTitle>@L["Mod_QueueTitle"]</PageTitle>
 
 @if (Auth.CurrentUser?.Role is not ("Moderator" or "Admin"))
 {
@@ -13,10 +13,10 @@
 
 <div class="admin-page">
     <div class="admin-header">
-        <h1 class="page-title" style="margin:0">Очередь модерации</h1>
+        <h1 class="page-title" style="margin:0">@L["Mod_QueueHeading"]</h1>
         @if (!_loading)
         {
-            <span class="admin-count">На проверке: @_queue.Count</span>
+            <span class="admin-count">@L["Mod_OnReview", _queue.Count]</span>
         }
     </div>
 
@@ -32,14 +32,14 @@
     {
         <div class="admin-loading">
             <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
-            Загрузка...
+            @L["Common_Loading"]
         </div>
     }
     else if (!_queue.Any())
     {
         <div class="feed-empty">
             <i class="bi bi-check2-all"></i>
-            <p>Очередь пуста — все статьи проверены.</p>
+            <p>@L["Mod_QueueEmpty"]</p>
         </div>
     }
     else
@@ -94,17 +94,17 @@
 
                         <div class="mod-card-actions">
                             <a href="/moderation/review/@article.Id" class="mod-btn mod-btn-review">
-                                <i class="bi bi-search"></i> Проверить
+                                <i class="bi bi-search"></i> @L["Mod_Review"]
                             </a>
                             <button class="mod-btn mod-btn-approve"
                                     disabled="@(_busy == article.Id)"
                                     @onclick="() => Approve(article)">
-                                <i class="bi bi-check-lg"></i> Одобрить
+                                <i class="bi bi-check-lg"></i> @L["Mod_Approve"]
                             </button>
                             <button class="mod-btn mod-btn-reject"
                                     disabled="@(_busy == article.Id)"
                                     @onclick="() => GoReview(article.Id)">
-                                <i class="bi bi-x-lg"></i> Отклонить
+                                <i class="bi bi-x-lg"></i> @L["Mod_Reject"]
                             </button>
                         </div>
                     </div>

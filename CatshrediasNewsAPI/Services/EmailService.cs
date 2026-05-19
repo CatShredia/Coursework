@@ -14,12 +14,38 @@ public class EmailService(IConfiguration config)
     private readonly bool _useSsl = bool.TryParse(config["Smtp:UseSsl"], out var useSsl) && useSsl;
     private readonly bool _preferIpv4 = !bool.TryParse(config["Smtp:PreferIpv4"], out var preferIpv4) || preferIpv4;
 
-    public async Task SendConfirmationAsync(string toEmail, string username, string token)
-    {
-        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5110").TrimEnd('/');
-        var confirmUrl = $"{baseUrl}/confirm-email?token={Uri.EscapeDataString(token)}";
+    public Task SendConfirmationAsync(string toEmail, string username, string token, string culture) =>
+        SendAsync(toEmail, BuildConfirmation(culture, username, token));
 
-        var body = $"""
+    public Task SendPasswordResetAsync(string toEmail, string username, string token, string culture) =>
+        SendAsync(toEmail, BuildPasswordReset(culture, username, token));
+
+    private (string Subject, string Body) BuildConfirmation(string culture, string username, string token)
+    {
+        var confirmUrl = BuildUrl("/confirm-email", "token", token);
+        if (CultureHelper.IsEnglish(culture))
+        {
+            return (
+                "Confirm your email — Runews",
+                $"""
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+                  <h2 style="color:#1a73e8">Welcome to Runews, {username}!</h2>
+                  <p>Please confirm your email to complete registration:</p>
+                  <a href="{confirmUrl}"
+                     style="display:inline-block;padding:12px 28px;background:#1a73e8;color:#fff;
+                            border-radius:8px;text-decoration:none;font-weight:600">
+                    Confirm email
+                  </a>
+                  <p style="color:#888;font-size:12px;margin-top:24px">
+                    This link is valid for 24 hours. If you did not sign up, you can ignore this email.
+                  </p>
+                </div>
+                """);
+        }
+
+        return (
+            "Подтвердите ваш email — Runews",
+            $"""
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
               <h2 style="color:#1a73e8">Добро пожаловать в Runews, {username}!</h2>
               <p>Для завершения регистрации подтвердите ваш email:</p>
@@ -32,17 +58,35 @@ public class EmailService(IConfiguration config)
                 Ссылка действительна 24 часа. Если вы не регистрировались — просто проигнорируйте письмо.
               </p>
             </div>
-            """;
-
-        await SendAsync(toEmail, "Подтвердите ваш email — Runews", body);
+            """);
     }
 
-    public async Task SendPasswordResetAsync(string toEmail, string username, string token)
+    private (string Subject, string Body) BuildPasswordReset(string culture, string username, string token)
     {
-        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5110").TrimEnd('/');
-        var resetUrl = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+        var resetUrl = BuildUrl("/reset-password", "token", token);
+        if (CultureHelper.IsEnglish(culture))
+        {
+            return (
+                "Password reset — Runews",
+                $"""
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+                  <h2 style="color:#1a73e8">Password reset, {username}</h2>
+                  <p>We received a request to reset the password for your account. Click below to set a new password:</p>
+                  <a href="{resetUrl}"
+                     style="display:inline-block;padding:12px 28px;background:#1a73e8;color:#fff;
+                            border-radius:8px;text-decoration:none;font-weight:600">
+                    Reset password
+                  </a>
+                  <p style="color:#888;font-size:12px;margin-top:24px">
+                    This link is valid for 1 hour. If you did not request a reset, you can ignore this email.
+                  </p>
+                </div>
+                """);
+        }
 
-        var body = $"""
+        return (
+            "Сброс пароля — Runews",
+            $"""
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
               <h2 style="color:#1a73e8">Сброс пароля, {username}</h2>
               <p>Мы получили запрос на сброс пароля для вашего аккаунта. Нажмите кнопку ниже, чтобы задать новый пароль:</p>
@@ -55,18 +99,19 @@ public class EmailService(IConfiguration config)
                 Ссылка действительна 1 час. Если вы не запрашивали сброс — просто проигнорируйте это письмо.
               </p>
             </div>
-            """;
-
-        await SendAsync(toEmail, "Сброс пароля — Runews", body);
+            """);
     }
 
-    private async Task SendAsync(string toEmail, string subject, string body)
+    private string BuildUrl(string path, string queryKey, string queryValue)
+    {
+        var baseUrl = (config["App:BaseUrl"] ?? "http://localhost:5110").TrimEnd('/');
+        return $"{baseUrl}{path}?{queryKey}={Uri.EscapeDataString(queryValue)}";
+    }
+
+    private async Task SendAsync(string toEmail, (string Subject, string Body) message)
     {
         var smtpHost = ResolveSmtpHost(_host);
-        using var client  = new SmtpClient(smtpHost, _port)
-        {
-            EnableSsl = _useSsl
-        };
+        using var client  = new SmtpClient(smtpHost, _port) { EnableSsl = _useSsl };
 
         if (!string.IsNullOrWhiteSpace(_username))
         {
@@ -79,14 +124,12 @@ public class EmailService(IConfiguration config)
             client.Credentials = CredentialCache.DefaultNetworkCredentials;
         }
 
-        using var message = new MailMessage(_from, toEmail, subject, body) { IsBodyHtml = true };
-        await client.SendMailAsync(message);
+        using var mail = new MailMessage(_from, toEmail, message.Subject, message.Body) { IsBodyHtml = true };
+        await client.SendMailAsync(mail);
     }
 
     private string ResolveSmtpHost(string host)
     {
-        // Для TLS SMTP (Gmail и т.п.) подключение должно идти по доменному имени,
-        // иначе проверка сертификата падает с RemoteCertificateNameMismatch.
         if (_useSsl)
             return host;
 

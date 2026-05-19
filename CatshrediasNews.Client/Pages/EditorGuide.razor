@@ -1,78 +1,72 @@
 @page "/editor-guide"
 
-<PageTitle>Инструкция к редактору — Runews</PageTitle>
+<PageTitle>@L["Guide_PageTitle"]</PageTitle>
 
 <div class="info-page">
     <a href="/publicist/create" class="article-back">
-        <i class="bi bi-arrow-left"></i> Назад к редактору
+        <i class="bi bi-arrow-left"></i> @L["Common_Back"] @L["Guide_BackToEditor"]
     </a>
 
-    <h1 class="info-page-title">Инструкция к редактору статей</h1>
-    <p class="info-page-subtitle">
-        Редактор использует формат <strong>Markdown</strong> — простой язык разметки текста.
-        Ниже описаны все доступные элементы.
-    </p>
+    <h1 class="info-page-title">@L["Guide_Title"]</h1>
+    <p class="info-page-subtitle">@L["Guide_Subtitle"]</p>
 
     <div class="guide-grid">
-
         <div class="guide-section">
-            <h2>Горячие клавиши</h2>
+            <h2>@L["Guide_Hotkeys"]</h2>
             <div class="guide-table">
-                <div class="guide-row"><kbd>Ctrl + B</kbd><span>Жирный текст</span></div>
-                <div class="guide-row"><kbd>Ctrl + I</kbd><span>Курсив</span></div>
-                <div class="guide-row"><kbd>Ctrl + K</kbd><span>Вставить ссылку</span></div>
+                <div class="guide-row"><kbd>Ctrl + B</kbd><span>@L["Guide_HotkeyBold"]</span></div>
+                <div class="guide-row"><kbd>Ctrl + I</kbd><span>@L["Guide_HotkeyItalic"]</span></div>
+                <div class="guide-row"><kbd>Ctrl + K</kbd><span>@L["Guide_HotkeyLink"]</span></div>
             </div>
         </div>
 
         <div class="guide-section">
-            <h2>Заголовки</h2>
+            <h2>@L["Guide_Headings"]</h2>
             <div class="guide-table">
-                <div class="guide-row"><code># Заголовок 1</code><span>Большой заголовок</span></div>
-                <div class="guide-row"><code>## Заголовок 2</code><span>Средний заголовок</span></div>
-                <div class="guide-row"><code>### Заголовок 3</code><span>Малый заголовок</span></div>
+                <div class="guide-row"><code>@L["Guide_H1Code"]</code><span>@L["Guide_H1Desc"]</span></div>
+                <div class="guide-row"><code>@L["Guide_H2Code"]</code><span>@L["Guide_H2Desc"]</span></div>
+                <div class="guide-row"><code>@L["Guide_H3Code"]</code><span>@L["Guide_H3Desc"]</span></div>
             </div>
         </div>
 
         <div class="guide-section">
-            <h2>Форматирование текста</h2>
+            <h2>@L["Guide_Formatting"]</h2>
             <div class="guide-table">
-                <div class="guide-row"><code>**жирный**</code><span><strong>жирный</strong></span></div>
-                <div class="guide-row"><code>*курсив*</code><span><em>курсив</em></span></div>
-                <div class="guide-row"><code>~~зачёркнутый~~</code><span><del>зачёркнутый</del></span></div>
-                <div class="guide-row"><code>`код`</code><span>встроенный <code>код</code></span></div>
+                <div class="guide-row"><code>@L["Guide_BoldCode"]</code><span><strong>@L["Guide_BoldSample"]</strong></span></div>
+                <div class="guide-row"><code>@L["Guide_ItalicCode"]</code><span><em>@L["Guide_ItalicSample"]</em></span></div>
+                <div class="guide-row"><code>@L["Guide_StrikeCode"]</code><span><del>@L["Guide_StrikeSample"]</del></span></div>
+                <div class="guide-row"><code>@L["Guide_InlineCode"]</code><span>@L["Guide_InlineCodeDesc"]</span></div>
             </div>
         </div>
 
         <div class="guide-section">
-            <h2>Списки</h2>
+            <h2>@L["Guide_Lists"]</h2>
             <div class="guide-table">
-                <div class="guide-row"><code>- пункт</code><span>Маркированный список</span></div>
-                <div class="guide-row"><code>1. пункт</code><span>Нумерованный список</span></div>
+                <div class="guide-row"><code>@L["Guide_BulletCode"]</code><span>@L["Guide_BulletDesc"]</span></div>
+                <div class="guide-row"><code>@L["Guide_NumberCode"]</code><span>@L["Guide_NumberDesc"]</span></div>
             </div>
         </div>
 
         <div class="guide-section">
-            <h2>Ссылки и изображения</h2>
+            <h2>@L["Guide_LinksImages"]</h2>
             <div class="guide-table">
-                <div class="guide-row"><code>[текст](url)</code><span>Гиперссылка</span></div>
-                <div class="guide-row"><code>![описание](url)</code><span>Изображение</span></div>
+                <div class="guide-row"><code>@L["Guide_LinkCode"]</code><span>@L["Guide_LinkDesc"]</span></div>
+                <div class="guide-row"><code>@L["Guide_ImageCode"]</code><span>@L["Guide_ImageDesc"]</span></div>
             </div>
         </div>
 
         <div class="guide-section">
-            <h2>Прочее</h2>
+            <h2>@L["Guide_Other"]</h2>
             <div class="guide-table">
-                <div class="guide-row"><code>&gt; текст</code><span>Цитата</span></div>
-                <div class="guide-row"><code>```<br/>код<br/>```</code><span>Блок кода</span></div>
-                <div class="guide-row"><code>---</code><span>Горизонтальная линия</span></div>
+                <div class="guide-row"><code>@L["Guide_QuoteCode"]</code><span>@L["Guide_QuoteDesc"]</span></div>
+                <div class="guide-row"><code>```<br/>code<br/>```</code><span>@L["Guide_CodeBlockDesc"]</span></div>
+                <div class="guide-row"><code>---</code><span>@L["Guide_HrDesc"]</span></div>
             </div>
         </div>
-
     </div>
 
     <div class="guide-note">
         <i class="bi bi-info-circle"></i>
-        После написания статьи нажмите <strong>Сохранить</strong> — статья будет отправлена на модерацию
-        и опубликована после проверки.
+        @string.Format(L["Guide_Note"], L["Common_Save"])
     </div>
 </div>

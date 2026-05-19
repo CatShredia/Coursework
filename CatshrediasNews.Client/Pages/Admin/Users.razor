@@ -3,7 +3,7 @@
 @inject AdminService AdminSvc
 @inject NavigationManager Nav
 
-<PageTitle>Пользователи — Runews</PageTitle>
+<PageTitle>@L["Admin_UsersPageTitle"]</PageTitle>
 
 @if (Auth.CurrentUser?.Role != "Admin")
 {
@@ -13,8 +13,8 @@
 
 <div class="admin-page">
     <div class="admin-header">
-        <h1 class="page-title" style="margin:0">Управление пользователями</h1>
-        <span class="admin-count">Всего: @_users.Count</span>
+        <h1 class="page-title" style="margin:0">@L["Admin_UsersTitle"]</h1>
+        <span class="admin-count">@L["Common_Total", _users.Count]</span>
     </div>
 
     <!-- Поиск и фильтр -->
@@ -48,7 +48,7 @@
 
     @if (_loading)
     {
-        <div class="admin-loading"><span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span> Загрузка...</div>
+        <div class="admin-loading"><span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span> @L["Common_Loading"]</div>
     }
     else if (!_filtered.Any())
     {
@@ -64,8 +64,8 @@
                         <th>Пользователь</th>
                         <th>Email</th>
                         <th>Роль</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
+                        <th>@L["Editor_ColStatus"]</th>
+                        <th>@L["Editor_ColActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -133,7 +133,7 @@
                                             </button>
                                         }
                                         <button class="action-btn action-btn-danger"
-                                                title="Удалить"
+                                                title="@L["Common_Delete"]"
                                                 @onclick="() => AskDelete(user)">
                                             <i class="bi bi-trash3"></i>
                                         </button>
@@ -164,7 +164,7 @@
                 будет удалён безвозвратно.
             </p>
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
+                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">@L["Common_Cancel"]</button>
                 <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_actionLoading">
                     @if (_actionLoading) { <span class="auth-spinner"></span> }
                     else { <span>Удалить</span> }

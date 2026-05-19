@@ -1,40 +1,20 @@
 <footer class="app-footer">
     <div class="footer-grid">
 
-        <!-- Бренд -->
         <div class="footer-brand">
             <div class="footer-logo">Runews</div>
-            <p>
-                Runews — новостной агрегатор нового поколения.
-                Собираем актуальные новости из проверенных источников
-                и персонализируем ленту под ваши интересы.
-            </p>
+            <p>@L["Footer_Description"]</p>
         </div>
 
-        <!-- Компания -->
         <div>
-            <div class="footer-col-title">Компания</div>
+            <div class="footer-col-title">@L["Footer_Company"]</div>
             <div class="footer-links">
-                <a href="/about">О нас</a>
-                @* <a href="/team">Команда</a> *@
-                @* <a href="/careers">Вакансии</a> *@
-                @* <a href="/press">Пресса</a> *@
+                <a href="/about">@L["Footer_About"]</a>
             </div>
         </div>
 
-        <!-- Сотрудничество -->
-        @* <div> *@
-        @*     <div class="footer-col-title">Сотрудничество</div> *@
-        @*     <div class="footer-links"> *@
-        @*         <a href="/">Главная</a> *@
-        @*         <a href="/advertise">Реклама</a> *@
-        @*         <a href="/partners">Партнёрам</a> *@
-        @*     </div> *@
-        @* </div> *@
-
-        <!-- Соцсети -->
         <div>
-            <div class="footer-col-title">Мы в соцсетях</div>
+            <div class="footer-col-title">@L["Footer_Social"]</div>
             <div class="footer-socials">
                 <a href="https://max.ru/" target="_blank" class="social-btn" title="Max">
                     <img src="max-messenger.png" alt="MaxIcon" style="width: 25px; height: 25px">
@@ -42,8 +22,8 @@
                 <a href="https://t.me/Aleksandr_Evimov" target="_blank" class="social-btn" title="Telegram">
                     <img src="telegram.png" alt="TelegramIcon" style="width: 25px; height: 25px">
                 </a>
-                <a href="https://vk.com/" target="_blank" class="social-btn" title="ВКонтакте">
-                    <img src="vk.png" alt="TelegramIcon" style="width: 25px; height: 25px">
+                <a href="https://vk.com/" target="_blank" class="social-btn" title="VK">
+                    <img src="vk.png" alt="VK" style="width: 25px; height: 25px">
                 </a>
             </div>
         </div>
@@ -51,15 +31,13 @@
     </div>
 
     <div class="footer-bottom">
-        <span>© @DateTime.Now.Year Runews. Все права защищены.</span>
+        <span>@L["Footer_Copyright", DateTime.Now.Year]</span>
         <div style="display:flex;gap:20px;">
-            @* <a href="/privacy">Политика конфиденциальности</a> *@
-            <a href="/terms">Пользовательское соглашение</a>
-            @* <a href="/contacts">Контакты</a> *@
+            <a href="/terms">@L["Footer_Terms"]</a>
         </div>
     </div>
     <div class="footer-edu">
-        Проект создан в учебных целях
+        @L["Footer_Edu"]
     </div>
 </footer>
 

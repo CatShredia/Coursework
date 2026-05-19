@@ -45,7 +45,7 @@
                 <span style="font-size:13px;color:var(--text-muted)">мин.</span>
                 <button class="auth-btn" style="width:auto;padding:8px 16px" @onclick="SaveInterval" disabled="@_saving">
                     @if (_saving) { <span class="auth-spinner"></span> } else { <i class="bi bi-check-lg"></i> }
-                    Сохранить
+                    @L["Common_Save"]
                 </button>
             </div>
         </div>
@@ -59,7 +59,7 @@
 
     <!-- Форма добавления источника -->
     <div class="profile-section" style="margin-bottom:24px;opacity:@(_isProduction ? "0.6" : "1")">
-        <h2 class="profile-section-title">Добавить источник</h2>
+        <h2 class="profile-section-title">@L["Common_Add"] источник</h2>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
             <div class="auth-field" style="flex:1;min-width:160px">
@@ -144,7 +144,7 @@
 
         <button class="auth-btn" style="width:auto;padding:9px 20px;margin-top:12px" @onclick="AddSource" disabled="@(_adding || _isProduction)">
             @if (_adding) { <span class="auth-spinner"></span> } else { <i class="bi bi-plus-lg"></i> }
-            Добавить
+            @L["Common_Add"]
         </button>
     </div>
 
@@ -153,7 +153,7 @@
     {
         <div class="admin-loading">
             <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
-            Загрузка...
+            @L["Common_Loading"]
         </div>
     }
     else if (!_sources.Any())
@@ -165,7 +165,7 @@
         <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
             <button class="auth-btn" style="width:auto;padding:8px 16px" @onclick="SaveExternalSources" disabled="@(_savingSources || _isProduction)">
                 @if (_savingSources) { <span class="auth-spinner"></span> } else { <i class="bi bi-floppy"></i> }
-                Сохранить Сторонние источники
+                @L["Common_Save"] Сторонние источники
             </button>
         </div>
 
@@ -177,9 +177,9 @@
                         <th>URL</th>
                         <th>Тип</th>
                         <th>Доверенный</th>
-                        <th>Статус</th>
+                        <th>@L["Editor_ColStatus"]</th>
                         <th>Последний парсинг</th>
-                        <th>Действия</th>
+                        <th>@L["Editor_ColActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -217,10 +217,10 @@
                                 </td>
                                 <td>
                                     <div class="action-btns">
-                                        <button class="action-btn action-btn-success" title="Сохранить" @onclick="() => SaveEdit(src)">
+                                        <button class="action-btn action-btn-success" title="@L["Home_Save"]" @onclick="() => SaveEdit(src)">
                                             <i class="bi bi-check-lg"></i>
                                         </button>
-                                        <button class="action-btn" title="Отмена" @onclick="CancelEdit">
+                                        <button class="action-btn" title="@L["Common_Cancel"]" @onclick="CancelEdit">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
@@ -283,10 +283,10 @@
                                                 <i class="bi bi-play-fill"></i>
                                             </button>
                                         }
-                                        <button class="action-btn" title="Редактировать" @onclick="() => StartEdit(src)" disabled="@_isProduction">
+                                        <button class="action-btn" title="@L["Editor_EditBtn"]" @onclick="() => StartEdit(src)" disabled="@_isProduction">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="action-btn action-btn-danger" title="Удалить" @onclick="() => AskDelete(src)" disabled="@_isProduction">
+                                        <button class="action-btn action-btn-danger" title="@L["Common_Delete"]" @onclick="() => AskDelete(src)" disabled="@_isProduction">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
@@ -308,7 +308,7 @@
             <h3 class="modal-title">Удалить источник?</h3>
             <p class="modal-text">«@_deleteTarget.Name» будет удалён безвозвратно.</p>
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
+                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">@L["Common_Cancel"]</button>
                 <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_deleting">
                     @if (_deleting) { <span class="auth-spinner"></span> } else { <span>Удалить</span> }
                 </button>

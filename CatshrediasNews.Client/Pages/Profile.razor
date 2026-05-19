@@ -3,7 +3,7 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 
-<PageTitle>Профиль — Runews</PageTitle>
+<PageTitle>@L["Profile_PageTitle"]</PageTitle>
 
 @if (!Auth.IsAuthenticated && !_deleting)
 {
@@ -37,7 +37,7 @@
                 <span class="profile-role">@Auth.CurrentUser.Role</span>
                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
                     <label class="profile-avatar-upload-btn">
-                        <i class="bi bi-upload"></i> Загрузить аватар
+                        <i class="bi bi-upload"></i> @L["Profile_UploadAvatar"]
                         <InputFile style="display:none" accept="image/*" OnChange="OnAvatarSelected" />
                     </label>
                     @if (!string.IsNullOrEmpty(Auth.CurrentUser.AvatarUrl))
@@ -45,7 +45,7 @@
                         <button class="profile-avatar-delete" @onclick="DeleteAvatar" disabled="@_avatarLoading">
                             @if (_avatarLoading) { <span class="auth-spinner" style="width:14px;height:14px"></span> }
                             else { <i class="bi bi-trash3"></i> }
-                            Удалить фото
+                            @L["Profile_DeletePhoto"]
                         </button>
                     }
                 </div>
@@ -57,7 +57,7 @@
         </div>
 
         <div class="profile-section">
-            <h2 class="profile-section-title">Редактировать профиль</h2>
+            <h2 class="profile-section-title">@L["Profile_EditSection"]</h2>
 
             @if (!string.IsNullOrEmpty(_success))
             {
@@ -69,16 +69,16 @@
             }
 
             <div class="auth-field">
-                <label>Имя пользователя</label>
+                <label>@L["Auth_Username"]</label>
                 <div class="input-wrap">
                     <i class="bi bi-person"></i>
-                    <input type="text" placeholder="Новое имя"
+                    <input type="text" placeholder="@L["Profile_NewUsernamePlaceholder"]"
                            @bind="_username" @bind:event="oninput" />
                 </div>
             </div>
 
             <div class="auth-field">
-                <label>Email</label>
+                <label>@L["Auth_Email"]</label>
                 <div class="input-wrap @(_emailInvalid ? "input-invalid" : "")">
                     <i class="bi bi-envelope"></i>
                     <input type="email" placeholder="you@example.com"
@@ -87,16 +87,16 @@
                 </div>
                 @if (_emailInvalid)
                 {
-                    <span class="field-error">Введите корректный email (например: you@example.com)</span>
+                    <span class="field-error">@L["Auth_ErrorEmail"]</span>
                 }
             </div>
 
             <div class="auth-field">
-                <label>Новый пароль <span style="color:var(--text-muted);font-weight:400">(оставьте пустым, чтобы не менять)</span></label>
+                <label>@L["Profile_NewPassword"] <span style="color:var(--text-muted);font-weight:400">@L["Profile_PasswordOptionalHint"]</span></label>
                 <div class="input-wrap @(_passwordInvalid ? "input-invalid" : "")">
                     <i class="bi bi-lock"></i>
                     <input type="@(_showPassword ? "text" : "password")"
-                           placeholder="Новый пароль"
+                           placeholder="@L["Profile_NewPassword"]"
                            @bind="_password" @bind:event="oninput"
                            @onblur="ValidatePassword" />
                     <button class="input-eye" type="button" @onclick="() => _showPassword = !_showPassword">
@@ -105,16 +105,16 @@
                 </div>
                 @if (_passwordInvalid)
                 {
-                    <span class="field-error">Пароль должен содержать минимум 6 символов</span>
+                    <span class="field-error">@L["Auth_ErrorPasswordMin6"]</span>
                 }
             </div>
 
             <div class="auth-field">
-                <label>Подтвердите пароль</label>
+                <label>@L["Profile_ConfirmPassword"]</label>
                 <div class="input-wrap @(_confirmInvalid ? "input-invalid" : "")">
                     <i class="bi bi-lock-fill"></i>
                     <input type="@(_showPassword ? "text" : "password")"
-                           placeholder="Повторите новый пароль"
+                           placeholder="@L["Profile_RepeatPasswordPlaceholder"]"
                            @bind="_confirm" @bind:event="oninput"
                            @onblur="ValidateConfirm" />
                 </div>
@@ -122,14 +122,14 @@
                 {
                     <span class="field-error">
                         @(string.IsNullOrWhiteSpace(_confirm)
-                            ? "Подтверждение пароля обязательно"
-                            : "Пароли не совпадают")
+                            ? L["Profile_ConfirmRequired"]
+                            : L["Auth_ErrorPasswordMismatch"])
                     </span>
                 }
             </div>
 
             <div class="auth-field">
-                <label>Цвет аватара <span style="color:var(--text-muted);font-weight:400">(если нет фото)</span></label>
+                <label>@L["Auth_AvatarColor"] <span style="color:var(--text-muted);font-weight:400">@L["Profile_AvatarColorNoPhoto"]</span></label>
                 <div class="avatar-color-row">
                     @foreach (var color in _palette)
                     {
@@ -146,13 +146,13 @@
             <div class="profile-actions">
                 <button class="auth-btn" style="max-width:200px" @onclick="Save" disabled="@_loading">
                     @if (_loading) { <span class="auth-spinner"></span> }
-                    else { <span>Сохранить</span> }
+                    else { <span>@L["Common_Save"]</span> }
                 </button>
                 <button class="auth-btn auth-btn-danger" style="max-width:200px" @onclick="Logout">
-                    <i class="bi bi-box-arrow-right"></i> Выйти
+                    <i class="bi bi-box-arrow-right"></i> @L["Profile_Logout"]
                 </button>
                 <button class="auth-btn auth-btn-delete" style="max-width:200px" @onclick="() => _showDeleteModal = true">
-                    <i class="bi bi-trash3"></i> Удалить профиль
+                    <i class="bi bi-trash3"></i> @L["Profile_DeleteAccount"]
                 </button>
             </div>
         </div>
@@ -172,10 +172,8 @@
             <div class="modal-icon">
                 <i class="bi bi-exclamation-triangle"></i>
             </div>
-            <h3 class="modal-title">Удалить аккаунт?</h3>
-            <p class="modal-text">
-                Это действие необратимо. Все ваши данные, комментарии и сохранённые статьи будут удалены безвозвратно.
-            </p>
+            <h3 class="modal-title">@L["Profile_DeleteTitle"]</h3>
+            <p class="modal-text">@L["Profile_DeleteBody"]</p>
             @if (!string.IsNullOrEmpty(_deleteError))
             {
                 <div class="auth-error" style="margin-bottom:12px">
@@ -184,11 +182,11 @@
             }
             <div class="modal-actions">
                 <button class="modal-btn-cancel" @onclick="() => _showDeleteModal = false">
-                    Отмена
+                    @L["Common_Cancel"]
                 </button>
                 <button class="modal-btn-confirm" @onclick="DeleteAccount" disabled="@_deleteLoading">
                     @if (_deleteLoading) { <span class="auth-spinner"></span> }
-                    else { <span>Да, удалить</span> }
+                    else { <span>@L["Profile_DeleteConfirm"]</span> }
                 </button>
             </div>
         </div>
@@ -255,7 +253,7 @@
         _error = await Auth.UpdateProfileAsync(username, email, password, _avatarColor);
         if (_error is null)
         {
-            _success = "Профиль успешно обновлён.";
+            _success = L["Profile_SavedSuccess"];
             _password = "";
             _confirm = "";
         }
@@ -286,7 +284,7 @@
     {
         _avatarError = null;
         var f = e.File;
-        if (f.Size > 5 * 1024 * 1024) { _avatarError = "Файл не должен превышать 5 МБ."; return; }
+        if (f.Size > 5 * 1024 * 1024) { _avatarError = L["Profile_FileTooLarge"]; return; }
         _avatarLoading = true;
         using var ms      = new System.IO.MemoryStream();
         await f.OpenReadStream(5 * 1024 * 1024).CopyToAsync(ms);

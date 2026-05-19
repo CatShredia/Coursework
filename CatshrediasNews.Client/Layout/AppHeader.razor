@@ -8,11 +8,15 @@
     <a href="/" class="header-logo">Runews</a>
 
     <div class="header-actions">
-        <button class="btn-search-trigger" @onclick="OpenSearch" title="Поиск">
+        <button class="btn-search-trigger" @onclick="OpenSearch" title="@L["Nav_Search"]">
             <i class="bi bi-search"></i>
         </button>
+        <button class="btn-search-trigger lang-switch" @onclick="Culture.ToggleCultureAsync"
+                title="@(Culture.IsEnglish ? "Русский" : "English")">
+            @(Culture.IsEnglish ? L["Lang_Ru"] : L["Lang_En"])
+        </button>
         <button class="btn-search-trigger" @onclick="ThemeSvc.ToggleAsync"
-                title="@(ThemeSvc.IsDark ? "Светлая тема" : "Тёмная тема")">
+                title="@(ThemeSvc.IsDark ? L["Nav_ThemeLight"] : L["Nav_ThemeDark"])">
             <i class="bi @(ThemeSvc.IsDark ? "bi-sun" : "bi-moon")"></i>
         </button>
 
@@ -33,7 +37,7 @@
         else
         {
             <a href="/login">
-                <button class="btn-header btn-header-filled">Войти</button>
+                <button class="btn-header btn-header-filled">@L["Nav_Login"]</button>
             </a>
         }
     </div>
@@ -48,7 +52,7 @@
                 <input @ref="_searchInput"
                        type="text"
                        class="search-modal-input"
-                       placeholder="Поиск новостей..."
+                       placeholder="@L["Nav_SearchPlaceholder"]"
                        value="@_searchQuery"
                        @oninput="OnInput"
                        @onkeydown="OnSearchKeyDown" />
@@ -65,7 +69,7 @@
             {
                 @if (_results.Count == 0)
                 {
-                    <div class="search-hint">Ничего не найдено по запросу «@_searchQuery»</div>
+                    <div class="search-hint">@L["Nav_SearchNoResults", _searchQuery]</div>
                 }
                 else
                 {
@@ -94,11 +98,11 @@
             }
             else if (!string.IsNullOrWhiteSpace(_searchQuery))
             {
-                <div class="search-hint">Нажмите <kbd>Enter</kbd> для поиска по запросу «@_searchQuery»</div>
+                <div class="search-hint">@L["Nav_SearchPressEnter", _searchQuery]</div>
             }
             else
             {
-                <div class="search-hint">Начните вводить запрос...</div>
+                <div class="search-hint">@L["Nav_SearchStartTyping"]</div>
             }
         </div>
     </div>

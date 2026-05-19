@@ -3,7 +3,7 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 
-<PageTitle>Избранное — Runews</PageTitle>
+<PageTitle>@L["Saved_Title"]</PageTitle>
 
 @if (!Auth.IsAuthenticated)
 {
@@ -34,8 +34,8 @@ else if (!_articles.Any())
 {
     <div class="feed-empty">
         <i class="bi bi-bookmark"></i>
-        <p>Вы ещё ничего не сохранили.</p>
-        <a href="/" style="color:var(--accent);margin-top:8px;display:inline-block">← В ленту</a>
+        <p>@L["Saved_Empty"]</p>
+        <a href="/" style="color:var(--accent);margin-top:8px;display:inline-block">@L["Saved_BackToFeed"]</a>
     </div>
 }
 else
@@ -83,7 +83,7 @@ else
                         @article.LikesCount
                     </button>
                     <button class="article-save-btn saved"
-                            title="Убрать из избранного"
+                            title="@L["Home_Unsave"]"
                             @onclick:stopPropagation="true"
                             @onclick="() => Unsave(article)">
                         <i class="bi bi-bookmark-fill"></i>
