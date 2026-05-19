@@ -1,6 +1,7 @@
+@inject CultureService Culture
+
 <footer class="app-footer">
     <div class="footer-grid">
-
         <div class="footer-brand">
             <div class="footer-logo">Runews</div>
             <p>@L["Footer_Description"]</p>
@@ -28,7 +29,46 @@
             </div>
         </div>
 
+        <div class="footer-lang-col">
+            <div class="footer-col-title">@L["Footer_Language"]</div>
+            <div class="footer-lang-menu" @onclick:stopPropagation="true">
+                <button type="button"
+                        class="footer-lang-trigger"
+                        aria-expanded="@_langMenuOpen"
+                        aria-haspopup="listbox"
+                        @onclick="ToggleLangMenu">
+                    <i class="bi bi-globe2"></i>
+                    <span>@CurrentLanguageLabel()</span>
+                    <i class="bi @(_langMenuOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                </button>
+                @if (_langMenuOpen)
+                {
+                    <div class="footer-lang-dropdown" role="listbox">
+                        @foreach (var option in _languageOptions)
+                        {
+                            <button type="button"
+                                    role="option"
+                                    class="footer-lang-option @(Culture.CurrentCulture == option.Code ? "active" : "")"
+                                    aria-selected="@(Culture.CurrentCulture == option.Code)"
+                                    @onclick="() => SelectLanguageAsync(option.Code)">
+                                <span class="footer-lang-code">@option.CodeLabel</span>
+                                <span>@L[option.NameKey]</span>
+                                @if (Culture.CurrentCulture == option.Code)
+                                {
+                                    <i class="bi bi-check2"></i>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     </div>
+
+    @if (_langMenuOpen)
+    {
+        <button type="button" class="footer-lang-backdrop" aria-label="@L["Common_Close"]" @onclick="CloseLangMenu"></button>
+    }
 
     <div class="footer-bottom">
         <span>@L["Footer_Copyright", DateTime.Now.Year]</span>
@@ -42,4 +82,30 @@
 </footer>
 
 @code {
+    private bool _langMenuOpen;
+
+    private readonly (string Code, string CodeLabel, string NameKey)[] _languageOptions =
+    [
+        (CultureService.DefaultCulture, "RU", "Lang_Ru_Full"),
+        (CultureService.EnglishCulture, "EN", "Lang_En_Full"),
+        (CultureService.TatarCulture, "ТТ", "Lang_Tt_Full")
+    ];
+
+    private string CurrentLanguageLabel() => Culture.CurrentCulture switch
+    {
+        CultureService.EnglishCulture => L["Lang_En_Full"],
+        CultureService.TatarCulture   => L["Lang_Tt_Full"],
+        _                             => L["Lang_Ru_Full"]
+    };
+
+    private void ToggleLangMenu() => _langMenuOpen = !_langMenuOpen;
+
+    private void CloseLangMenu() => _langMenuOpen = false;
+
+    private async Task SelectLanguageAsync(string culture)
+    {
+        _langMenuOpen = false;
+        if (Culture.CurrentCulture != culture)
+            await Culture.SetCultureAsync(culture);
+    }
 }

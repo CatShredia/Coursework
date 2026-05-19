@@ -8,9 +8,7 @@ public class CultureHttpHandler : DelegatingHandler
     private string _culture = CultureService.DefaultCulture;
 
     public void SetCulture(string culture) =>
-        _culture = culture == CultureService.EnglishCulture
-            ? CultureService.EnglishCulture
-            : CultureService.DefaultCulture;
+        _culture = CultureService.Normalize(culture);
 
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,

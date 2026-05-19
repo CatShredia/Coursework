@@ -136,6 +136,7 @@
   <data name="Footer_Copyright" xml:space="preserve"><value>© {0} Runews. All rights reserved.</value></data>
   <data name="Footer_Description" xml:space="preserve"><value>Runews is a next-generation news aggregator. We collect news from trusted sources and personalize your feed.</value></data>
   <data name="Footer_Edu" xml:space="preserve"><value>Educational project</value></data>
+  <data name="Footer_Language" xml:space="preserve"><value>Language</value></data>
   <data name="Footer_Social" xml:space="preserve"><value>Follow us</value></data>
   <data name="Footer_Terms" xml:space="preserve"><value>Terms of use</value></data>
   <data name="Guide_BackToEditor" xml:space="preserve"><value>to editor</value></data>
@@ -199,7 +200,11 @@
   <data name="Home_Title" xml:space="preserve"><value>Feed — Runews</value></data>
   <data name="Home_Unsave" xml:space="preserve"><value>Remove from saved</value></data>
   <data name="Lang_En" xml:space="preserve"><value>EN</value></data>
+  <data name="Lang_En_Full" xml:space="preserve"><value>English</value></data>
   <data name="Lang_Ru" xml:space="preserve"><value>RU</value></data>
+  <data name="Lang_Ru_Full" xml:space="preserve"><value>Russian</value></data>
+  <data name="Lang_Tt" xml:space="preserve"><value>TT</value></data>
+  <data name="Lang_Tt_Full" xml:space="preserve"><value>Tatar</value></data>
   <data name="Mod_AddNote" xml:space="preserve"><value>Add note from selection</value></data>
   <data name="Mod_AddNoteBeforeReject" xml:space="preserve"><value>Add at least one note.</value></data>
   <data name="Mod_Approve" xml:space="preserve"><value>Approve</value></data>
@@ -305,7 +310,7 @@
   <data name="Rules_Format4" xml:space="preserve"><value>Quote other sources using block quotes (&amp;gt; text) with attribution.</value></data>
   <data name="Rules_Format5" xml:space="preserve"><value>Tags must match the article topic — do not add irrelevant tags for traffic.</value></data>
   <data name="Rules_FormatTitle" xml:space="preserve"><value>Formatting requirements</value></data>
-  <data name="Rules_General1" xml:space="preserve"><value>Articles must be written in Russian or English.</value></data>
+  <data name="Rules_General1" xml:space="preserve"><value>Articles must be written in Russian, English, or Tatar.</value></data>
   <data name="Rules_General2" xml:space="preserve"><value>Minimum length is 300 characters. Very short posts add little value for readers.</value></data>
   <data name="Rules_General3" xml:space="preserve"><value>The title must accurately reflect the content and must not mislead readers.</value></data>
   <data name="Rules_General4" xml:space="preserve"><value>Text must be well-written, structured, and easy to read.</value></data>

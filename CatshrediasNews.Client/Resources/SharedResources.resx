@@ -136,6 +136,7 @@
   <data name="Footer_Copyright" xml:space="preserve"><value>© {0} Runews. Все права защищены.</value></data>
   <data name="Footer_Description" xml:space="preserve"><value>Runews — новостной агрегатор нового поколения. Собираем актуальные новости из проверенных источников и персонализируем ленту под ваши интересы.</value></data>
   <data name="Footer_Edu" xml:space="preserve"><value>Проект создан в учебных целях</value></data>
+  <data name="Footer_Language" xml:space="preserve"><value>Язык</value></data>
   <data name="Footer_Social" xml:space="preserve"><value>Мы в соцсетях</value></data>
   <data name="Footer_Terms" xml:space="preserve"><value>Пользовательское соглашение</value></data>
   <data name="Guide_BackToEditor" xml:space="preserve"><value>к редактору</value></data>
@@ -199,7 +200,11 @@
   <data name="Home_Title" xml:space="preserve"><value>Лента — Runews</value></data>
   <data name="Home_Unsave" xml:space="preserve"><value>Убрать из избранного</value></data>
   <data name="Lang_En" xml:space="preserve"><value>EN</value></data>
+  <data name="Lang_En_Full" xml:space="preserve"><value>English</value></data>
   <data name="Lang_Ru" xml:space="preserve"><value>RU</value></data>
+  <data name="Lang_Ru_Full" xml:space="preserve"><value>Русский</value></data>
+  <data name="Lang_Tt" xml:space="preserve"><value>ТТ</value></data>
+  <data name="Lang_Tt_Full" xml:space="preserve"><value>Татарча</value></data>
   <data name="Mod_AddNote" xml:space="preserve"><value>Добавить замечание по выделению</value></data>
   <data name="Mod_AddNoteBeforeReject" xml:space="preserve"><value>Добавьте хотя бы одно замечание.</value></data>
   <data name="Mod_Approve" xml:space="preserve"><value>Одобрить</value></data>
@@ -305,7 +310,7 @@
   <data name="Rules_Format4" xml:space="preserve"><value>Цитаты из других источников оформляйте через блок цитирования (&amp;gt; текст) с указанием автора.</value></data>
   <data name="Rules_Format5" xml:space="preserve"><value>Теги должны точно соответствовать тематике статьи — не добавляйте нерелевантные теги для привлечения трафика.</value></data>
   <data name="Rules_FormatTitle" xml:space="preserve"><value>Требования к оформлению</value></data>
-  <data name="Rules_General1" xml:space="preserve"><value>Статья должна быть написана на русском или английском языке.</value></data>
+  <data name="Rules_General1" xml:space="preserve"><value>Статья должна быть написана на русском, английском или татарском языке.</value></data>
   <data name="Rules_General2" xml:space="preserve"><value>Минимальный объём — 300 символов. Слишком короткие материалы не несут ценности для читателей.</value></data>
   <data name="Rules_General3" xml:space="preserve"><value>Заголовок должен точно отражать содержание статьи и не вводить читателя в заблуждение.</value></data>
   <data name="Rules_General4" xml:space="preserve"><value>Текст должен быть грамотным, структурированным и читаемым.</value></data>

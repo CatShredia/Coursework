@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
+from pathlib import Path
+import importlib.util
+
+_tt_spec = importlib.util.spec_from_file_location(
+    "tt_translations",
+    Path(__file__).resolve().parent / "tt_translations.py",
+)
+_tt_mod = importlib.util.module_from_spec(_tt_spec)
+_tt_spec.loader.exec_module(_tt_mod)
+TT = _tt_mod.TRANSLATIONS
+
 keys = {
     "AppTitleSuffix": ("— Runews", "— Runews"),
     "Lang_Ru": ("RU", "RU"),
     "Lang_En": ("EN", "EN"),
+    "Lang_Tt": ("ТТ", "TT"),
     "Nav_Feed": ("Лента", "Feed"),
     "Nav_Saved": ("Избранное", "Saved"),
     "Nav_SectionPublicist": ("Публицистика", "Publishing"),
@@ -188,6 +200,10 @@ keys = {
     "Footer_Social": ("Мы в соцсетях", "Follow us"),
     "Footer_Copyright": ("© {0} Runews. Все права защищены.", "© {0} Runews. All rights reserved."),
     "Footer_Terms": ("Пользовательское соглашение", "Terms of use"),
+    "Footer_Language": ("Язык", "Language"),
+    "Lang_Ru_Full": ("Русский", "Russian"),
+    "Lang_En_Full": ("English", "English"),
+    "Lang_Tt_Full": ("Татарча", "Tatar"),
     "Footer_Edu": ("Проект создан в учебных целях", "Educational project"),
     "Editor_DraftRestored": ("Черновик восстановлен.", "Draft restored."),
     "Editor_Discard": ("Отменить", "Discard"),
@@ -293,7 +309,7 @@ keys = {
     "Rules_Title": ("Правила публикации статей", "Article publishing rules"),
     "Rules_Subtitle": ("Перед публикацией убедитесь, что ваша статья соответствует требованиям сообщества. Нарушение правил приведёт к отклонению материала или блокировке аккаунта.", "Before publishing, make sure your article meets community standards. Violations may result in rejection or account suspension."),
     "Rules_GeneralTitle": ("Общие требования", "General requirements"),
-    "Rules_General1": ("Статья должна быть написана на русском или английском языке.", "Articles must be written in Russian or English."),
+    "Rules_General1": ("Статья должна быть написана на русском, английском или татарском языке.", "Articles must be written in Russian, English, or Tatar."),
     "Rules_General2": ("Минимальный объём — 300 символов. Слишком короткие материалы не несут ценности для читателей.", "Minimum length is 300 characters. Very short posts add little value for readers."),
     "Rules_General3": ("Заголовок должен точно отражать содержание статьи и не вводить читателя в заблуждение.", "The title must accurately reflect the content and must not mislead readers."),
     "Rules_General4": ("Текст должен быть грамотным, структурированным и читаемым.", "Text must be well-written, structured, and easy to read."),
@@ -339,15 +355,25 @@ HEADER = """<?xml version="1.0" encoding="utf-8"?>
 def esc(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
+def locale_value(key: str, idx: int) -> str:
+    if idx == 2:
+        return TT.get(key, keys[key][0])
+    return keys[key][idx]
+
 def write_resx(path: str, idx: int) -> None:
     lines = [HEADER]
     for k in sorted(keys):
-        lines.append(f'  <data name="{k}" xml:space="preserve"><value>{esc(keys[k][idx])}</value></data>')
+        lines.append(f'  <data name="{k}" xml:space="preserve"><value>{esc(locale_value(k, idx))}</value></data>')
+    if idx == 2:
+        for k in sorted(TT):
+            if k not in keys:
+                lines.append(f'  <data name="{k}" xml:space="preserve"><value>{esc(TT[k])}</value></data>')
     lines.append("</root>")
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-base = "c:/directory-git/Coursework/CatshrediasNews.Client/Resources"
+base = Path(__file__).resolve().parents[1] / "CatshrediasNews.Client" / "Resources"
 write_resx(f"{base}/SharedResources.resx", 0)
 write_resx(f"{base}/SharedResources.en.resx", 1)
-print(len(keys), "keys")
+write_resx(f"{base}/SharedResources.tt.resx", 2)
+print(len(keys), "keys,", len(TT), "tt strings")

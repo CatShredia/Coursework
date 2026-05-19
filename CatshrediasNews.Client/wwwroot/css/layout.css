@@ -65,15 +65,6 @@
     color: var(--accent);
 }
 
-.lang-switch {
-    width: auto;
-    min-width: 36px;
-    padding: 0 10px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
 .header-actions {
     display: flex;
     align-items: center;
@@ -641,6 +632,115 @@
     padding-top: 12px;
     font-size: 11px;
     color: #3d4147;
+}
+
+.footer-lang-col {
+    position: relative;
+}
+
+.footer-lang-menu {
+    position: relative;
+}
+
+.footer-lang-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .06);
+    color: #e8eaed;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.footer-lang-trigger:hover {
+    background: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .2);
+}
+
+.footer-lang-trigger .bi-globe2 {
+    color: #8ab4f8;
+    font-size: 15px;
+}
+
+.footer-lang-trigger .bi-chevron-down,
+.footer-lang-trigger .bi-chevron-up {
+    margin-left: auto;
+    font-size: 12px;
+    opacity: .7;
+}
+
+.footer-lang-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: #252538;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .35);
+}
+
+.footer-lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #e8eaed;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.footer-lang-option:hover {
+    background: rgba(255, 255, 255, .08);
+}
+
+.footer-lang-option.active {
+    background: rgba(26, 115, 232, .25);
+    color: #fff;
+}
+
+.footer-lang-option .bi-check2 {
+    margin-left: auto;
+    color: #8ab4f8;
+    font-size: 14px;
+}
+
+.footer-lang-code {
+    min-width: 28px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: #9aa0a6;
+}
+
+.footer-lang-option.active .footer-lang-code {
+    color: #8ab4f8;
+}
+
+.footer-lang-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    border: none;
+    background: transparent;
+    cursor: default;
 }
 
 /* ── Responsive ── */

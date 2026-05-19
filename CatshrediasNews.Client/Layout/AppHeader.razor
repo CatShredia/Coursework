@@ -11,10 +11,6 @@
         <button class="btn-search-trigger" @onclick="OpenSearch" title="@L["Nav_Search"]">
             <i class="bi bi-search"></i>
         </button>
-        <button class="btn-search-trigger lang-switch" @onclick="Culture.ToggleCultureAsync"
-                title="@(Culture.IsEnglish ? "Русский" : "English")">
-            @(Culture.IsEnglish ? L["Lang_Ru"] : L["Lang_En"])
-        </button>
         <button class="btn-search-trigger" @onclick="ThemeSvc.ToggleAsync"
                 title="@(ThemeSvc.IsDark ? L["Nav_ThemeLight"] : L["Nav_ThemeDark"])">
             <i class="bi @(ThemeSvc.IsDark ? "bi-sun" : "bi-moon")"></i>
@@ -183,4 +179,5 @@
             _searching = false;
         }
     }
+
 }
