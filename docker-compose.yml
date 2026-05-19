@@ -33,11 +33,13 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-news_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__Key: ${JWT_KEY:-CHANGE_ME_TO_32_PLUS_SECRET}
+      # Публичный URL сайта (как в браузере), без завершающего /. Для Docker: http://localhost (порт 80).
       Jwt__Issuer: ${PUBLIC_URL:-http://localhost}
       Jwt__Audience: ${PUBLIC_URL:-http://localhost}
       App__BaseUrl: ${PUBLIC_URL:-http://localhost}
       Api__BaseUrl: ${PUBLIC_URL:-http://localhost}
       Cors__AllowedOrigins__0: ${PUBLIC_URL:-http://localhost}
+      Cors__AllowedOrigins__1: http://127.0.0.1
       Smtp__Host: ${SMTP_HOST:-mailpit}
       Smtp__Port: ${SMTP_PORT:-1025}
       Smtp__From: ${SMTP_FROM:-noreply@runews.local}

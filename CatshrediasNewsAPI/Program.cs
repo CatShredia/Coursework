@@ -12,11 +12,12 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 const string apiHttpUrl = "http://localhost:5070";
 const string apiHttpsUrl = "https://localhost:7240";
-var blazorOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[]
-{
-    "http://localhost:5110",
-    "https://localhost:7255"
-};
+var configuredAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+var corsMode = builder.Configuration["Cors:Mode"]?.Trim().ToLowerInvariant();
+var modeOrigins = !string.IsNullOrWhiteSpace(corsMode)
+    ? builder.Configuration.GetSection($"Cors:Profiles:{corsMode}").Get<string[]>() ?? []
+    : [];
+var blazorOrigins = modeOrigins.Length > 0 ? modeOrigins : configuredAllowedOrigins;
 
 if (builder.Environment.IsDevelopment())
 {
@@ -29,8 +30,34 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorClient", policy =>
+    {
+        if (blazorOrigins.Length > 0)
+        {
+            policy.WithOrigins(blazorOrigins);
+        }
+        else
+        {
+            policy.SetIsOriginAllowed(_ => false);
+        }
+
         policy
-            .WithOrigins(blazorOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+
+    options.AddPolicy("DevelopmentLocal", policy =>
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+                    return false;
+
+                var isLocal = originUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                    || originUri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase);
+
+                return isLocal || blazorOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -187,7 +214,32 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
-app.UseHttpsRedirection();
+
+// CORS до HTTPS-редиректа: иначе OPTIONS (preflight) на http://5070 уходит 307 на https и браузер блокирует запрос.
+var corsPolicyName = app.Environment.IsDevelopment() ? "DevelopmentLocal" : "BlazorClient";
+app.UseCors(corsPolicyName);
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+
+    var blockedTestPages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "/hub-test.html",
+        "/rss-test.html"
+    };
+
+    app.Use(async (context, next) =>
+    {
+        if (blockedTestPages.Contains(context.Request.Path.Value ?? string.Empty))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        await next();
+    });
+}
 
 // Раздаём загруженные файлы из папки uploads рядом с проектом
 var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
@@ -198,7 +250,6 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath  = "/uploads"
 });
 app.UseStaticFiles(); // wwwroot
-app.UseCors("BlazorClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

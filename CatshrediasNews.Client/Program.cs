@@ -7,8 +7,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+var apiMode = builder.Configuration["Api:Mode"];
+var apiEndpoints = builder.Configuration.GetSection("Api:Endpoints");
 var configuredApiBaseUrl = builder.Configuration["Api:BaseUrl"];
-var apiBaseUrl = ResolveApiBaseUrl(configuredApiBaseUrl, builder.HostEnvironment.BaseAddress);
+var apiBaseUrl = ResolveApiBaseUrl(apiMode, apiEndpoints, configuredApiBaseUrl, builder.HostEnvironment.BaseAddress);
 
 builder.Services.AddScoped<UnauthorizedLogoutHandler>();
 builder.Services.AddScoped(sp =>
@@ -39,8 +41,20 @@ await theme.InitAsync();
 
 await host.RunAsync();
 
-static string ResolveApiBaseUrl(string? configuredValue, string hostBaseAddress)
+static string ResolveApiBaseUrl(
+    string? mode,
+    IConfigurationSection endpointsSection,
+    string? configuredValue,
+    string hostBaseAddress)
 {
+    var modeKey = mode?.Trim().ToLowerInvariant();
+    if (!string.IsNullOrWhiteSpace(modeKey))
+    {
+        var modeUrl = endpointsSection[modeKey];
+        if (!string.IsNullOrWhiteSpace(modeUrl) && Uri.TryCreate(modeUrl, UriKind.Absolute, out var modeAbsolute))
+            return EnsureTrailingSlash(modeAbsolute.ToString());
+    }
+
     var trimmed = configuredValue?.Trim();
     if (string.IsNullOrWhiteSpace(trimmed) || trimmed == "/")
         return EnsureTrailingSlash(hostBaseAddress);
