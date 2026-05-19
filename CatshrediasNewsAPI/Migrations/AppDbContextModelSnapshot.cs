@@ -180,6 +180,37 @@ namespace CatshrediasNewsAPI.Migrations
                     b.ToTable("ModerationLogs");
                 });
 
+            modelBuilder.Entity("CatshrediasNewsAPI.Models.ModerationNote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Excerpt")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("ModerationLogId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModerationLogId");
+
+                    b.ToTable("ModerationNotes");
+                });
+
             modelBuilder.Entity("CatshrediasNewsAPI.Models.PublicationStatus", b =>
                 {
                     b.Property<int>("Id")
@@ -459,6 +490,9 @@ namespace CatshrediasNewsAPI.Migrations
                     b.Property<DateTime?>("PasswordResetTokenExpiry")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("PersonalizedFeedEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
 
@@ -603,6 +637,17 @@ namespace CatshrediasNewsAPI.Migrations
                     b.Navigation("Moderator");
                 });
 
+            modelBuilder.Entity("CatshrediasNewsAPI.Models.ModerationNote", b =>
+                {
+                    b.HasOne("CatshrediasNewsAPI.Models.ModerationLog", "ModerationLog")
+                        .WithMany("Notes")
+                        .HasForeignKey("ModerationLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ModerationLog");
+                });
+
             modelBuilder.Entity("CatshrediasNewsAPI.Models.Report", b =>
                 {
                     b.HasOne("CatshrediasNewsAPI.Models.Article", "Article")
@@ -697,6 +742,11 @@ namespace CatshrediasNewsAPI.Migrations
             modelBuilder.Entity("CatshrediasNewsAPI.Models.Comment", b =>
                 {
                     b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("CatshrediasNewsAPI.Models.ModerationLog", b =>
+                {
+                    b.Navigation("Notes");
                 });
 
             modelBuilder.Entity("CatshrediasNewsAPI.Models.PublicationStatus", b =>

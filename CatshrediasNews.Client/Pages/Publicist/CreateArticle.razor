@@ -7,6 +7,7 @@
 @inject GigaChadService GigaSvc
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>@(EditId.HasValue ? "Редактировать статью" : "Написать статью") — Runews</PageTitle>
 
@@ -25,7 +26,7 @@
         </h1>
         <div class="editor-header-actions">
             <button class="feed-sort-btn @(_preview ? "active" : "")"
-                    @onclick="() => _preview = !_preview">
+                    @onclick="TogglePreview">
                 <i class="bi bi-eye"></i> @(_preview ? "Редактор" : "Предпросмотр")
             </button>
             <button class="feed-sort-btn" @onclick="SaveDbDraft" disabled="@_savingDraft">
@@ -50,6 +51,24 @@
     {
         <div class="auth-success"><i class="bi bi-check-circle"></i> @_success</div>
     }
+    @if (_rejectionNotes.Count > 0)
+    {
+        <div class="editor-rejection-panel">
+            <h3 class="editor-rejection-title">
+                <i class="bi bi-exclamation-triangle"></i> Замечания модератора
+            </h3>
+            @foreach (var (note, i) in _rejectionNotes.Select((n, i) => (n, i)))
+            {
+                <div class="mod-rejection-note-item">
+                    <span class="mod-note-num">@(i + 1)</span>
+                    <blockquote class="mod-note-excerpt">@note.Excerpt</blockquote>
+                    <p class="mod-note-reason">@note.Reason</p>
+                </div>
+            }
+            <p class="editor-rejection-hint">Подсветка фрагментов отображается в режиме «Предпросмотр».</p>
+        </div>
+    }
+
     @if (_draftRestored)
     {
         <div class="auth-success" style="background:#fff8e1;border-color:#ffe082;color:#795548">
@@ -203,7 +222,7 @@
     }
     else
     {
-        <div class="editor-preview">
+        <div id="editor-preview" class="editor-preview">
             @if (string.IsNullOrWhiteSpace(_content))
             {
                 <p style="color:var(--text-muted)">Нет содержимого для предпросмотра.</p>
@@ -322,7 +341,8 @@
     private string? _gigaError;
     private string? _gigaAction;
     private bool    _draftRestored;
-    private string _tagQuery = "";
+    private List<ModerationNoteDto> _rejectionNotes = [];
+    private CancellationTokenSource? _highlightCts;
 
     private string DraftKey => $"draft_{EditId?.ToString() ?? "new"}";
 
@@ -331,12 +351,14 @@
         _tags = await ArticleSvc.GetTagsAsync();
         if (EditId.HasValue)
         {
-            var article = await ArticleSvc.GetByIdAsync(EditId.Value);
+            var article = await ArticleSvc.GetMyArticleAsync(EditId.Value)
+                         ?? await ArticleSvc.GetByIdAsync(EditId.Value);
             if (article is not null)
             {
                 _title    = article.Title;
                 _content  = article.Content;
                 _coverUrl = article.ImageUrl;
+                _rejectionNotes = article.RejectionNotes ?? [];
                 _selectedTags = _tags
                     .Where(t => article.Tags.Contains(t.Name))
                     .Select(t => t.Id)
@@ -357,6 +379,49 @@
                 _draftRestored = true;
             }
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_preview && _rejectionNotes.Count > 0)
+            await ApplyHighlightsAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _highlightCts?.Cancel();
+        _highlightCts?.Dispose();
+    }
+
+    private async Task TogglePreview()
+    {
+        _preview = !_preview;
+        if (_preview && _rejectionNotes.Count > 0)
+            await ApplyHighlightsAsync();
+    }
+
+    private async Task ApplyHighlightsAsync()
+    {
+        if (!_preview || _rejectionNotes.Count == 0) return;
+        var payload = _rejectionNotes
+            .Select(n => new { excerpt = n.Excerpt, reason = n.Reason })
+            .ToArray();
+        await JS.InvokeVoidAsync("rejectionHighlights.highlight", "#editor-preview", payload);
+    }
+
+    private async Task ScheduleHighlightAsync()
+    {
+        if (!_preview || _rejectionNotes.Count == 0) return;
+        _highlightCts?.Cancel();
+        _highlightCts?.Dispose();
+        _highlightCts = new CancellationTokenSource();
+        var token = _highlightCts.Token;
+        try
+        {
+            await Task.Delay(300, token);
+            await ApplyHighlightsAsync();
+        }
+        catch (TaskCanceledException) { }
     }
 
     private void ToggleTag(int id)
@@ -453,6 +518,7 @@
     {
         _content = e.Value?.ToString() ?? "";
         await SaveDraft();
+        await ScheduleHighlightAsync();
     }
 
     private void ToggleGiga()

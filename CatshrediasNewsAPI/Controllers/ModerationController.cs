@@ -27,6 +27,13 @@ public class ModerationController(ModerationService moderationService) : Control
         return Ok(await moderationService.GetQueueAsync());
     }
 
+    [HttpGet("queue/{id:int}")]
+    public async Task<IActionResult> GetQueueArticle(int id)
+    {
+        var article = await moderationService.GetQueueArticleAsync(id);
+        return article is null ? NotFound() : Ok(article);
+    }
+
     // ? Approve : одобряет статью и публикует её
     // вызывается клиентом (Moderator)
     [HttpPost("{id:int}/approve")]
@@ -43,8 +50,9 @@ public class ModerationController(ModerationService moderationService) : Control
     public async Task<IActionResult> Reject(int id, RejectArticleDto dto)
     {
         var moderatorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await moderationService.RejectAsync(id, moderatorId, dto);
-        return result ? NoContent() : NotFound();
+        var (success, error) = await moderationService.RejectAsync(id, moderatorId, dto);
+        if (error is not null) return BadRequest(new { error });
+        return success ? NoContent() : NotFound();
     }
 
     // ? GetReports : возвращает список всех жалоб пользователей

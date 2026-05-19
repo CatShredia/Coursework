@@ -49,11 +49,26 @@
 </div>
 
 <!-- Баннер рекомендаций -->
-@if (Auth.IsAuthenticated && _articles.Any())
+@if (Auth.IsAuthenticated)
 {
     <div class="feed-rec-banner">
-        <i class="bi bi-stars"></i>
-        Лента персонализирована на основе ваших интересов
+        <div class="feed-rec-banner-text">
+            <i class="bi @(_personalizedFeedEnabled ? "bi-stars" : "bi-newspaper")"></i>
+            @if (_personalizedFeedEnabled)
+            {
+                <span>Лента персонализирована на основе ваших интересов</span>
+            }
+            else
+            {
+                <span>Персональные рекомендации отключены — показана общая лента</span>
+            }
+        </div>
+        <button type="button"
+                class="feed-rec-toggle"
+                disabled="@_togglingFeed"
+                @onclick="TogglePersonalizedFeed">
+            @(_personalizedFeedEnabled ? "Отключить функцию" : "Включить функцию")
+        </button>
     </div>
 }
 
@@ -255,6 +270,8 @@ else
     private bool _loading = true;
     private bool _showDeletedMessage;
     private bool _showConfirmedMessage;
+    private bool _personalizedFeedEnabled = true;
+    private bool _togglingFeed;
 
     // Отфильтрованные и отсортированные статьи
     private List<ArticleDto> _filtered => ApplyFilter();
@@ -287,6 +304,7 @@ else
 
     private async Task LoadAsync()
     {
+        _personalizedFeedEnabled = Auth.CurrentUser?.PersonalizedFeedEnabled ?? true;
         _loading = true;
         StateHasChanged();
 
@@ -367,9 +385,24 @@ else
     // Статья считается рекомендованной если она в первой трети
     // персональной ленты (API уже отсортировал по весам тегов)
 
+    private async Task TogglePersonalizedFeed()
+    {
+        if (!Auth.IsAuthenticated || _togglingFeed) return;
+
+        _togglingFeed = true;
+        var newValue = !_personalizedFeedEnabled;
+        var ok = await Auth.SetPersonalizedFeedAsync(newValue);
+        if (ok)
+        {
+            _personalizedFeedEnabled = newValue;
+            await LoadAsync();
+        }
+        _togglingFeed = false;
+    }
+
     private bool IsRecommended(ArticleDto article)
     {
-        if (!Auth.IsAuthenticated || _sort != FeedSort.Newest) return false;
+        if (!Auth.IsAuthenticated || !_personalizedFeedEnabled || _sort != FeedSort.Newest) return false;
         var idx = _articles.IndexOf(article);
         return idx >= 0 && idx < Math.Max(3, _articles.Count / 3);
     }

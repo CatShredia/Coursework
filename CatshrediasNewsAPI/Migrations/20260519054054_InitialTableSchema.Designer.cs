@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CatshrediasNewsAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260420171401_AddEmailConfirmation")]
-    partial class AddEmailConfirmation
+    [Migration("20260519054054_InitialTableSchema")]
+    partial class InitialTableSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -340,6 +340,15 @@ namespace CatshrediasNewsAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ContentSelector")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DateSelector")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageSelector")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("boolean");
 
@@ -349,8 +358,17 @@ namespace CatshrediasNewsAPI.Migrations
                     b.Property<DateTime?>("LastFetchedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("LinkSelector")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SourceType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TitleSelector")
                         .HasColumnType("text");
 
                     b.Property<string>("Url")
@@ -437,6 +455,12 @@ namespace CatshrediasNewsAPI.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiry")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");

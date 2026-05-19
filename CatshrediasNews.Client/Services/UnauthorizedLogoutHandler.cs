@@ -13,6 +13,7 @@ public class UnauthorizedLogoutHandler(IJSRuntime js, NavigationManager nav) : D
         var response = await base.SendAsync(request, cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.Unauthorized &&
+            ShouldLogoutOnUnauthorized(request) &&
             Interlocked.Exchange(ref _logoutTriggered, 1) == 0)
         {
             await ClearAuthStorageAsync();
@@ -20,6 +21,15 @@ public class UnauthorizedLogoutHandler(IJSRuntime js, NavigationManager nav) : D
         }
 
         return response;
+    }
+
+    private static bool ShouldLogoutOnUnauthorized(HttpRequestMessage request)
+    {
+        var path = request.RequestUri?.AbsolutePath ?? "";
+        if (path.Contains("/api/auth/", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return request.Headers.Authorization is not null;
     }
 
     private async Task ClearAuthStorageAsync()
@@ -31,5 +41,6 @@ public class UnauthorizedLogoutHandler(IJSRuntime js, NavigationManager nav) : D
         await js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
         await js.InvokeVoidAsync("localStorage.removeItem", "auth_avatar_url");
         await js.InvokeVoidAsync("localStorage.removeItem", "auth_avatar_color");
+        await js.InvokeVoidAsync("localStorage.removeItem", "auth_personalized_feed");
     }
 }

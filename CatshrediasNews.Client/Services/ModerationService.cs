@@ -24,11 +24,19 @@ public class ModerationService(HttpClient http)
         return res.IsSuccessStatusCode;
     }
 
-    public async Task<bool> RejectAsync(int id, string reason)
+    public async Task<ArticleDto?> GetQueueArticleAsync(int id) =>
+        await http.GetFromJsonAsync<ArticleDto>($"api/moderation/queue/{id}");
+
+    public async Task<(bool ok, string? error)> RejectAsync(int id, string? reason, List<ModerationNoteDto> notes)
     {
-        var res = await http.PostAsJsonAsync($"api/moderation/{id}/reject", new { reason });
-        if (res.IsSuccessStatusCode) CountsChanged?.Invoke();
-        return res.IsSuccessStatusCode;
+        var res = await http.PostAsJsonAsync($"api/moderation/{id}/reject", new { reason, notes });
+        if (res.IsSuccessStatusCode)
+        {
+            CountsChanged?.Invoke();
+            return (true, null);
+        }
+        var err = await res.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        return (false, err?.GetValueOrDefault("error") ?? "Ошибка при отклонении.");
     }
 
     public async Task<List<ReportDto>> GetReportsAsync()

@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CatshrediasNewsAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialTableSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -63,7 +63,13 @@ namespace CatshrediasNewsAPI.Migrations
                     Url = table.Column<string>(type: "text", nullable: false),
                     IsTrusted = table.Column<bool>(type: "boolean", nullable: false),
                     IsEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LastFetchedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    LastFetchedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    SourceType = table.Column<int>(type: "integer", nullable: false),
+                    LinkSelector = table.Column<string>(type: "text", nullable: true),
+                    TitleSelector = table.Column<string>(type: "text", nullable: true),
+                    ContentSelector = table.Column<string>(type: "text", nullable: true),
+                    DateSelector = table.Column<string>(type: "text", nullable: true),
+                    ImageSelector = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -94,6 +100,14 @@ namespace CatshrediasNewsAPI.Migrations
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     IsBlocked = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
+                    AvatarColor = table.Column<string>(type: "text", nullable: false),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    EmailConfirmToken = table.Column<string>(type: "text", nullable: true),
+                    EmailConfirmTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PasswordResetToken = table.Column<string>(type: "text", nullable: true),
+                    PasswordResetTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     RoleId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -115,9 +129,13 @@ namespace CatshrediasNewsAPI.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
+                    ContentHtml = table.Column<string>(type: "text", nullable: true),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    RssAuthor = table.Column<string>(type: "text", nullable: true),
                     SourceUrl = table.Column<string>(type: "text", nullable: true),
                     PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     StatusId = table.Column<int>(type: "integer", nullable: false),
                     RssSourceId = table.Column<int>(type: "integer", nullable: true),
                     AuthorId = table.Column<int>(type: "integer", nullable: true)
@@ -290,6 +308,7 @@ namespace CatshrediasNewsAPI.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Description = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     ArticleId = table.Column<int>(type: "integer", nullable: false),
                     ReportTypeId = table.Column<int>(type: "integer", nullable: false)
@@ -370,7 +389,8 @@ namespace CatshrediasNewsAPI.Migrations
                 {
                     { 1, "Admin" },
                     { 2, "Moderator" },
-                    { 3, "User" }
+                    { 3, "User" },
+                    { 4, "Publicist" }
                 });
 
             migrationBuilder.CreateIndex(

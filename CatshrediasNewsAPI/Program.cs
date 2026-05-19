@@ -12,11 +12,12 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 const string apiHttpUrl = "http://localhost:5070";
 const string apiHttpsUrl = "https://localhost:7240";
-var blazorOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[]
-{
-    "http://localhost:5110",
-    "https://localhost:7255"
-};
+var configuredAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+var corsMode = builder.Configuration["Cors:Mode"]?.Trim().ToLowerInvariant();
+var modeOrigins = !string.IsNullOrWhiteSpace(corsMode)
+    ? builder.Configuration.GetSection($"Cors:Profiles:{corsMode}").Get<string[]>() ?? []
+    : [];
+var blazorOrigins = modeOrigins.Length > 0 ? modeOrigins : configuredAllowedOrigins;
 
 if (builder.Environment.IsDevelopment())
 {
@@ -29,8 +30,34 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorClient", policy =>
+    {
+        if (blazorOrigins.Length > 0)
+        {
+            policy.WithOrigins(blazorOrigins);
+        }
+        else
+        {
+            policy.SetIsOriginAllowed(_ => false);
+        }
+
         policy
-            .WithOrigins(blazorOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+
+    options.AddPolicy("DevelopmentLocal", policy =>
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+                    return false;
+
+                var isLocal = originUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                    || originUri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase);
+
+                return isLocal || blazorOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -158,15 +185,19 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupMigrations");
+    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupDatabase");
     const int maxRetries = 10;
     var delay = TimeSpan.FromSeconds(3);
+    var migrationsApplied = false;
+
     for (var attempt = 1; attempt <= maxRetries; attempt++)
     {
         try
         {
             db.Database.Migrate();
             logger.LogInformation("Миграции БД применены успешно.");
+            migrationsApplied = true;
             break;
         }
         catch (Exception ex) when (attempt < maxRetries)
@@ -175,6 +206,14 @@ using (var scope = app.Services.CreateScope())
             Thread.Sleep(delay);
         }
     }
+
+    if (migrationsApplied)
+    {
+        await DatabaseSeedRunner.ApplySeedAsync(db, env, logger);
+    }
+    else
+    {
+        logger.LogError("Миграции не применены — seed.sql пропущен.");    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -187,7 +226,32 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
-app.UseHttpsRedirection();
+
+// CORS до HTTPS-редиректа: иначе OPTIONS (preflight) на http://5070 уходит 307 на https и браузер блокирует запрос.
+var corsPolicyName = app.Environment.IsDevelopment() ? "DevelopmentLocal" : "BlazorClient";
+app.UseCors(corsPolicyName);
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+
+    var blockedTestPages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "/hub-test.html",
+        "/rss-test.html"
+    };
+
+    app.Use(async (context, next) =>
+    {
+        if (blockedTestPages.Contains(context.Request.Path.Value ?? string.Empty))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        await next();
+    });
+}
 
 // Раздаём загруженные файлы из папки uploads рядом с проектом
 var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
@@ -198,11 +262,11 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath  = "/uploads"
 });
 app.UseStaticFiles(); // wwwroot
-app.UseCors("BlazorClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<CommentsHub>("/hubs/comments");
-app.MapGet("/health", () => Results.Ok(new { status = "ok", utc = DateTime.UtcNow }));
+app.MapGet("/health", (IWebHostEnvironment env) =>
+    Results.Ok(new { status = "ok", utc = DateTime.UtcNow, environment = env.EnvironmentName }));
 
 app.Run();

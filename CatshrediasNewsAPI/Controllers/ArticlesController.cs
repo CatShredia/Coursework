@@ -49,6 +49,15 @@ public class ArticlesController(ArticleService articleService) : ControllerBase
         return Ok(await articleService.GetByAuthorAsync(userId));
     }
 
+    [Authorize]
+    [HttpGet("my/{id:int}")]
+    public async Task<IActionResult> GetMyArticle(int id)
+    {
+        var userId  = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var article = await articleService.GetAuthorArticleAsync(id, userId);
+        return article is null ? NotFound() : Ok(article);
+    }
+
     // ? GetPublicFeed : возвращает хронологическую ленту опубликованных статей
     // вызывается клиентом (Public)
     [HttpGet]

@@ -12,4 +12,6 @@ public class ModerationLog
 
     public int ArticleId { get; set; }
     public Article Article { get; set; } = null!;
+
+    public ICollection<ModerationNote> Notes { get; set; } = [];
 }

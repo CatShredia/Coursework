@@ -72,7 +72,9 @@
 .feed-rec-banner {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
     background: var(--accent-light);
     border: 1px solid #c5d8fb;
     border-radius: var(--radius);
@@ -80,6 +82,37 @@
     font-size: 13px;
     color: var(--accent);
     margin-bottom: 20px;
+}
+
+.feed-rec-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.feed-rec-toggle {
+    border: 1px solid var(--accent);
+    background: var(--bg-white);
+    color: var(--accent);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--transition), color var(--transition);
+}
+
+.feed-rec-toggle:hover:not(:disabled) {
+    background: var(--accent);
+    color: #fff;
+}
+
+.feed-rec-toggle:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* ── Карточка статьи ── */

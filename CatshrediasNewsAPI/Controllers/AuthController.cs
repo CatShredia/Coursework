@@ -1,6 +1,8 @@
 using CatshrediasNewsAPI.DTOs;
 using CatshrediasNewsAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace CatshrediasNewsAPI.Controllers;
 
@@ -13,10 +15,17 @@ public class AuthController(AuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
-        var result = await authService.RegisterAsync(dto);
-        if (result is null)
+        try
+        {
+            var result = await authService.RegisterAsync(dto);
+            if (result is null)
+                return Conflict("Пользователь с таким email уже существует.");
+            return Ok(result);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
             return Conflict("Пользователь с таким email уже существует.");
-        return Ok(result);
+        }
     }
 
     // ? Login : выполняет вход и возвращает JWT-токен

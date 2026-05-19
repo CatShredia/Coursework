@@ -1,0 +1,252 @@
+@page "/moderation/review/{ArticleId:int}"
+@using Microsoft.JSInterop
+@inject ModerationService ModerationSvc
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Проверка статьи — Runews</PageTitle>
+
+@if (Auth.CurrentUser?.Role is not ("Moderator" or "Admin"))
+{
+    Nav.NavigateTo("/");
+    return;
+}
+
+<div class="admin-page mod-review-page">
+    <div class="mod-review-header">
+        <a href="/moderation/queue" class="article-back">
+            <i class="bi bi-arrow-left"></i> Очередь
+        </a>
+        @if (_article is not null)
+        {
+            <h1 class="page-title" style="margin:8px 0 0">@_article.Title</h1>
+            <div class="mod-review-meta">
+                @if (!string.IsNullOrEmpty(_article.Author))
+                {
+                    <span><i class="bi bi-person"></i> @_article.Author</span>
+                }
+                <span><i class="bi bi-calendar3"></i> @_article.PublishedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                @foreach (var tag in _article.Tags)
+                {
+                    <span class="article-tag">@tag</span>
+                }
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="@(_isError ? "auth-error" : "auth-success")" style="margin-bottom:12px">
+            <i class="bi @(_isError ? "bi-exclamation-circle" : "bi-check-circle")"></i>
+            @_message
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <div class="admin-loading">
+            <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
+            Загрузка...
+        </div>
+    }
+    else if (_article is null)
+    {
+        <div class="feed-empty">
+            <i class="bi bi-file-earmark-x"></i>
+            <p>Статья не найдена в очереди.</p>
+            <a href="/moderation/queue" style="color:var(--accent)">Вернуться в очередь</a>
+        </div>
+    }
+    else
+    {
+        <div class="mod-review-actions-top">
+            <button class="mod-btn mod-btn-approve" disabled="@_busy" @onclick="Approve">
+                <i class="bi bi-check-lg"></i> Одобрить
+            </button>
+            <button class="mod-btn mod-btn-reject" disabled="@(_busy || _notes.Count == 0)" @onclick="Reject">
+                <i class="bi bi-x-lg"></i> Отклонить (@_notes.Count)
+            </button>
+        </div>
+
+        <div class="mod-review-columns">
+            <div class="mod-review-col">
+                <h3 class="mod-review-col-title">Исходный текст (выделяйте здесь)</h3>
+                <pre id="mod-review-source" class="mod-review-source">@_article.Content</pre>
+                <button class="feed-sort-btn" style="margin-top:8px" @onclick="StartAddNote">
+                    <i class="bi bi-plus-circle"></i> Добавить замечание по выделению
+                </button>
+            </div>
+            <div class="mod-review-col">
+                <h3 class="mod-review-col-title">Предпросмотр</h3>
+                <div class="mod-review-preview editor-preview">
+                    @((MarkupString)RenderMarkdown(_article.Content))
+                </div>
+            </div>
+        </div>
+
+        <div class="mod-notes-panel">
+            <h3 class="mod-review-col-title">Замечания (@_notes.Count)</h3>
+            @if (_notes.Count == 0)
+            {
+                <p class="mod-notes-empty">Выделите фрагмент слева и добавьте хотя бы одно замечание перед отклонением.</p>
+            }
+            else
+            {
+                @for (var i = 0; i < _notes.Count; i++)
+                {
+                    var idx = i;
+                    var note = _notes[idx];
+                    <div class="mod-note-card">
+                        <div class="mod-note-card-header">
+                            <span class="mod-note-num">@(idx + 1)</span>
+                            <div class="mod-note-actions">
+                                <button class="action-btn" title="Выше" disabled="@(idx == 0)" @onclick="() => MoveNote(idx, -1)">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                                <button class="action-btn" title="Ниже" disabled="@(idx == _notes.Count - 1)" @onclick="() => MoveNote(idx, 1)">
+                                    <i class="bi bi-arrow-down"></i>
+                                </button>
+                                <button class="action-btn action-btn-danger" title="Удалить" @onclick="() => RemoveNote(idx)">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <blockquote class="mod-note-excerpt">@note.Excerpt</blockquote>
+                        <p class="mod-note-reason">@note.Reason</p>
+                    </div>
+                }
+            }
+
+            <label class="mod-review-summary-label">Общий комментарий (необязательно)</label>
+            <textarea class="mod-reason-input" rows="2" placeholder="Краткий итог для автора"
+                      @bind="_summaryReason"></textarea>
+        </div>
+    }
+</div>
+
+@if (_showNoteForm)
+{
+    <div class="modal-overlay" @onclick="CancelNoteForm">
+        <div class="modal-box mod-note-form-box" @onclick:stopPropagation="true">
+            <h3 class="modal-title">Замечание к фрагменту</h3>
+            <blockquote class="mod-note-excerpt">@_pendingExcerpt</blockquote>
+            <textarea class="mod-reason-input" rows="3" placeholder="Причина (обязательно)"
+                      @bind="_pendingReason"></textarea>
+            @if (_noteFormError)
+            {
+                <p style="color:#e53935;font-size:12px;margin:0">Укажите причину (минимум 3 символа).</p>
+            }
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="CancelNoteForm">Отмена</button>
+                <button class="modal-btn-confirm" style="background:#e53935" @onclick="ConfirmNote">
+                    Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ArticleId { get; set; }
+
+    private ArticleDto? _article;
+    private List<ModerationNoteDto> _notes = [];
+    private string? _summaryReason;
+    private bool _loading = true, _busy, _isError;
+    private string? _message;
+
+    private bool _showNoteForm, _noteFormError;
+    private string _pendingExcerpt = "";
+    private string _pendingReason = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _article = await ModerationSvc.GetQueueArticleAsync(ArticleId);
+        _loading = false;
+    }
+
+    private async Task StartAddNote()
+    {
+        _message = null;
+        var excerpt = await JS.InvokeAsync<string?>("moderationSelection.getSelection", "#mod-review-source");
+        if (string.IsNullOrWhiteSpace(excerpt))
+        {
+            _message = "Выделите фрагмент в левой панели (минимум 3 символа).";
+            _isError = true;
+            return;
+        }
+        if (_notes.Any(n => n.Excerpt == excerpt))
+        {
+            _message = "Этот фрагмент уже добавлен.";
+            _isError = true;
+            return;
+        }
+        _pendingExcerpt = excerpt;
+        _pendingReason  = "";
+        _noteFormError  = false;
+        _showNoteForm   = true;
+        await JS.InvokeVoidAsync("moderationSelection.clearSelection");
+    }
+
+    private void ConfirmNote()
+    {
+        if (_pendingReason.Trim().Length < 3) { _noteFormError = true; return; }
+        _notes.Add(new ModerationNoteDto { Excerpt = _pendingExcerpt, Reason = _pendingReason.Trim() });
+        _showNoteForm = false;
+        _message = null;
+    }
+
+    private void CancelNoteForm() => _showNoteForm = false;
+
+    private void RemoveNote(int index) => _notes.RemoveAt(index);
+
+    private void MoveNote(int index, int delta)
+    {
+        var target = index + delta;
+        if (target < 0 || target >= _notes.Count) return;
+        (_notes[index], _notes[target]) = (_notes[target], _notes[index]);
+    }
+
+    private async Task Approve()
+    {
+        _busy = true;
+        var ok = await ModerationSvc.ApproveAsync(ArticleId);
+        _busy = false;
+        if (ok) Nav.NavigateTo("/moderation/queue");
+        else ShowMsg("Ошибка при одобрении.", true);
+    }
+
+    private async Task Reject()
+    {
+        if (_notes.Count == 0) { ShowMsg("Добавьте хотя бы одно замечание.", true); return; }
+        _busy = true;
+        var (ok, error) = await ModerationSvc.RejectAsync(ArticleId, _summaryReason, _notes);
+        _busy = false;
+        if (ok) Nav.NavigateTo("/moderation/queue");
+        else ShowMsg(error ?? "Ошибка при отклонении.", true);
+    }
+
+    private void ShowMsg(string msg, bool isError) { _message = msg; _isError = isError; }
+
+    private static string RenderMarkdown(string md)
+    {
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^### (.+)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^## (.+)$",  "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^# (.+)$",   "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\*(.+?)\*",     "<em>$1</em>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"~~(.+?)~~",     "<del>$1</del>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"```[\s\S]+?```", m =>
+            "<pre><code>" + m.Value.Trim('`').Trim() + "</code></pre>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"`(.+?)`", "<code>$1</code>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"!\[(.+?)\]\((.+?)\)", "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"\[(.+?)\]\((.+?)\)",  "<a href=\"$2\" target=\"_blank\">$1</a>");
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^> (.+)$", "<blockquote>$1</blockquote>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^- (.+)$",    "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^\d+\. (.+)$","<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = System.Text.RegularExpressions.Regex.Replace(md, @"^---$", "<hr>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        md = string.Join("\n", md.Split('\n').Select(l => l.StartsWith('<') ? l : $"<p>{l}</p>"));
+        return md;
+    }
+}

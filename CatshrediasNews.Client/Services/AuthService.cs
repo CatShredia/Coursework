@@ -41,7 +41,11 @@ public class AuthService
                 Email       = email ?? "",
                 Role        = role ?? "User",
                 AvatarUrl   = string.IsNullOrEmpty(avatarUrl) ? null : avatarUrl,
-                AvatarColor = avatarColor ?? "#1a73e8"
+                AvatarColor = avatarColor ?? "#1a73e8",
+                PersonalizedFeedEnabled = !string.Equals(
+                    await _js.InvokeAsync<string?>("localStorage.getItem", "auth_personalized_feed"),
+                    "false",
+                    StringComparison.OrdinalIgnoreCase)
             };
             _http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -55,8 +59,8 @@ public class AuthService
         var response = await _http.PostAsJsonAsync("api/auth/login", request);
         if (!response.IsSuccessStatusCode)
         {
-            var body = await response.Content.ReadAsStringAsync();
-            if (body.Contains("email_not_confirmed"))
+            var body = await ReadApiErrorBodyAsync(response);
+            if (body.Contains("email_not_confirmed", StringComparison.OrdinalIgnoreCase))
                 return "email_not_confirmed";
             return "Неверный email или пароль.";
         }
@@ -78,10 +82,10 @@ public class AuthService
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
                 return "Пользователь с таким email уже существует.";
 
-            var body = (await response.Content.ReadAsStringAsync()).Trim();
+            var body = await ReadApiErrorBodyAsync(response);
             return string.IsNullOrWhiteSpace(body)
-                ? "Не удалось зарегистрироваться. Проверьте настройки сервера email."
-                : $"Ошибка регистрации: {body}";
+                ? "Не удалось зарегистрироваться. Попробуйте позже."
+                : body;
         }
         // Не сохраняем сессию — пользователь должен подтвердить email
         return "email_sent";
@@ -160,6 +164,7 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_email");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_role");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "auth_personalized_feed");
         Console.WriteLine("[AuthService] DeleteAccountAsync: session cleared, no OnChange fired");
         return null;
     }
@@ -179,7 +184,21 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_email");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_role");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "auth_personalized_feed");
         OnChange?.Invoke();
+    }
+
+    private static async Task<string> ReadApiErrorBodyAsync(HttpResponseMessage response)
+    {
+        var body = (await response.Content.ReadAsStringAsync()).Trim();
+        if (body.Length >= 2 && body.StartsWith('"') && body.EndsWith('"'))
+            body = body[1..^1].Replace("\\\"", "\"", StringComparison.Ordinal);
+
+        if (body.Contains("DbUpdateException", StringComparison.Ordinal) ||
+            body.Contains("PostgresException", StringComparison.Ordinal))
+            return "Пользователь с таким email уже существует.";
+
+        return body;
     }
 
     private async Task SaveSessionAsync(AuthResponse result)
@@ -195,6 +214,25 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_id",            result.User.Id.ToString());
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_color",  result.User.AvatarColor);
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url",    result.User.AvatarUrl ?? "");
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_personalized_feed",
+            result.User.PersonalizedFeedEnabled.ToString().ToLowerInvariant());
         OnChange?.Invoke();
+    }
+
+    public async Task<bool> SetPersonalizedFeedAsync(bool enabled)
+    {
+        if (CurrentUser is null) return false;
+
+        var response = await _http.PutAsJsonAsync("api/users/me/personalized-feed", new { enabled });
+        if (!response.IsSuccessStatusCode) return false;
+
+        var user = await response.Content.ReadFromJsonAsync<UserInfo>();
+        if (user is null) return false;
+
+        CurrentUser.PersonalizedFeedEnabled = user.PersonalizedFeedEnabled;
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_personalized_feed",
+            user.PersonalizedFeedEnabled.ToString().ToLowerInvariant());
+        OnChange?.Invoke();
+        return true;
     }
 }

@@ -47,6 +47,9 @@ public class ArticleService(HttpClient http)
         return await http.GetFromJsonAsync<ArticleDto>($"api/articles/{id}");
     }
 
+    public async Task<ArticleDto?> GetMyArticleAsync(int id) =>
+        await http.GetFromJsonAsync<ArticleDto>($"api/articles/my/{id}");
+
     // ? SaveDraftToDbAsync : сохраняет черновик в БД
     // вызывается из Pages/Publicist/CreateArticle.razor
     public async Task<(ArticleDto? article, string? error)> SaveDraftToDbAsync(

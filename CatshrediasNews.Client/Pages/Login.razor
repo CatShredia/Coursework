@@ -69,7 +69,7 @@
         }
     </div>
 
-    <button class="auth-btn" @onclick="Submit" disabled="@_loading">
+    <button type="button" class="auth-btn" @onclick="Submit" disabled="@_loading">
         @if (_loading)
         {
             <span class="auth-spinner"></span>
@@ -130,9 +130,21 @@
         ValidatePassword();
         _loading = true;
         _error = null;
-        if (_emailInvalid || _passwordInvalid) { _loading = false; return; }
-        _error = await Auth.LoginAsync(new() { Email = _email, Password = _password });
-        _loading = false;
-        if (_error is null) Nav.NavigateTo("/");
+        if (_emailInvalid || _passwordInvalid)
+        {
+            _loading = false;
+            return;
+        }
+
+        try
+        {
+            _error = await Auth.LoginAsync(new() { Email = _email, Password = _password });
+            if (_error is null)
+                Nav.NavigateTo("/");
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 }

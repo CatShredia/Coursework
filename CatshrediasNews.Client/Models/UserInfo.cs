@@ -9,6 +9,7 @@ public class UserInfo
     public bool   IsBlocked   { get; set; }
     public string? AvatarUrl  { get; set; }
     public string AvatarColor { get; set; } = "#1a73e8";
+    public bool PersonalizedFeedEnabled { get; set; } = true;
 }
 
 public class RssSourceDto

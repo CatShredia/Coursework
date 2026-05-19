@@ -113,6 +113,15 @@
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                     </a>
+                                    @if (article.Status == "Rejected")
+                                    {
+                                        <button class="action-btn"
+                                                title="@(HasRejectionInfo(article) ? "Замечания модератора" : "Причина не указана")"
+                                                disabled="@(!HasRejectionInfo(article))"
+                                                @onclick="() => ShowRejection(article)">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                    }
                                     <button class="action-btn action-btn-danger"
                                             title="Удалить"
                                             @onclick="() => AskDelete(article)">
@@ -127,6 +136,44 @@
         </div>
     }
 </div>
+
+@if (_rejectionTarget is not null)
+{
+    <div class="modal-overlay" @onclick="() => _rejectionTarget = null">
+        <div class="modal-box" @onclick:stopPropagation="true">
+            <div class="modal-icon" style="background:#fdecea;color:#e53935">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <h3 class="modal-title">Причина отклонения</h3>
+            <p class="modal-text" style="text-align:left">
+                <strong>«@_rejectionTarget.Title»</strong>
+            </p>
+            @if (_rejectionTarget.RejectionNotes is { Count: > 0 } notes)
+            {
+                <div class="mod-rejection-notes-list">
+                    @foreach (var note in notes)
+                    {
+                        <div class="mod-rejection-note-item">
+                            <blockquote class="mod-note-excerpt">@note.Excerpt</blockquote>
+                            <p class="mod-note-reason">@note.Reason</p>
+                        </div>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_rejectionTarget.RejectionReason))
+                {
+                    <p class="mod-rejection-summary">@_rejectionTarget.RejectionReason</p>
+                }
+            }
+            else
+            {
+                <p class="mod-reason-display">@_rejectionTarget.RejectionReason</p>
+            }
+            <div class="modal-actions">
+                <button class="modal-btn-cancel" @onclick="() => _rejectionTarget = null">Закрыть</button>
+            </div>
+        </div>
+    </div>
+}
 
 @if (_deleteTarget is not null)
 {
@@ -153,6 +200,7 @@
     private string _statusFilter = "";
     private bool _loading = true, _deleteLoading;
     private ArticleDto? _deleteTarget;
+    private ArticleDto? _rejectionTarget;
 
     private static readonly string[] _statuses = ["Draft", "PendingReview", "Published", "Rejected"];
 
@@ -168,6 +216,12 @@
     }
 
     private void AskDelete(ArticleDto article) => _deleteTarget = article;
+
+    private void ShowRejection(ArticleDto article) => _rejectionTarget = article;
+
+    private static bool HasRejectionInfo(ArticleDto article) =>
+        !string.IsNullOrWhiteSpace(article.RejectionReason) ||
+        article.RejectionNotes is { Count: > 0 };
 
     private async Task ConfirmDelete()
     {

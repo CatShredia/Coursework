@@ -20,14 +20,15 @@ public class ModerationService(AppDbContext db)
     // вызывается из ModerationController.GetQueue (Moderator)
     public async Task<List<ArticleDto>> GetQueueAsync()
     {
-        return await db.Articles
+        var articles = await db.Articles
             .Where(a => a.Status.Name == "PendingReview")
             .Include(a => a.Status)
             .Include(a => a.Author)
             .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
-            .Select(a => MapToDto(a))
             .ToListAsync();
+
+        return articles.Select(a => MapToDto(a)).ToList();
     }
 
     // ? ApproveAsync : одобряет статью и записывает действие в журнал
@@ -54,29 +55,71 @@ public class ModerationService(AppDbContext db)
         return true;
     }
 
-    // ? RejectAsync : отклоняет статью с указанием причины и записывает в журнал
-    // вызывается из ModerationController.Reject (Moderator)
-    public async Task<bool> RejectAsync(int articleId, int moderatorId, RejectArticleDto dto)
+    // ? GetQueueArticleAsync : возвращает статью из очереди по Id
+    public async Task<ArticleDto?> GetQueueArticleAsync(int articleId)
     {
+        var article = await db.Articles
+            .Where(a => a.Id == articleId && a.Status.Name == "PendingReview")
+            .Include(a => a.Status)
+            .Include(a => a.Author)
+            .Include(a => a.RssSource)
+            .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
+            .FirstOrDefaultAsync();
+
+        return article is null ? null : MapToDto(article);
+    }
+
+    // ? RejectAsync : отклоняет статью с замечаниями по фрагментам
+    public async Task<(bool Success, string? Error)> RejectAsync(int articleId, int moderatorId, RejectArticleDto dto)
+    {
+        if (dto.Notes is null || dto.Notes.Count == 0)
+            return (false, "Добавьте хотя бы одно замечание.");
+
         var article = await db.Articles.FindAsync(articleId);
-        if (article is null) return false;
+        if (article is null) return (false, null);
 
         var moderatorExists = await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == moderatorId);
-        if (!moderatorExists) return false;
+        if (!moderatorExists) return (false, null);
+
+        var noteEntities = new List<ModerationNote>();
+        for (var i = 0; i < dto.Notes.Count; i++)
+        {
+            var excerpt = (dto.Notes[i].Excerpt ?? "").Trim();
+            var reason  = (dto.Notes[i].Reason ?? "").Trim();
+            if (excerpt.Length < 3)
+                return (false, "Фрагмент слишком короткий.");
+            if (reason.Length < 3)
+                return (false, "Укажите причину для каждого замечания.");
+            if (excerpt.Length > 2000) excerpt = excerpt[..2000];
+            if (reason.Length > 1000) reason = reason[..1000];
+
+            noteEntities.Add(new ModerationNote
+            {
+                Excerpt   = excerpt,
+                Reason    = reason,
+                SortOrder = i
+            });
+        }
 
         var rejectedStatus = await db.PublicationStatuses.FirstAsync(s => s.Name == "Rejected");
         article.StatusId = rejectedStatus.Id;
 
-        db.ModerationLogs.Add(new ModerationLog
+        var summary = string.IsNullOrWhiteSpace(dto.Reason) ? null : dto.Reason.Trim();
+        if (summary is null && noteEntities.Count > 0)
+            summary = noteEntities.Count == 1 ? "1 замечание" : $"{noteEntities.Count} замечания";
+
+        var log = new ModerationLog
         {
             ArticleId   = articleId,
             ModeratorId = moderatorId,
             Action      = "Rejected",
-            Reason      = dto.Reason
-        });
+            Reason      = summary,
+            Notes       = noteEntities
+        };
+        db.ModerationLogs.Add(log);
 
         await db.SaveChangesAsync();
-        return true;
+        return (true, null);
     }
 
     // ? GetReportsAsync : возвращает список всех жалоб пользователей
@@ -150,6 +193,7 @@ public class ModerationService(AppDbContext db)
         a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.AuthorId, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
-        0, a.RssSource?.Name
+        0, a.RssSource?.Name,
+        null
     );
 }
