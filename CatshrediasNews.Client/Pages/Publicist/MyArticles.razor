@@ -116,8 +116,8 @@
                                     @if (article.Status == "Rejected")
                                     {
                                         <button class="action-btn"
-                                                title="@(string.IsNullOrWhiteSpace(article.RejectionReason) ? "Причина не указана" : "Причина отклонения")"
-                                                disabled="@string.IsNullOrWhiteSpace(article.RejectionReason)"
+                                                title="@(HasRejectionInfo(article) ? "Замечания модератора" : "Причина не указана")"
+                                                disabled="@(!HasRejectionInfo(article))"
                                                 @onclick="() => ShowRejection(article)">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
@@ -148,7 +148,26 @@
             <p class="modal-text" style="text-align:left">
                 <strong>«@_rejectionTarget.Title»</strong>
             </p>
-            <p class="mod-reason-display">@_rejectionTarget.RejectionReason</p>
+            @if (_rejectionTarget.RejectionNotes is { Count: > 0 } notes)
+            {
+                <div class="mod-rejection-notes-list">
+                    @foreach (var note in notes)
+                    {
+                        <div class="mod-rejection-note-item">
+                            <blockquote class="mod-note-excerpt">@note.Excerpt</blockquote>
+                            <p class="mod-note-reason">@note.Reason</p>
+                        </div>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_rejectionTarget.RejectionReason))
+                {
+                    <p class="mod-rejection-summary">@_rejectionTarget.RejectionReason</p>
+                }
+            }
+            else
+            {
+                <p class="mod-reason-display">@_rejectionTarget.RejectionReason</p>
+            }
             <div class="modal-actions">
                 <button class="modal-btn-cancel" @onclick="() => _rejectionTarget = null">Закрыть</button>
             </div>
@@ -199,6 +218,10 @@
     private void AskDelete(ArticleDto article) => _deleteTarget = article;
 
     private void ShowRejection(ArticleDto article) => _rejectionTarget = article;
+
+    private static bool HasRejectionInfo(ArticleDto article) =>
+        !string.IsNullOrWhiteSpace(article.RejectionReason) ||
+        article.RejectionNotes is { Count: > 0 };
 
     private async Task ConfirmDelete()
     {

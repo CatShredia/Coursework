@@ -527,3 +527,35 @@
 }
 
 .gigachad-apply-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ── Замечания модератора в редакторе ── */
+.editor-rejection-panel {
+    border: 1px solid #f5c6c6;
+    border-radius: 10px;
+    background: #fff5f5;
+    padding: 14px 16px;
+}
+
+.editor-rejection-title {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #c62828;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-rejection-hint {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.editor-preview mark.rejection-highlight,
+.mod-review-preview mark.rejection-highlight {
+    background: rgba(229, 57, 53, 0.28);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 2px;
+}

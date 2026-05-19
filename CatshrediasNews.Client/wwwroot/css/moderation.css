@@ -268,3 +268,159 @@
 
 .modal-btn-confirm:hover:not(:disabled) { opacity: .88; }
 .modal-btn-confirm:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Review page ── */
+.mod-review-page { max-width: 1200px; }
+
+.mod-review-header { margin-bottom: 16px; }
+
+.mod-review-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+.mod-review-actions-top {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.mod-review-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+    .mod-review-columns { grid-template-columns: 1fr; }
+}
+
+.mod-review-col-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--text-secondary);
+}
+
+.mod-review-source {
+    margin: 0;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 480px;
+    overflow: auto;
+    user-select: text;
+    font-family: ui-monospace, Consolas, monospace;
+}
+
+.mod-review-preview {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    max-height: 480px;
+    overflow: auto;
+}
+
+.mod-notes-panel {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.mod-notes-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0 0 12px;
+}
+
+.mod-note-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--bg);
+}
+
+.mod-note-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.mod-note-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.mod-note-actions { display: flex; gap: 4px; }
+
+.mod-note-excerpt {
+    margin: 0 0 8px;
+    padding: 8px 12px;
+    border-left: 3px solid #e53935;
+    background: #fdecea;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.mod-note-reason {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.mod-review-summary-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 12px 0 6px;
+}
+
+.mod-note-form-box { max-width: 480px; }
+
+.mod-btn-review {
+    background: #e3f2fd;
+    color: #1565c0;
+    text-decoration: none;
+}
+
+.mod-btn-review:hover { background: #bbdefb; }
+
+.mod-rejection-notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.mod-rejection-note-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--bg);
+}
+
+.mod-rejection-summary {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.modal-box:has(.mod-rejection-notes-list) { max-width: 560px; }

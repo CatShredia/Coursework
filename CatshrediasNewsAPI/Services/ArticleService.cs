@@ -181,8 +181,15 @@ public class ArticleService(AppDbContext db)
     {
         var article = await db.Articles
             .Include(a => a.ArticleTags)
+            .Include(a => a.Status)
             .FirstOrDefaultAsync(a => a.Id == articleId && a.AuthorId == authorId);
         if (article is null) return null;
+
+        if (article.Status.Name is "Rejected" or "Draft")
+        {
+            var pendingStatus = await db.PublicationStatuses.FirstAsync(s => s.Name == "PendingReview");
+            article.StatusId = pendingStatus.Id;
+        }
 
         article.Title   = dto.Title;
         article.Content = dto.Content;
@@ -205,11 +212,27 @@ public class ArticleService(AppDbContext db)
             .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
-            .Include(a => a.ModerationLogs)
+            .Include(a => a.ModerationLogs).ThenInclude(m => m.Notes)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
 
-        return articles.Select(a => MapToDto(a, GetRejectionReason(a))).ToList();
+        return articles.Select(MapAuthorArticle).ToList();
+    }
+
+    // ? GetAuthorArticleAsync : статья автора для редактора (с замечаниями при Rejected)
+    public async Task<ArticleDto?> GetAuthorArticleAsync(int id, int authorId)
+    {
+        var article = await db.Articles
+            .Where(a => a.Id == id && a.AuthorId == authorId)
+            .Include(a => a.Status)
+            .Include(a => a.Author)
+            .Include(a => a.RssSource)
+            .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
+            .Include(a => a.Likes)
+            .Include(a => a.ModerationLogs).ThenInclude(m => m.Notes)
+            .FirstOrDefaultAsync();
+
+        return article is null ? null : MapAuthorArticle(article);
     }
 
     // ? SearchAsync : поиск опубликованных статей по заголовку и тексту
@@ -311,22 +334,49 @@ public class ArticleService(AppDbContext db)
         }
     }
 
-    private static string? GetRejectionReason(Article article) =>
-        article.Status.Name == "Rejected"
-            ? article.ModerationLogs
-                .Where(m => m.Action == "Rejected" && !string.IsNullOrWhiteSpace(m.Reason))
-                .OrderByDescending(m => m.CreatedAt)
-                .Select(m => m.Reason)
-                .FirstOrDefault()
-            : null;
+    private static ArticleDto MapAuthorArticle(Article a) =>
+        MapToDto(a, GetRejectionReason(a), GetRejectionNotes(a));
 
-    private static ArticleDto MapToDto(Article a, string? rejectionReason) => new(
+    private static ModerationLog? GetLatestRejectedLog(Article article) =>
+        article.ModerationLogs
+            .Where(m => m.Action == "Rejected")
+            .OrderByDescending(m => m.CreatedAt)
+            .FirstOrDefault();
+
+    private static string? GetRejectionReason(Article article)
+    {
+        if (article.Status.Name != "Rejected") return null;
+        var log = GetLatestRejectedLog(article);
+        if (log is null) return null;
+        if (!string.IsNullOrWhiteSpace(log.Reason)) return log.Reason;
+        var count = log.Notes.Count;
+        return count switch
+        {
+            0    => null,
+            1    => "1 замечание",
+            _    => $"{count} замечания"
+        };
+    }
+
+    private static List<ModerationNoteDto>? GetRejectionNotes(Article article)
+    {
+        if (article.Status.Name != "Rejected") return null;
+        var log = GetLatestRejectedLog(article);
+        if (log is null || log.Notes.Count == 0) return null;
+        return log.Notes
+            .OrderBy(n => n.SortOrder)
+            .Select(n => new ModerationNoteDto(n.Excerpt, n.Reason))
+            .ToList();
+    }
+
+    private static ArticleDto MapToDto(Article a, string? rejectionReason, List<ModerationNoteDto>? rejectionNotes = null) => new(
         a.Id, a.Title, a.Content, a.ContentHtml, a.ImageUrl, a.RssAuthor,
         a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.AuthorId, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
         a.Likes.Count,
         a.RssSource?.Name,
-        rejectionReason
+        rejectionReason,
+        rejectionNotes
     );
 }

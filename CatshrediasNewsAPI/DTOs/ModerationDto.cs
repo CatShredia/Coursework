@@ -1,6 +1,8 @@
 namespace CatshrediasNewsAPI.DTOs;
 
-public record RejectArticleDto(string Reason);
+public record ModerationNoteDto(string Excerpt, string Reason);
+
+public record RejectArticleDto(string? Reason, List<ModerationNoteDto>? Notes);
 
 public record ReportDto(
     int Id,

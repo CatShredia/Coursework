@@ -15,7 +15,8 @@ public record ArticleDto(
     List<string> Tags,
     int LikesCount,
     string? SourceName,
-    string? RejectionReason = null
+    string? RejectionReason = null,
+    List<ModerationNoteDto>? RejectionNotes = null
 );
 
 public record CreateArticleDto(

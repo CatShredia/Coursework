@@ -19,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ReportType> ReportTypes => Set<ReportType>();
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<ModerationLog> ModerationLogs => Set<ModerationLog>();
+    public DbSet<ModerationNote> ModerationNotes => Set<ModerationNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +55,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithMany(u => u.ModerationLogs)
             .HasForeignKey(ml => ml.ModeratorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ModerationNote>()
+            .HasOne(n => n.ModerationLog)
+            .WithMany(ml => ml.Notes)
+            .HasForeignKey(n => n.ModerationLogId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ModerationNote>()
+            .Property(n => n.Excerpt)
+            .HasMaxLength(2000);
+
+        modelBuilder.Entity<ModerationNote>()
+            .Property(n => n.Reason)
+            .HasMaxLength(1000);
 
         modelBuilder.Entity<PublicationStatus>().HasData(
             new PublicationStatus { Id = 1, Name = "Draft" },
