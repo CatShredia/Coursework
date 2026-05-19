@@ -14,3 +14,6 @@ v.0.0.4 - review_code_1
 v.0.0.5 - 
     ngrok/tuna mailpit/google/bravo configs
     unused code need to delete
+v.0.0.5.5 - 
+    fix_configs
+    reason_editor
