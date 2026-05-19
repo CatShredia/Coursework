@@ -185,15 +185,19 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupMigrations");
+    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("StartupDatabase");
     const int maxRetries = 10;
     var delay = TimeSpan.FromSeconds(3);
+    var migrationsApplied = false;
+
     for (var attempt = 1; attempt <= maxRetries; attempt++)
     {
         try
         {
             db.Database.Migrate();
             logger.LogInformation("Миграции БД применены успешно.");
+            migrationsApplied = true;
             break;
         }
         catch (Exception ex) when (attempt < maxRetries)
@@ -202,6 +206,14 @@ using (var scope = app.Services.CreateScope())
             Thread.Sleep(delay);
         }
     }
+
+    if (migrationsApplied)
+    {
+        await DatabaseSeedRunner.ApplySeedAsync(db, env, logger);
+    }
+    else
+    {
+        logger.LogError("Миграции не применены — seed.sql пропущен.");    }
 }
 
 if (app.Environment.IsDevelopment())
