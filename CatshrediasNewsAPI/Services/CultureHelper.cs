@@ -8,10 +8,14 @@ public static class CultureHelper
 
     public static string Resolve(string? explicitCulture, string? acceptLanguageHeader)
     {
-        if (IsEnglish(explicitCulture))
-            return English;
-        if (IsTatar(explicitCulture))
-            return Tatar;
+        if (!string.IsNullOrWhiteSpace(explicitCulture))
+        {
+            if (IsEnglish(explicitCulture))
+                return English;
+            if (IsTatar(explicitCulture))
+                return Tatar;
+            return Russian;
+        }
 
         if (!string.IsNullOrWhiteSpace(acceptLanguageHeader))
         {

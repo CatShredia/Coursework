@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace CatshrediasNewsAPI.Services;
 
-public class EmailService(IConfiguration config)
+public class EmailService(IConfiguration config) : IEmailService
 {
     private readonly string _host = config["Smtp:Host"] ?? "localhost";
     private readonly int    _port = int.Parse(config["Smtp:Port"] ?? "1025");

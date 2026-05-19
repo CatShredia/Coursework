@@ -14,7 +14,7 @@ namespace CatshrediasNewsAPI.Services;
 public class AuthService(
     AppDbContext db,
     IConfiguration config,
-    EmailService emailService,
+    IEmailService emailService,
     IWebHostEnvironment env,
     IHttpContextAccessor httpContextAccessor)
 {
