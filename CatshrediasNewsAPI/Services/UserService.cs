@@ -124,13 +124,26 @@ public class UserService(AppDbContext db, IWebHostEnvironment env)
         return Map(user);
     }
 
-    // ? DeleteAsync : soft delete аккаунта пользователя — устанавливает DeletedAt
+    // ? DeleteAsync : soft delete + анонимизация PII (email/username), чтобы освободить email для новой регистрации
     // вызывается из UsersController.Delete (Auth) и AdminController.DeleteUser (Admin)
     public async Task<bool> DeleteAsync(int userId)
     {
-        var user = await db.Users.FindAsync(userId);
-        if (user is null) return false;
-        user.DeletedAt = DateTime.UtcNow;
+        var user = await db.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null || user.DeletedAt is not null)
+            return false;
+
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            var oldPath = Path.Combine(UploadsRoot, "avatars", Path.GetFileName(user.AvatarUrl));
+            if (File.Exists(oldPath))
+                File.Delete(oldPath);
+        }
+
+        UserAnonymization.Apply(user);
+
         await db.SaveChangesAsync();
         return true;
     }

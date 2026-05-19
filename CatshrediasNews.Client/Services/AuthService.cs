@@ -55,8 +55,8 @@ public class AuthService
         var response = await _http.PostAsJsonAsync("api/auth/login", request);
         if (!response.IsSuccessStatusCode)
         {
-            var body = await response.Content.ReadAsStringAsync();
-            if (body.Contains("email_not_confirmed"))
+            var body = await ReadApiErrorBodyAsync(response);
+            if (body.Contains("email_not_confirmed", StringComparison.OrdinalIgnoreCase))
                 return "email_not_confirmed";
             return "Неверный email или пароль.";
         }
@@ -78,10 +78,10 @@ public class AuthService
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
                 return "Пользователь с таким email уже существует.";
 
-            var body = (await response.Content.ReadAsStringAsync()).Trim();
+            var body = await ReadApiErrorBodyAsync(response);
             return string.IsNullOrWhiteSpace(body)
-                ? "Не удалось зарегистрироваться. Проверьте настройки сервера email."
-                : $"Ошибка регистрации: {body}";
+                ? "Не удалось зарегистрироваться. Попробуйте позже."
+                : body;
         }
         // Не сохраняем сессию — пользователь должен подтвердить email
         return "email_sent";
@@ -180,6 +180,19 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_role");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
         OnChange?.Invoke();
+    }
+
+    private static async Task<string> ReadApiErrorBodyAsync(HttpResponseMessage response)
+    {
+        var body = (await response.Content.ReadAsStringAsync()).Trim();
+        if (body.Length >= 2 && body.StartsWith('"') && body.EndsWith('"'))
+            body = body[1..^1].Replace("\\\"", "\"", StringComparison.Ordinal);
+
+        if (body.Contains("DbUpdateException", StringComparison.Ordinal) ||
+            body.Contains("PostgresException", StringComparison.Ordinal))
+            return "Пользователь с таким email уже существует.";
+
+        return body;
     }
 
     private async Task SaveSessionAsync(AuthResponse result)

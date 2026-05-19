@@ -122,7 +122,7 @@
         </label>
     </div>
 
-    <button class="auth-btn" @onclick="Submit" disabled="@_loading">
+    <button type="button" class="auth-btn" @onclick="Submit" disabled="@_loading">
         @if (_loading) { <span class="auth-spinner"></span> }
         else { <span>Зарегистрироваться</span> }
     </button>
@@ -183,18 +183,37 @@
         ValidateConfirm();
         if (_emailInvalid || _passwordInvalid || _confirmInvalid) return;
 
-        _loading = true; _error = null;
-        var result = await Auth.RegisterAsync(new()
+        _loading = true;
+        _error = null;
+
+        try
         {
-            Username = _username,
-            Email = _email,
-            Password = _password,
-            AvatarColor = _avatarColor,
-            AvatarDataUrl = _avatarPreviewUrl
-        });
-        _loading = false;
-        if (result == "email_sent") { _emailSent = true; return; }
-        if (result is not null) { _error = result; return; }
-        Nav.NavigateTo("/");
+            var result = await Auth.RegisterAsync(new()
+            {
+                Username = _username,
+                Email = _email,
+                Password = _password,
+                AvatarColor = _avatarColor,
+                AvatarDataUrl = _avatarPreviewUrl
+            });
+
+            if (result == "email_sent")
+            {
+                _emailSent = true;
+                return;
+            }
+
+            if (result is not null)
+            {
+                _error = result;
+                return;
+            }
+
+            Nav.NavigateTo("/");
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 }

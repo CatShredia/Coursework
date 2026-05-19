@@ -7,6 +7,7 @@ using CatshrediasNewsAPI.DTOs;
 using CatshrediasNewsAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 namespace CatshrediasNewsAPI.Services;
 
@@ -26,22 +27,35 @@ public class AuthService(
     {
         var email = dto.Email.Trim().ToLowerInvariant();
         var existing = await db.Users
+            .IgnoreQueryFilters()
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
+        if (existing is not null && existing.DeletedAt is not null)
+        {
+            UserAnonymization.Apply(existing, markDeleted: false);
+            await db.SaveChangesAsync();
+            existing = null;
+        }
+
         if (existing is not null)
         {
-            // Если аккаунт уже подтверждён — это реальный конфликт регистрации
             if (existing.EmailConfirmed)
                 return null;
 
-            // Если аккаунт не подтверждён — переотправляем подтверждение вместо ошибки
             existing.Username = dto.Username;
             existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             existing.AvatarColor = string.IsNullOrWhiteSpace(dto.AvatarColor) ? existing.AvatarColor : dto.AvatarColor;
             existing.EmailConfirmToken = Guid.NewGuid().ToString("N");
             existing.EmailConfirmTokenExpiry = DateTime.UtcNow.AddHours(24);
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                return null;
+            }
 
             await emailService.SendConfirmationAsync(existing.Email, existing.Username, existing.EmailConfirmToken);
             return new AuthResponseDto(GenerateToken(existing), MapToDto(existing));
@@ -63,7 +77,15 @@ public class AuthService(
         };
 
         db.Users.Add(user);
-        await db.SaveChangesAsync();
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            return null;
+        }
+
         await db.Entry(user).Reference(u => u.Role).LoadAsync();
 
         await emailService.SendConfirmationAsync(user.Email, user.Username, user.EmailConfirmToken!);
@@ -75,9 +97,10 @@ public class AuthService(
     // вызывается из AuthController.Login (Public)
     public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
     {
+        var email = dto.Email.Trim().ToLowerInvariant();
         var user = await db.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == dto.Email);
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return null;
@@ -185,7 +208,8 @@ public class AuthService(
     // возвращает null если пользователь не найден / пароль неверен
     public async Task<bool?> IsEmailConfirmedAsync(LoginDto dto)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        var email = dto.Email.Trim().ToLowerInvariant();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return null;
         return user.EmailConfirmed;
@@ -244,6 +268,12 @@ public class AuthService(
 
     // ? EmailExistsAsync : проверяет, зарегистрирован ли email в системе
     // вызывается из AuthController.CheckEmail (Public)
-    public async Task<bool> EmailExistsAsync(string email) =>
-        await db.Users.AnyAsync(u => u.Email == email);
+    public async Task<bool> EmailExistsAsync(string email)
+    {
+        var normalized = email.Trim().ToLowerInvariant();
+        return await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email.ToLower() == normalized);
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 }

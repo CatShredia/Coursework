@@ -266,6 +266,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<CommentsHub>("/hubs/comments");
-app.MapGet("/health", () => Results.Ok(new { status = "ok", utc = DateTime.UtcNow }));
+app.MapGet("/health", (IWebHostEnvironment env) =>
+    Results.Ok(new { status = "ok", utc = DateTime.UtcNow, environment = env.EnvironmentName }));
 
 app.Run();
