@@ -146,7 +146,7 @@ public class AuthService(
         return Convert.ToHexString(bytes);
     }
 
-    private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);
+    private static UserDto MapToDto(User u) => new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor, u.PersonalizedFeedEnabled);
 
     private string? SaveAvatarFromDataUrl(string? dataUrl)
     {

@@ -16,6 +16,7 @@ public class ArticleDto
     public List<string> Tags { get; set; } = [];
     public int LikesCount { get; set; }
     public string? SourceName { get; set; }
+    public string? RejectionReason { get; set; }
 }
 
 public class TagDto

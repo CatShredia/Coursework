@@ -20,14 +20,15 @@ public class ModerationService(AppDbContext db)
     // вызывается из ModerationController.GetQueue (Moderator)
     public async Task<List<ArticleDto>> GetQueueAsync()
     {
-        return await db.Articles
+        var articles = await db.Articles
             .Where(a => a.Status.Name == "PendingReview")
             .Include(a => a.Status)
             .Include(a => a.Author)
             .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
-            .Select(a => MapToDto(a))
             .ToListAsync();
+
+        return articles.Select(a => MapToDto(a)).ToList();
     }
 
     // ? ApproveAsync : одобряет статью и записывает действие в журнал
@@ -122,6 +123,7 @@ public class ModerationService(AppDbContext db)
         a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.AuthorId, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
-        0, a.RssSource?.Name
+        0, a.RssSource?.Name,
+        null
     );
 }

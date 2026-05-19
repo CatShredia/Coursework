@@ -41,7 +41,11 @@ public class AuthService
                 Email       = email ?? "",
                 Role        = role ?? "User",
                 AvatarUrl   = string.IsNullOrEmpty(avatarUrl) ? null : avatarUrl,
-                AvatarColor = avatarColor ?? "#1a73e8"
+                AvatarColor = avatarColor ?? "#1a73e8",
+                PersonalizedFeedEnabled = !string.Equals(
+                    await _js.InvokeAsync<string?>("localStorage.getItem", "auth_personalized_feed"),
+                    "false",
+                    StringComparison.OrdinalIgnoreCase)
             };
             _http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -160,6 +164,7 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_email");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_role");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "auth_personalized_feed");
         Console.WriteLine("[AuthService] DeleteAccountAsync: session cleared, no OnChange fired");
         return null;
     }
@@ -179,6 +184,7 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_email");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_role");
         await _js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "auth_personalized_feed");
         OnChange?.Invoke();
     }
 
@@ -208,6 +214,25 @@ public class AuthService
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_id",            result.User.Id.ToString());
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_color",  result.User.AvatarColor);
         await _js.InvokeVoidAsync("localStorage.setItem", "auth_avatar_url",    result.User.AvatarUrl ?? "");
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_personalized_feed",
+            result.User.PersonalizedFeedEnabled.ToString().ToLowerInvariant());
         OnChange?.Invoke();
+    }
+
+    public async Task<bool> SetPersonalizedFeedAsync(bool enabled)
+    {
+        if (CurrentUser is null) return false;
+
+        var response = await _http.PutAsJsonAsync("api/users/me/personalized-feed", new { enabled });
+        if (!response.IsSuccessStatusCode) return false;
+
+        var user = await response.Content.ReadFromJsonAsync<UserInfo>();
+        if (user is null) return false;
+
+        CurrentUser.PersonalizedFeedEnabled = user.PersonalizedFeedEnabled;
+        await _js.InvokeVoidAsync("localStorage.setItem", "auth_personalized_feed",
+            user.PersonalizedFeedEnabled.ToString().ToLowerInvariant());
+        OnChange?.Invoke();
+        return true;
     }
 }

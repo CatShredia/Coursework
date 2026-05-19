@@ -41,5 +41,6 @@ public class UnauthorizedLogoutHandler(IJSRuntime js, NavigationManager nav) : D
         await js.InvokeVoidAsync("localStorage.removeItem", "auth_id");
         await js.InvokeVoidAsync("localStorage.removeItem", "auth_avatar_url");
         await js.InvokeVoidAsync("localStorage.removeItem", "auth_avatar_color");
+        await js.InvokeVoidAsync("localStorage.removeItem", "auth_personalized_feed");
     }
 }

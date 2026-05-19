@@ -30,6 +30,15 @@ public class UsersController(UserService userService) : ControllerBase
         return user is null ? NotFound() : Ok(user);
     }
 
+    [Authorize]
+    [HttpPut("me/personalized-feed")]
+    public async Task<IActionResult> SetPersonalizedFeed(SetPersonalizedFeedDto dto)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await userService.SetPersonalizedFeedAsync(userId, dto.Enabled);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     // ? Update : обновляет username, email или пароль текущего пользователя
     // вызывается клиентом (Auth)
     [Authorize]

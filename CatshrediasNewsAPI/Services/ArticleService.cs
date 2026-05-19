@@ -11,6 +11,12 @@ public class ArticleService(AppDbContext db)
     // вызывается из ArticlesController.GetFeed (Auth)
     public async Task<List<ArticleDto>> GetFeedAsync(int userId, int page, int pageSize)
     {
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null) return [];
+
+        if (!user.PersonalizedFeedEnabled)
+            return await GetPublicFeedAsync(page, pageSize);
+
         var weights = await db.UserTagWeights
             .Where(utw => utw.UserId == userId)
             .ToDictionaryAsync(utw => utw.TagId, utw => utw.Weight);
@@ -30,7 +36,7 @@ public class ArticleService(AppDbContext db)
             .ThenByDescending(a => a.PublishedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(MapToDto)
+            .Select(a => MapToDto(a, null))
             .ToList();
     }
 
@@ -38,7 +44,7 @@ public class ArticleService(AppDbContext db)
     // вызывается из ArticlesController.GetPublicFeed (Public)
     public async Task<List<ArticleDto>> GetPublicFeedAsync(int page, int pageSize)
     {
-        return await db.Articles
+        var articles = await db.Articles
             .Where(a => a.Status.Name == "Published")
             .Include(a => a.Status)
             .Include(a => a.Author)
@@ -48,8 +54,9 @@ public class ArticleService(AppDbContext db)
             .OrderByDescending(a => a.PublishedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => MapToDto(a))
             .ToListAsync();
+
+        return articles.Select(a => MapToDto(a, null)).ToList();
     }
 
     // ? GetByIdAsync : возвращает статью по идентификатору
@@ -65,7 +72,7 @@ public class ArticleService(AppDbContext db)
             .Include(a => a.Likes)
             .FirstOrDefaultAsync();
 
-        return article is null ? null : MapToDto(article);
+        return article is null ? null : MapToDto(article, null);
     }
 
     // ? LikeAsync : ставит или снимает лайк, обновляет вес тега пользователя
@@ -73,15 +80,23 @@ public class ArticleService(AppDbContext db)
     public async Task<bool> LikeAsync(int articleId, int userId)
     {
         var existing = await db.Likes.FindAsync(userId, articleId);
+        var personalizedFeed = await db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.PersonalizedFeedEnabled)
+            .FirstOrDefaultAsync();
+
         if (existing is not null)
         {
             db.Likes.Remove(existing);
-            await UpdateTagWeightsAsync(articleId, userId, -0.5f);
+            if (personalizedFeed)
+                await UpdateTagWeightsAsync(articleId, userId, -0.5f);
         }
         else
         {
             db.Likes.Add(new Like { ArticleId = articleId, UserId = userId });
-            await UpdateTagWeightsAsync(articleId, userId, +0.5f);
+            if (personalizedFeed)
+                await UpdateTagWeightsAsync(articleId, userId, +0.5f);
         }
 
         await db.SaveChangesAsync();
@@ -183,15 +198,18 @@ public class ArticleService(AppDbContext db)
     // вызывается из ArticlesController.GetMyArticles (Auth)
     public async Task<List<ArticleDto>> GetByAuthorAsync(int authorId)
     {
-        return await db.Articles
+        var articles = await db.Articles
             .Where(a => a.AuthorId == authorId)
             .Include(a => a.Status)
+            .Include(a => a.Author)
             .Include(a => a.RssSource)
             .Include(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(a => a.Likes)
+            .Include(a => a.ModerationLogs)
             .OrderByDescending(a => a.CreatedAt)
-            .Select(a => MapToDto(a))
             .ToListAsync();
+
+        return articles.Select(a => MapToDto(a, GetRejectionReason(a))).ToList();
     }
 
     // ? SearchAsync : поиск опубликованных статей по заголовку и тексту
@@ -200,7 +218,7 @@ public class ArticleService(AppDbContext db)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
         var q = query.ToLower();
-        return await db.Articles
+        var articles = await db.Articles
             .Where(a => a.Status.Name == "Published" &&
                         (a.Title.ToLower().Contains(q) || a.Content.ToLower().Contains(q)))
             .Include(a => a.Status)
@@ -210,15 +228,16 @@ public class ArticleService(AppDbContext db)
             .Include(a => a.Likes)
             .OrderByDescending(a => a.PublishedAt)
             .Take(30)
-            .Select(a => MapToDto(a))
             .ToListAsync();
+
+        return articles.Select(a => MapToDto(a, null)).ToList();
     }
 
     // ? GetSavedAsync : возвращает сохранённые статьи пользователя
     // вызывается из ArticlesController.GetSaved (Auth)
     public async Task<List<ArticleDto>> GetSavedAsync(int userId)
     {
-        return await db.SavedArticles
+        var saved = await db.SavedArticles
             .Where(sa => sa.UserId == userId)
             .OrderByDescending(sa => sa.SavedAt)
             .Include(sa => sa.Article).ThenInclude(a => a.Status)
@@ -226,8 +245,9 @@ public class ArticleService(AppDbContext db)
             .Include(sa => sa.Article).ThenInclude(a => a.RssSource)
             .Include(sa => sa.Article).ThenInclude(a => a.ArticleTags).ThenInclude(at => at.Tag)
             .Include(sa => sa.Article).ThenInclude(a => a.Likes)
-            .Select(sa => MapToDto(sa.Article))
             .ToListAsync();
+
+        return saved.Select(sa => MapToDto(sa.Article, null)).ToList();
     }
 
     // ? IsLikedAsync : проверяет, поставил ли пользователь лайк на статью
@@ -291,12 +311,22 @@ public class ArticleService(AppDbContext db)
         }
     }
 
-    private static ArticleDto MapToDto(Article a) => new(
+    private static string? GetRejectionReason(Article article) =>
+        article.Status.Name == "Rejected"
+            ? article.ModerationLogs
+                .Where(m => m.Action == "Rejected" && !string.IsNullOrWhiteSpace(m.Reason))
+                .OrderByDescending(m => m.CreatedAt)
+                .Select(m => m.Reason)
+                .FirstOrDefault()
+            : null;
+
+    private static ArticleDto MapToDto(Article a, string? rejectionReason) => new(
         a.Id, a.Title, a.Content, a.ContentHtml, a.ImageUrl, a.RssAuthor,
         a.SourceUrl, a.PublishedAt,
         a.Status.Name, a.AuthorId, a.Author?.Username,
         a.ArticleTags.Select(at => at.Tag.Name).ToList(),
         a.Likes.Count,
-        a.RssSource?.Name
+        a.RssSource?.Name,
+        rejectionReason
     );
 }

@@ -148,6 +148,16 @@ public class UserService(AppDbContext db, IWebHostEnvironment env)
         return true;
     }
 
+    public async Task<UserDto?> SetPersonalizedFeedAsync(int userId, bool enabled)
+    {
+        var user = await db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null) return null;
+
+        user.PersonalizedFeedEnabled = enabled;
+        await db.SaveChangesAsync();
+        return Map(user);
+    }
+
     private static UserDto Map(Models.User u) =>
-        new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor);
+        new(u.Id, u.Username, u.Email, u.Role.Name, u.IsBlocked, u.AvatarUrl, u.AvatarColor, u.PersonalizedFeedEnabled);
 }

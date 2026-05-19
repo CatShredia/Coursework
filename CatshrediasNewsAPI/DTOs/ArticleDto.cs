@@ -14,7 +14,8 @@ public record ArticleDto(
     string? Author,
     List<string> Tags,
     int LikesCount,
-    string? SourceName
+    string? SourceName,
+    string? RejectionReason = null
 );
 
 public record CreateArticleDto(
