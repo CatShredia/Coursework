@@ -17,3 +17,7 @@ v.0.0.5 -
 v.0.0.5.5 - 
     fix_configs
     reason_editor
+v.0.0.6 - 
+    localization
+    unit tests
+    timeweb guide
