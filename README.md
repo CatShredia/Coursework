@@ -34,6 +34,7 @@ flowchart LR
 
 - [README_for_API](CatshrediasNewsAPI/README_for_API.md)
 - [README_for_Blazor](CatshrediasNews.Client/README_for_Blazor.md)
+- [Настройка сервера на Timeweb (VPS/Cloud, DNS, HTTPS, Docker)](docs/server-setup.md)
 
 ## Запуск Через Tuna
 
@@ -78,6 +79,22 @@ tuna http 80
 ```bash
 docker compose up -d --build api web
 ```
+
+## Тесты
+
+Решение `Coursework.sln` включает unit- и integration-тесты API.
+
+```bash
+dotnet test Coursework.sln
+```
+
+Только unit-тесты:
+
+```bash
+dotnet test CatshrediasNewsAPI.Tests/CatshrediasNewsAPI.Tests.csproj
+```
+
+Integration-тесты используют среду `Testing`, EF Core InMemory и заглушку `IEmailService` (без SMTP).
 
 ## Возможные Улучшения
 

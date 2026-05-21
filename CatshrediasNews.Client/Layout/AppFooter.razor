@@ -1,40 +1,21 @@
+@inject CultureService Culture
+
 <footer class="app-footer">
     <div class="footer-grid">
-
-        <!-- Бренд -->
         <div class="footer-brand">
             <div class="footer-logo">Runews</div>
-            <p>
-                Runews — новостной агрегатор нового поколения.
-                Собираем актуальные новости из проверенных источников
-                и персонализируем ленту под ваши интересы.
-            </p>
+            <p>@L["Footer_Description"]</p>
         </div>
 
-        <!-- Компания -->
         <div>
-            <div class="footer-col-title">Компания</div>
+            <div class="footer-col-title">@L["Footer_Company"]</div>
             <div class="footer-links">
-                <a href="/about">О нас</a>
-                @* <a href="/team">Команда</a> *@
-                @* <a href="/careers">Вакансии</a> *@
-                @* <a href="/press">Пресса</a> *@
+                <a href="/about">@L["Footer_About"]</a>
             </div>
         </div>
 
-        <!-- Сотрудничество -->
-        @* <div> *@
-        @*     <div class="footer-col-title">Сотрудничество</div> *@
-        @*     <div class="footer-links"> *@
-        @*         <a href="/">Главная</a> *@
-        @*         <a href="/advertise">Реклама</a> *@
-        @*         <a href="/partners">Партнёрам</a> *@
-        @*     </div> *@
-        @* </div> *@
-
-        <!-- Соцсети -->
         <div>
-            <div class="footer-col-title">Мы в соцсетях</div>
+            <div class="footer-col-title">@L["Footer_Social"]</div>
             <div class="footer-socials">
                 <a href="https://max.ru/" target="_blank" class="social-btn" title="Max">
                     <img src="max-messenger.png" alt="MaxIcon" style="width: 25px; height: 25px">
@@ -42,26 +23,89 @@
                 <a href="https://t.me/Aleksandr_Evimov" target="_blank" class="social-btn" title="Telegram">
                     <img src="telegram.png" alt="TelegramIcon" style="width: 25px; height: 25px">
                 </a>
-                <a href="https://vk.com/" target="_blank" class="social-btn" title="ВКонтакте">
-                    <img src="vk.png" alt="TelegramIcon" style="width: 25px; height: 25px">
+                <a href="https://vk.com/" target="_blank" class="social-btn" title="VK">
+                    <img src="vk.png" alt="VK" style="width: 25px; height: 25px">
                 </a>
             </div>
         </div>
 
+        <div class="footer-lang-col">
+            <div class="footer-col-title">@L["Footer_Language"]</div>
+            <div class="footer-lang-menu" @onclick:stopPropagation="true">
+                <button type="button"
+                        class="footer-lang-trigger"
+                        aria-expanded="@_langMenuOpen"
+                        aria-haspopup="listbox"
+                        @onclick="ToggleLangMenu">
+                    <i class="bi bi-globe2"></i>
+                    <span>@CurrentLanguageLabel()</span>
+                    <i class="bi @(_langMenuOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                </button>
+                @if (_langMenuOpen)
+                {
+                    <div class="footer-lang-dropdown" role="listbox">
+                        @foreach (var option in _languageOptions)
+                        {
+                            <button type="button"
+                                    role="option"
+                                    class="footer-lang-option @(Culture.CurrentCulture == option.Code ? "active" : "")"
+                                    aria-selected="@(Culture.CurrentCulture == option.Code)"
+                                    @onclick="() => SelectLanguageAsync(option.Code)">
+                                <span class="footer-lang-code">@option.CodeLabel</span>
+                                <span>@L[option.NameKey]</span>
+                                @if (Culture.CurrentCulture == option.Code)
+                                {
+                                    <i class="bi bi-check2"></i>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
+    @if (_langMenuOpen)
+    {
+        <button type="button" class="footer-lang-backdrop" aria-label="@L["Common_Close"]" @onclick="CloseLangMenu"></button>
+    }
+
     <div class="footer-bottom">
-        <span>© @DateTime.Now.Year Runews. Все права защищены.</span>
+        <span>@L["Footer_Copyright", DateTime.Now.Year]</span>
         <div style="display:flex;gap:20px;">
-            @* <a href="/privacy">Политика конфиденциальности</a> *@
-            <a href="/terms">Пользовательское соглашение</a>
-            @* <a href="/contacts">Контакты</a> *@
+            <a href="/terms">@L["Footer_Terms"]</a>
         </div>
     </div>
     <div class="footer-edu">
-        Проект создан в учебных целях
+        @L["Footer_Edu"]
     </div>
 </footer>
 
 @code {
+    private bool _langMenuOpen;
+
+    private readonly (string Code, string CodeLabel, string NameKey)[] _languageOptions =
+    [
+        (CultureService.DefaultCulture, "RU", "Lang_Ru_Full"),
+        (CultureService.EnglishCulture, "EN", "Lang_En_Full"),
+        (CultureService.TatarCulture, "ТТ", "Lang_Tt_Full")
+    ];
+
+    private string CurrentLanguageLabel() => Culture.CurrentCulture switch
+    {
+        CultureService.EnglishCulture => L["Lang_En_Full"],
+        CultureService.TatarCulture   => L["Lang_Tt_Full"],
+        _                             => L["Lang_Ru_Full"]
+    };
+
+    private void ToggleLangMenu() => _langMenuOpen = !_langMenuOpen;
+
+    private void CloseLangMenu() => _langMenuOpen = false;
+
+    private async Task SelectLanguageAsync(string culture)
+    {
+        _langMenuOpen = false;
+        if (Culture.CurrentCulture != culture)
+            await Culture.SetCultureAsync(culture);
+    }
 }

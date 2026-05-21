@@ -5,16 +5,16 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<PageTitle>Вход — Runews</PageTitle>
+<PageTitle>@L["Auth_PageLogin"]</PageTitle>
 
 <div class="auth-card">
     <button class="auth-back" @onclick="GoBack">
-        <i class="bi bi-arrow-left"></i> Назад
+        <i class="bi bi-arrow-left"></i> @L["Common_Back"]
     </button>
     <div class="auth-logo">
         <span>Runews</span>
     </div>
-    <h1 class="auth-title">Вход в аккаунт</h1>
+    <h1 class="auth-title">@L["Auth_LoginTitle"]</h1>
 
     @if (!string.IsNullOrEmpty(_error))
     {
@@ -22,7 +22,7 @@
             <i class="bi bi-exclamation-circle"></i>
             @if (_error == "email_not_confirmed")
             {
-                <span>Подтвердите email перед входом. Проверьте почту.</span>
+                <span>@L["Auth_EmailNotConfirmed"]</span>
             }
             else
             {
@@ -33,12 +33,12 @@
     @if (_confirmed)
     {
         <div class="auth-success">
-            <i class="bi bi-check-circle"></i> Email подтверждён! Теперь можно войти.
+            <i class="bi bi-check-circle"></i> @L["Auth_EmailConfirmed"]
         </div>
     }
 
     <div class="auth-field">
-        <label>Email</label>
+        <label>@L["Auth_Email"]</label>
         <div class="input-wrap @(_emailInvalid ? "input-invalid" : "")">
             <i class="bi bi-envelope"></i>
             <input type="email" placeholder="you@example.com"
@@ -47,16 +47,16 @@
         </div>
         @if (_emailInvalid)
         {
-            <span class="field-error">Введите корректный email (например: you@example.com)</span>
+            <span class="field-error">@L["Auth_ErrorEmail"]</span>
         }
     </div>
 
     <div class="auth-field">
-        <label>Пароль</label>
+        <label>@L["Auth_Password"]</label>
         <div class="input-wrap @(_passwordInvalid ? "input-invalid" : "")">
             <i class="bi bi-lock"></i>
             <input type="@(_showPassword ? "text" : "password")"
-                   placeholder="Введите пароль"
+                   placeholder="@L["Auth_PasswordEnter"]"
                    @bind="_password" @bind:event="oninput"
                    @onblur="ValidatePassword" />
             <button class="input-eye" type="button" @onclick="TogglePassword">
@@ -65,7 +65,7 @@
         </div>
         @if (_passwordInvalid)
         {
-            <span class="field-error">Пароль не может быть пустым</span>
+            <span class="field-error">@L["Auth_ErrorPasswordEmpty"]</span>
         }
     </div>
 
@@ -76,13 +76,13 @@
         }
         else
         {
-            <span>Войти</span>
+            <span>@L["Auth_LoginBtn"]</span>
         }
     </button>
 
     <div class="auth-links">
-        <a href="/forgot-password">Забыли пароль?</a>
-        <a href="/register">Создать аккаунт</a>
+        <a href="/forgot-password">@L["Auth_ForgotLink"]</a>
+        <a href="/register">@L["Auth_CreateAccount"]</a>
     </div>
 </div>
 
@@ -123,7 +123,7 @@
     {
         if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
         {
-            _error = "Заполните все поля.";
+            _error = L["Auth_ErrorFillAll"];
             return;
         }
         ValidateEmail();

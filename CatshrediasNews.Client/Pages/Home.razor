@@ -4,20 +4,20 @@
 @inject ArticleService ArticleSvc
 @implements IDisposable
 
-<PageTitle>Лента — Runews</PageTitle>
+<PageTitle>@L["Home_Title"]</PageTitle>
 
 @if (_showDeletedMessage)
 {
     <div class="auth-success" style="margin-bottom:20px;font-size:15px;padding:16px 20px">
         <i class="bi bi-check-circle"></i>
-        <div><strong>Аккаунт удалён.</strong> Спасибо, что были с нами.</div>
+        <div><strong>@L["Home_AccountDeleted"]</strong> @L["Home_AccountDeletedThanks"]</div>
     </div>
 }
 @if (_showConfirmedMessage)
 {
     <div class="auth-success" style="margin-bottom:20px;font-size:15px;padding:16px 20px">
         <i class="bi bi-check-circle"></i>
-        <div><strong>Email успешно подтверждён.</strong> Теперь вы можете войти в аккаунт.</div>
+        <div><strong>@L["Home_EmailConfirmed"]</strong> @L["Home_EmailConfirmedLogin"]</div>
     </div>
 }
 
@@ -26,25 +26,25 @@
     <span class="feed-toolbar-title">
         @if (Auth.IsAuthenticated)
         {
-            <span>Для вас</span>
+            <span>@L["Home_ForYou"]</span>
         }
         else
         {
-            <span>Лента новостей</span>
+            <span>@L["Home_Feed"]</span>
         }
     </span>
 
     <button class="feed-sort-btn @(_sort == FeedSort.Newest ? "active" : "")"
             @onclick="() => SetSort(FeedSort.Newest)">
-        <i class="bi bi-clock"></i> Новые
+        <i class="bi bi-clock"></i> @L["Home_SortNewest"]
     </button>
     <button class="feed-sort-btn @(_sort == FeedSort.Oldest ? "active" : "")"
             @onclick="() => SetSort(FeedSort.Oldest)">
-        <i class="bi bi-clock-history"></i> Старые
+        <i class="bi bi-clock-history"></i> @L["Home_SortOldest"]
     </button>
     <button class="feed-sort-btn @(_sort == FeedSort.Popular ? "active" : "")"
             @onclick="() => SetSort(FeedSort.Popular)">
-        <i class="bi bi-fire"></i> Популярные
+        <i class="bi bi-fire"></i> @L["Home_SortPopular"]
     </button>
 </div>
 
@@ -56,18 +56,18 @@
             <i class="bi @(_personalizedFeedEnabled ? "bi-stars" : "bi-newspaper")"></i>
             @if (_personalizedFeedEnabled)
             {
-                <span>Лента персонализирована на основе ваших интересов</span>
+                <span>@L["Home_RecEnabled"]</span>
             }
             else
             {
-                <span>Персональные рекомендации отключены — показана общая лента</span>
+                <span>@L["Home_RecDisabled"]</span>
             }
         </div>
         <button type="button"
                 class="feed-rec-toggle"
                 disabled="@_togglingFeed"
                 @onclick="TogglePersonalizedFeed">
-            @(_personalizedFeedEnabled ? "Отключить функцию" : "Включить функцию")
+            @(_personalizedFeedEnabled ? L["Home_RecDisable"] : L["Home_RecEnable"])
         </button>
     </div>
 }
@@ -109,13 +109,13 @@
         </span>
         <button class="feed-tag-btn @(_activeSource == null ? "active" : "")"
                 @onclick="() => SetSource(null)">
-            Все источники
+            @L["Home_AllSources"]
         </button>
         @if (_articles.Any(a => string.IsNullOrEmpty(a.SourceName)))
         {
             <button class="feed-tag-btn @(_activeSource == "__authors__" ? "active" : "")"
                     @onclick='() => SetSource("__authors__")'>
-                <i class="bi bi-pencil-square"></i> Авторские
+                <i class="bi bi-pencil-square"></i> @L["Home_AuthorsOnly"]
             </button>
         }
         @foreach (var src in _sources)
@@ -145,7 +145,7 @@ else if (!_filtered.Any())
 {
     <div class="feed-empty">
         <i class="bi bi-newspaper"></i>
-        <p>Статей не найдено. Попробуйте изменить фильтры.</p>
+        <p>@L["Home_Empty"]</p>
     </div>
 }
 else
@@ -163,7 +163,7 @@ else
                     @if (Auth.IsAuthenticated && IsRecommended(article))
                     {
                         <span class="article-rec-badge">
-                            <i class="bi bi-stars"></i> Рекомендовано
+                            <i class="bi bi-stars"></i> @L["Home_Recommended"]
                         </span>
                     }
                 </div>
@@ -215,7 +215,7 @@ else
                             @article.LikesCount
                         </button>
                         <button class="article-save-btn @(_saved.Contains(article.Id) ? "saved" : "")"
-                                title="@(_saved.Contains(article.Id) ? "Убрать из избранного" : "Сохранить")"
+                                title="@(_saved.Contains(article.Id) ? L["Home_Unsave"] : L["Home_Save"])"
                                 @onclick:stopPropagation="true"
                                 @onclick="() => ToggleSave(article)">
                             <i class="bi @(_saved.Contains(article.Id) ? "bi-bookmark-fill" : "bi-bookmark")"></i>

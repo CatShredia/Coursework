@@ -3,7 +3,7 @@
 @inject ArticleService ArticleSvc
 @inject NavigationManager Nav
 
-<PageTitle>Мои статьи — Runews</PageTitle>
+<PageTitle>@L["Editor_MyArticles"]</PageTitle>
 
 @if (Auth.CurrentUser?.Role is not ("Publicist" or "Moderator" or "Admin"))
 {
@@ -13,10 +13,10 @@
 
 <div class="admin-page">
     <div class="admin-header">
-        <h1 class="page-title" style="margin:0">Мои статьи</h1>
+        <h1 class="page-title" style="margin:0">@L["Editor_MyArticlesHeading"]</h1>
         <a href="/publicist/create">
             <button class="auth-btn" style="width:auto;padding:8px 18px">
-                <i class="bi bi-pencil-square"></i> Написать статью
+                <i class="bi bi-pencil-square"></i> @L["Nav_WriteArticle"]
             </button>
         </a>
     </div>
@@ -24,7 +24,7 @@
     <!-- Фильтр по статусу -->
     <div class="feed-tags">
         <button class="feed-tag-btn @(_statusFilter == "" ? "active" : "")"
-                @onclick='() => _statusFilter = ""'>Все</button>
+                @onclick='() => _statusFilter = ""'>@L["Common_All"]</button>
         @foreach (var s in _statuses)
         {
             var status = s;
@@ -39,14 +39,14 @@
     {
         <div class="admin-loading">
             <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
-            Загрузка...
+            @L["Common_Loading"]
         </div>
     }
     else if (!_filtered.Any())
     {
         <div class="feed-empty">
             <i class="bi bi-file-earmark-text"></i>
-            <p>Статей нет. <a href="/publicist/create" style="color:var(--accent)">Написать первую?</a></p>
+            <p>@L["Editor_NoArticles"] <a href="/publicist/create" style="color:var(--accent)">@L["Editor_WriteFirst"]</a></p>
         </div>
     }
     else
@@ -55,12 +55,12 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Заголовок</th>
-                        <th>Теги</th>
-                        <th>Статус</th>
-                        <th>Дата</th>
-                        <th>Лайки</th>
-                        <th>Действия</th>
+                        <th>@L["Editor_ColTitle"]</th>
+                        <th>@L["Editor_ColTags"]</th>
+                        <th>@L["Editor_ColStatus"]</th>
+                        <th>@L["Editor_ColDate"]</th>
+                        <th>@L["Editor_ColLikes"]</th>
+                        <th>@L["Editor_ColActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,27 +103,27 @@
                                     @if (!string.IsNullOrEmpty(article.SourceUrl))
                                     {
                                         <a href="@article.SourceUrl" target="_blank">
-                                            <button class="action-btn" title="Открыть">
+                                            <button class="action-btn" title="@L["Editor_Open"]">
                                                 <i class="bi bi-box-arrow-up-right"></i>
                                             </button>
                                         </a>
                                     }
                                     <a href="/publicist/create/@article.Id">
-                                        <button class="action-btn action-btn-success" title="Редактировать">
+                                        <button class="action-btn action-btn-success" title="@L["Editor_EditBtn"]">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                     </a>
                                     @if (article.Status == "Rejected")
                                     {
                                         <button class="action-btn"
-                                                title="@(HasRejectionInfo(article) ? "Замечания модератора" : "Причина не указана")"
+                                                title="@(HasRejectionInfo(article) ? L["Editor_ModeratorNotesTooltip"] : L["Editor_RejectionUnknown"])"
                                                 disabled="@(!HasRejectionInfo(article))"
                                                 @onclick="() => ShowRejection(article)">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
                                     }
                                     <button class="action-btn action-btn-danger"
-                                            title="Удалить"
+                                            title="@L["Common_Delete"]"
                                             @onclick="() => AskDelete(article)">
                                         <i class="bi bi-trash3"></i>
                                     </button>
@@ -144,7 +144,7 @@
             <div class="modal-icon" style="background:#fdecea;color:#e53935">
                 <i class="bi bi-x-circle"></i>
             </div>
-            <h3 class="modal-title">Причина отклонения</h3>
+            <h3 class="modal-title">@L["Editor_RejectionTitle"]</h3>
             <p class="modal-text" style="text-align:left">
                 <strong>«@_rejectionTarget.Title»</strong>
             </p>
@@ -169,7 +169,7 @@
                 <p class="mod-reason-display">@_rejectionTarget.RejectionReason</p>
             }
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="() => _rejectionTarget = null">Закрыть</button>
+                <button class="modal-btn-cancel" @onclick="() => _rejectionTarget = null">@L["Common_Close"]</button>
             </div>
         </div>
     </div>
@@ -180,12 +180,12 @@
     <div class="modal-overlay" @onclick="() => _deleteTarget = null">
         <div class="modal-box" @onclick:stopPropagation="true">
             <div class="modal-icon"><i class="bi bi-exclamation-triangle"></i></div>
-            <h3 class="modal-title">Удалить статью?</h3>
+            <h3 class="modal-title">@L["Editor_DeleteTitle"]</h3>
             <p class="modal-text">
-                «@_deleteTarget.Title» будет удалена безвозвратно.
+                @L["Editor_DeleteBody", _deleteTarget.Title]
             </p>
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">Отмена</button>
+                <button class="modal-btn-cancel" @onclick="() => _deleteTarget = null">@L["Common_Cancel"]</button>
                 <button class="modal-btn-confirm" @onclick="ConfirmDelete" disabled="@_deleteLoading">
                     @if (_deleteLoading) { <span class="auth-spinner"></span> }
                     else { <span>Удалить</span> }
@@ -233,14 +233,7 @@
         _deleteLoading = false;
     }
 
-    private static string StatusLabel(string s) => s switch
-    {
-        "Draft"         => "Черновик",
-        "PendingReview" => "На проверке",
-        "Published"     => "Опубликована",
-        "Rejected"      => "Отклонена",
-        _               => s
-    };
+    private string StatusLabel(string s) => L.ArticleStatus(s);
 
     private static string StatusClass(string s) => s switch
     {

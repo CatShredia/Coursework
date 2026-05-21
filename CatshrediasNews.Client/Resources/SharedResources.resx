@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Admin_UsersPageTitle" xml:space="preserve"><value>Пользователи — Runews</value></data>
+  <data name="Admin_UsersTitle" xml:space="preserve"><value>Управление пользователями</value></data>
+  <data name="AppTitleSuffix" xml:space="preserve"><value>— Runews</value></data>
+  <data name="Article_BackToFeed" xml:space="preserve"><value>← Вернуться в ленту</value></data>
+  <data name="Article_CommentPlaceholder" xml:space="preserve"><value>Напишите комментарий...</value></data>
+  <data name="Article_CommentSubmit" xml:space="preserve"><value>Отправить</value></data>
+  <data name="Article_Comments" xml:space="preserve"><value>Комментарии</value></data>
+  <data name="Article_CommentsEmpty" xml:space="preserve"><value>Комментариев пока нет. Будьте первым!</value></data>
+  <data name="Article_CommentsTitle" xml:space="preserve"><value>Комментарии</value></data>
+  <data name="Article_LoginToComment" xml:space="preserve"><value>Войдите, чтобы оставить комментарий.</value></data>
+  <data name="Article_NotFound" xml:space="preserve"><value>Статья не найдена или была удалена.</value></data>
+  <data name="Article_NotFoundTitle" xml:space="preserve"><value>Статья — Runews</value></data>
+  <data name="Article_Reply" xml:space="preserve"><value>Ответить</value></data>
+  <data name="Article_Report" xml:space="preserve"><value>Пожаловаться</value></data>
+  <data name="Article_ReportSent" xml:space="preserve"><value>Жалоба отправлена. Спасибо!</value></data>
+  <data name="Article_ReportTitle" xml:space="preserve"><value>Пожаловаться на статью</value></data>
+  <data name="Auth_AvatarColor" xml:space="preserve"><value>Цвет аватара</value></data>
+  <data name="Auth_AvatarPreview" xml:space="preserve"><value>Предпросмотр</value></data>
+  <data name="Auth_AvatarUploadOptional" xml:space="preserve"><value>Загрузить аватар (необязательно)</value></data>
+  <data name="Auth_BackToLogin" xml:space="preserve"><value>Вернуться ко входу</value></data>
+  <data name="Auth_ConfirmInvalid" xml:space="preserve"><value>Ссылка недействительна</value></data>
+  <data name="Auth_ConfirmInvalidHint" xml:space="preserve"><value>Ссылка устарела или уже была использована.</value></data>
+  <data name="Auth_ConfirmPending" xml:space="preserve"><value>Подтверждаем ваш email...</value></data>
+  <data name="Auth_ConfirmRedirect" xml:space="preserve"><value>Перенаправляем на главную страницу...</value></data>
+  <data name="Auth_ConfirmSuccess" xml:space="preserve"><value>Email подтверждён!</value></data>
+  <data name="Auth_CreateAccount" xml:space="preserve"><value>Создать аккаунт</value></data>
+  <data name="Auth_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Auth_EmailConfirmed" xml:space="preserve"><value>Email подтверждён! Теперь можно войти.</value></data>
+  <data name="Auth_EmailNotConfirmed" xml:space="preserve"><value>Подтвердите email перед входом. Проверьте почту.</value></data>
+  <data name="Auth_ErrorEmail" xml:space="preserve"><value>Введите корректный email (например: you@example.com)</value></data>
+  <data name="Auth_ErrorFillAll" xml:space="preserve"><value>Заполните все поля.</value></data>
+  <data name="Auth_ErrorPasswordEmpty" xml:space="preserve"><value>Пароль не может быть пустым</value></data>
+  <data name="Auth_ErrorPasswordMin6" xml:space="preserve"><value>Пароль должен содержать минимум 6 символов</value></data>
+  <data name="Auth_ErrorPasswordMismatch" xml:space="preserve"><value>Пароли не совпадают</value></data>
+  <data name="Auth_ErrorRegisterConflict" xml:space="preserve"><value>Пользователь с таким email уже существует.</value></data>
+  <data name="Auth_ErrorRegisterGeneric" xml:space="preserve"><value>Не удалось зарегистрироваться. Попробуйте позже.</value></data>
+  <data name="Auth_ForgotBtn" xml:space="preserve"><value>Отправить ссылку</value></data>
+  <data name="Auth_ForgotEnterEmail" xml:space="preserve"><value>Введите email.</value></data>
+  <data name="Auth_ForgotLink" xml:space="preserve"><value>Забыли пароль?</value></data>
+  <data name="Auth_ForgotNotFound" xml:space="preserve"><value>Аккаунт с таким email не найден.</value></data>
+  <data name="Auth_ForgotSubtitle" xml:space="preserve"><value>Введите email — мы отправим ссылку для сброса пароля.</value></data>
+  <data name="Auth_ForgotSuccess" xml:space="preserve"><value>Если аккаунт с адресом {0} существует, письмо с инструкцией уже в пути.</value></data>
+  <data name="Auth_ForgotTitle" xml:space="preserve"><value>Восстановление пароля</value></data>
+  <data name="Auth_GoHome" xml:space="preserve"><value>На главную</value></data>
+  <data name="Auth_HaveAccount" xml:space="preserve"><value>Уже есть аккаунт? Войти</value></data>
+  <data name="Auth_LoginBtn" xml:space="preserve"><value>Войти</value></data>
+  <data name="Auth_LoginTitle" xml:space="preserve"><value>Вход в аккаунт</value></data>
+  <data name="Auth_PageLogin" xml:space="preserve"><value>Вход — Runews</value></data>
+  <data name="Auth_PageRegister" xml:space="preserve"><value>Регистрация — Runews</value></data>
+  <data name="Auth_Password" xml:space="preserve"><value>Пароль</value></data>
+  <data name="Auth_PasswordConfirm" xml:space="preserve"><value>Повторите пароль</value></data>
+  <data name="Auth_PasswordEnter" xml:space="preserve"><value>Введите пароль</value></data>
+  <data name="Auth_PasswordMin6" xml:space="preserve"><value>Минимум 6 символов</value></data>
+  <data name="Auth_RegisterBtn" xml:space="preserve"><value>Зарегистрироваться</value></data>
+  <data name="Auth_RegisterEmailSent" xml:space="preserve"><value>Письмо с подтверждением отправлено на</value></data>
+  <data name="Auth_RegisterEmailSentHint" xml:space="preserve"><value>Перейдите по ссылке в письме, чтобы активировать аккаунт</value></data>
+  <data name="Auth_RegisterTitle" xml:space="preserve"><value>Создать аккаунт</value></data>
+  <data name="Auth_ResetBtn" xml:space="preserve"><value>Сохранить пароль</value></data>
+  <data name="Auth_ResetTitle" xml:space="preserve"><value>Новый пароль</value></data>
+  <data name="Auth_Username" xml:space="preserve"><value>Имя пользователя</value></data>
+  <data name="Common_Actions" xml:space="preserve"><value>Действия</value></data>
+  <data name="Common_Add" xml:space="preserve"><value>Добавить</value></data>
+  <data name="Common_All" xml:space="preserve"><value>Все</value></data>
+  <data name="Common_Back" xml:space="preserve"><value>Назад</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Закрыть</value></data>
+  <data name="Common_Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Common_Error" xml:space="preserve"><value>Ошибка.</value></data>
+  <data name="Common_ErrorDelete" xml:space="preserve"><value>Ошибка при удалении.</value></data>
+  <data name="Common_ErrorSave" xml:space="preserve"><value>Ошибка при сохранении.</value></data>
+  <data name="Common_Loading" xml:space="preserve"><value>Загрузка...</value></data>
+  <data name="Common_MoveDown" xml:space="preserve"><value>Ниже</value></data>
+  <data name="Common_MoveUp" xml:space="preserve"><value>Выше</value></data>
+  <data name="Common_Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Common_Send" xml:space="preserve"><value>Отправить</value></data>
+  <data name="Common_Total" xml:space="preserve"><value>Всего: {0}</value></data>
+  <data name="Common_Url" xml:space="preserve"><value>URL</value></data>
+  <data name="Editor_ColActions" xml:space="preserve"><value>Действия</value></data>
+  <data name="Editor_ColDate" xml:space="preserve"><value>Дата</value></data>
+  <data name="Editor_ColLikes" xml:space="preserve"><value>Лайки</value></data>
+  <data name="Editor_ColStatus" xml:space="preserve"><value>Статус</value></data>
+  <data name="Editor_ColTags" xml:space="preserve"><value>Теги</value></data>
+  <data name="Editor_ColTitle" xml:space="preserve"><value>Заголовок</value></data>
+  <data name="Editor_ContentPlaceholder" xml:space="preserve"><value>Начните писать статью в формате Markdown...</value></data>
+  <data name="Editor_CoverLink" xml:space="preserve"><value>Обложка (ссылка)</value></data>
+  <data name="Editor_CoverTooLarge" xml:space="preserve"><value>Файл не должен превышать 10 МБ.</value></data>
+  <data name="Editor_CreateTag" xml:space="preserve"><value>Создать тег</value></data>
+  <data name="Editor_CreateTitle" xml:space="preserve"><value>Написать статью — Runews</value></data>
+  <data name="Editor_Created" xml:space="preserve"><value>Статья создана и отправлена на модерацию.</value></data>
+  <data name="Editor_DeleteBody" xml:space="preserve"><value>«{0}» будет удалена безвозвратно.</value></data>
+  <data name="Editor_DeleteTitle" xml:space="preserve"><value>Удалить статью?</value></data>
+  <data name="Editor_Discard" xml:space="preserve"><value>Отменить</value></data>
+  <data name="Editor_Draft" xml:space="preserve"><value>Черновик</value></data>
+  <data name="Editor_DraftRestored" xml:space="preserve"><value>Черновик восстановлен.</value></data>
+  <data name="Editor_DraftSaved" xml:space="preserve"><value>Черновик сохранён.</value></data>
+  <data name="Editor_Edit" xml:space="preserve"><value>Редактировать статью</value></data>
+  <data name="Editor_EditBtn" xml:space="preserve"><value>Редактировать</value></data>
+  <data name="Editor_EditTitle" xml:space="preserve"><value>Редактировать статью — Runews</value></data>
+  <data name="Editor_EditorMode" xml:space="preserve"><value>Редактор</value></data>
+  <data name="Editor_ErrorContent" xml:space="preserve"><value>Статья не может быть пустой.</value></data>
+  <data name="Editor_ErrorCreateTag" xml:space="preserve"><value>Не удалось создать тег.</value></data>
+  <data name="Editor_ErrorTitle" xml:space="preserve"><value>Введите заголовок.</value></data>
+  <data name="Editor_GuideLink" xml:space="preserve"><value>Инструкция к редактору</value></data>
+  <data name="Editor_HighlightHint" xml:space="preserve"><value>Подсветка фрагментов отображается в режиме «Предпросмотр».</value></data>
+  <data name="Editor_ModeratorNotes" xml:space="preserve"><value>Замечания модератора</value></data>
+  <data name="Editor_ModeratorNotesTooltip" xml:space="preserve"><value>Замечания модератора</value></data>
+  <data name="Editor_MyArticles" xml:space="preserve"><value>Мои статьи — Runews</value></data>
+  <data name="Editor_MyArticlesHeading" xml:space="preserve"><value>Мои статьи</value></data>
+  <data name="Editor_NoArticles" xml:space="preserve"><value>Статей нет.</value></data>
+  <data name="Editor_Open" xml:space="preserve"><value>Открыть</value></data>
+  <data name="Editor_Or" xml:space="preserve"><value>или</value></data>
+  <data name="Editor_Preview" xml:space="preserve"><value>Предпросмотр</value></data>
+  <data name="Editor_PreviewEmpty" xml:space="preserve"><value>Нет содержимого для предпросмотра.</value></data>
+  <data name="Editor_RejectionTitle" xml:space="preserve"><value>Причина отклонения</value></data>
+  <data name="Editor_RejectionUnknown" xml:space="preserve"><value>Причина не указана</value></data>
+  <data name="Editor_RulesLink" xml:space="preserve"><value>Правила публикации</value></data>
+  <data name="Editor_Saved" xml:space="preserve"><value>Статья обновлена и отправлена на модерацию.</value></data>
+  <data name="Editor_TagSearch" xml:space="preserve"><value>Поиск:</value></data>
+  <data name="Editor_TagSearchPlaceholder" xml:space="preserve"><value>Введите тег для поиска или создания</value></data>
+  <data name="Editor_Tags" xml:space="preserve"><value>Теги:</value></data>
+  <data name="Editor_TitlePlaceholder" xml:space="preserve"><value>Заголовок статьи...</value></data>
+  <data name="Editor_Upload" xml:space="preserve"><value>Загрузить</value></data>
+  <data name="Editor_Write" xml:space="preserve"><value>Написать статью</value></data>
+  <data name="Editor_WriteFirst" xml:space="preserve"><value>Написать первую?</value></data>
+  <data name="Footer_About" xml:space="preserve"><value>О нас</value></data>
+  <data name="Footer_Company" xml:space="preserve"><value>Компания</value></data>
+  <data name="Footer_Copyright" xml:space="preserve"><value>© {0} Runews. Все права защищены.</value></data>
+  <data name="Footer_Description" xml:space="preserve"><value>Runews — новостной агрегатор нового поколения. Собираем актуальные новости из проверенных источников и персонализируем ленту под ваши интересы.</value></data>
+  <data name="Footer_Edu" xml:space="preserve"><value>Проект создан в учебных целях</value></data>
+  <data name="Footer_Language" xml:space="preserve"><value>Язык</value></data>
+  <data name="Footer_Social" xml:space="preserve"><value>Мы в соцсетях</value></data>
+  <data name="Footer_Terms" xml:space="preserve"><value>Пользовательское соглашение</value></data>
+  <data name="Guide_BackToEditor" xml:space="preserve"><value>к редактору</value></data>
+  <data name="Guide_BoldCode" xml:space="preserve"><value>**жирный**</value></data>
+  <data name="Guide_BoldSample" xml:space="preserve"><value>жирный</value></data>
+  <data name="Guide_BulletCode" xml:space="preserve"><value>- пункт</value></data>
+  <data name="Guide_BulletDesc" xml:space="preserve"><value>Маркированный список</value></data>
+  <data name="Guide_CodeBlockDesc" xml:space="preserve"><value>Блок кода</value></data>
+  <data name="Guide_Formatting" xml:space="preserve"><value>Форматирование текста</value></data>
+  <data name="Guide_H1Code" xml:space="preserve"><value># Заголовок 1</value></data>
+  <data name="Guide_H1Desc" xml:space="preserve"><value>Большой заголовок</value></data>
+  <data name="Guide_H2Code" xml:space="preserve"><value>## Заголовок 2</value></data>
+  <data name="Guide_H2Desc" xml:space="preserve"><value>Средний заголовок</value></data>
+  <data name="Guide_H3Code" xml:space="preserve"><value>### Заголовок 3</value></data>
+  <data name="Guide_H3Desc" xml:space="preserve"><value>Малый заголовок</value></data>
+  <data name="Guide_Headings" xml:space="preserve"><value>Заголовки</value></data>
+  <data name="Guide_HotkeyBold" xml:space="preserve"><value>Жирный текст</value></data>
+  <data name="Guide_HotkeyItalic" xml:space="preserve"><value>Курсив</value></data>
+  <data name="Guide_HotkeyLink" xml:space="preserve"><value>Вставить ссылку</value></data>
+  <data name="Guide_Hotkeys" xml:space="preserve"><value>Горячие клавиши</value></data>
+  <data name="Guide_HrDesc" xml:space="preserve"><value>Горизонтальная линия</value></data>
+  <data name="Guide_ImageCode" xml:space="preserve"><value>![описание](url)</value></data>
+  <data name="Guide_ImageDesc" xml:space="preserve"><value>Изображение</value></data>
+  <data name="Guide_InlineCode" xml:space="preserve"><value>`код`</value></data>
+  <data name="Guide_InlineCodeDesc" xml:space="preserve"><value>встроенный код</value></data>
+  <data name="Guide_ItalicCode" xml:space="preserve"><value>*курсив*</value></data>
+  <data name="Guide_ItalicSample" xml:space="preserve"><value>курсив</value></data>
+  <data name="Guide_LinkCode" xml:space="preserve"><value>[текст](url)</value></data>
+  <data name="Guide_LinkDesc" xml:space="preserve"><value>Гиперссылка</value></data>
+  <data name="Guide_LinksImages" xml:space="preserve"><value>Ссылки и изображения</value></data>
+  <data name="Guide_Lists" xml:space="preserve"><value>Списки</value></data>
+  <data name="Guide_Note" xml:space="preserve"><value>После написания статьи нажмите {0} — статья будет отправлена на модерацию и опубликована после проверки.</value></data>
+  <data name="Guide_NumberCode" xml:space="preserve"><value>1. пункт</value></data>
+  <data name="Guide_NumberDesc" xml:space="preserve"><value>Нумерованный список</value></data>
+  <data name="Guide_Other" xml:space="preserve"><value>Прочее</value></data>
+  <data name="Guide_PageTitle" xml:space="preserve"><value>Инструкция к редактору — Runews</value></data>
+  <data name="Guide_QuoteCode" xml:space="preserve"><value>&amp;gt; текст</value></data>
+  <data name="Guide_QuoteDesc" xml:space="preserve"><value>Цитата</value></data>
+  <data name="Guide_StrikeCode" xml:space="preserve"><value>~~зачёркнутый~~</value></data>
+  <data name="Guide_StrikeSample" xml:space="preserve"><value>зачёркнутый</value></data>
+  <data name="Guide_Subtitle" xml:space="preserve"><value>Редактор использует формат Markdown — простой язык разметки текста. Ниже описаны все доступные элементы.</value></data>
+  <data name="Guide_Title" xml:space="preserve"><value>Инструкция к редактору статей</value></data>
+  <data name="Home_AccountDeleted" xml:space="preserve"><value>Аккаунт удалён.</value></data>
+  <data name="Home_AccountDeletedThanks" xml:space="preserve"><value>Спасибо, что были с нами.</value></data>
+  <data name="Home_AllSources" xml:space="preserve"><value>Все источники</value></data>
+  <data name="Home_AuthorsOnly" xml:space="preserve"><value>Авторские</value></data>
+  <data name="Home_EmailConfirmed" xml:space="preserve"><value>Email успешно подтверждён.</value></data>
+  <data name="Home_EmailConfirmedLogin" xml:space="preserve"><value>Теперь вы можете войти в аккаунт.</value></data>
+  <data name="Home_Empty" xml:space="preserve"><value>Статей не найдено. Попробуйте изменить фильтры.</value></data>
+  <data name="Home_Feed" xml:space="preserve"><value>Лента новостей</value></data>
+  <data name="Home_ForYou" xml:space="preserve"><value>Для вас</value></data>
+  <data name="Home_RecDisable" xml:space="preserve"><value>Отключить функцию</value></data>
+  <data name="Home_RecDisabled" xml:space="preserve"><value>Персональные рекомендации отключены — показана общая лента</value></data>
+  <data name="Home_RecEnable" xml:space="preserve"><value>Включить функцию</value></data>
+  <data name="Home_RecEnabled" xml:space="preserve"><value>Лента персонализирована на основе ваших интересов</value></data>
+  <data name="Home_Recommended" xml:space="preserve"><value>Рекомендовано</value></data>
+  <data name="Home_Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Home_SortNewest" xml:space="preserve"><value>Новые</value></data>
+  <data name="Home_SortOldest" xml:space="preserve"><value>Старые</value></data>
+  <data name="Home_SortPopular" xml:space="preserve"><value>Популярные</value></data>
+  <data name="Home_Title" xml:space="preserve"><value>Лента — Runews</value></data>
+  <data name="Home_Unsave" xml:space="preserve"><value>Убрать из избранного</value></data>
+  <data name="Lang_En" xml:space="preserve"><value>EN</value></data>
+  <data name="Lang_En_Full" xml:space="preserve"><value>English</value></data>
+  <data name="Lang_Ru" xml:space="preserve"><value>RU</value></data>
+  <data name="Lang_Ru_Full" xml:space="preserve"><value>Русский</value></data>
+  <data name="Lang_Tt" xml:space="preserve"><value>ТТ</value></data>
+  <data name="Lang_Tt_Full" xml:space="preserve"><value>Татарча</value></data>
+  <data name="Mod_AddNote" xml:space="preserve"><value>Добавить замечание по выделению</value></data>
+  <data name="Mod_AddNoteBeforeReject" xml:space="preserve"><value>Добавьте хотя бы одно замечание.</value></data>
+  <data name="Mod_Approve" xml:space="preserve"><value>Одобрить</value></data>
+  <data name="Mod_BackQueue" xml:space="preserve"><value>Очередь</value></data>
+  <data name="Mod_DuplicateFragment" xml:space="preserve"><value>Этот фрагмент уже добавлен.</value></data>
+  <data name="Mod_ErrorApprove" xml:space="preserve"><value>Ошибка при одобрении.</value></data>
+  <data name="Mod_ErrorReject" xml:space="preserve"><value>Ошибка при отклонении.</value></data>
+  <data name="Mod_NotInQueue" xml:space="preserve"><value>Статья не найдена в очереди.</value></data>
+  <data name="Mod_NoteReason" xml:space="preserve"><value>Причина (обязательно)</value></data>
+  <data name="Mod_NoteReasonMin" xml:space="preserve"><value>Укажите причину (минимум 3 символа).</value></data>
+  <data name="Mod_NoteTitle" xml:space="preserve"><value>Замечание к фрагменту</value></data>
+  <data name="Mod_Notes" xml:space="preserve"><value>Замечания ({0})</value></data>
+  <data name="Mod_NotesEmpty" xml:space="preserve"><value>Выделите фрагмент слева и добавьте хотя бы одно замечание перед отклонением.</value></data>
+  <data name="Mod_OnReview" xml:space="preserve"><value>На проверке: {0}</value></data>
+  <data name="Mod_Preview" xml:space="preserve"><value>Предпросмотр</value></data>
+  <data name="Mod_Published" xml:space="preserve"><value>Статья опубликована.</value></data>
+  <data name="Mod_QueueEmpty" xml:space="preserve"><value>Очередь пуста — все статьи проверены.</value></data>
+  <data name="Mod_QueueHeading" xml:space="preserve"><value>Очередь модерации</value></data>
+  <data name="Mod_QueueTitle" xml:space="preserve"><value>Очередь модерации — Runews</value></data>
+  <data name="Mod_Reject" xml:space="preserve"><value>Отклонить</value></data>
+  <data name="Mod_RejectCount" xml:space="preserve"><value>Отклонить ({0})</value></data>
+  <data name="Mod_ReportsActive" xml:space="preserve"><value>Активных: {0}</value></data>
+  <data name="Mod_ReportsColArticle" xml:space="preserve"><value>Статья</value></data>
+  <data name="Mod_ReportsColDescription" xml:space="preserve"><value>Описание</value></data>
+  <data name="Mod_ReportsColFrom" xml:space="preserve"><value>От кого</value></data>
+  <data name="Mod_ReportsColType" xml:space="preserve"><value>Тип</value></data>
+  <data name="Mod_ReportsEmpty" xml:space="preserve"><value>Жалоб нет.</value></data>
+  <data name="Mod_ReportsHeading" xml:space="preserve"><value>Жалобы</value></data>
+  <data name="Mod_ReportsTitle" xml:space="preserve"><value>Жалобы — Runews</value></data>
+  <data name="Mod_ReturnQueue" xml:space="preserve"><value>Вернуться в очередь</value></data>
+  <data name="Mod_Review" xml:space="preserve"><value>Проверить</value></data>
+  <data name="Mod_ReviewTitle" xml:space="preserve"><value>Проверка статьи — Runews</value></data>
+  <data name="Mod_SelectFragment" xml:space="preserve"><value>Выделите фрагмент в левой панели (минимум 3 символа).</value></data>
+  <data name="Mod_SourceText" xml:space="preserve"><value>Исходный текст (выделяйте здесь)</value></data>
+  <data name="Mod_Summary" xml:space="preserve"><value>Общий комментарий (необязательно)</value></data>
+  <data name="Mod_SummaryPlaceholder" xml:space="preserve"><value>Краткий итог для автора</value></data>
+  <data name="Nav_DevBanner" xml:space="preserve"><value>Включен режим разработчика на сервере</value></data>
+  <data name="Nav_Feed" xml:space="preserve"><value>Лента</value></data>
+  <data name="Nav_HideMenu" xml:space="preserve"><value>Скрыть меню</value></data>
+  <data name="Nav_HideToc" xml:space="preserve"><value>Скрыть содержание</value></data>
+  <data name="Nav_Login" xml:space="preserve"><value>Войти</value></data>
+  <data name="Nav_MyArticles" xml:space="preserve"><value>Мои статьи</value></data>
+  <data name="Nav_Queue" xml:space="preserve"><value>Очередь</value></data>
+  <data name="Nav_Reports" xml:space="preserve"><value>Жалобы</value></data>
+  <data name="Nav_Rss" xml:space="preserve"><value>Настройка RSS</value></data>
+  <data name="Nav_Saved" xml:space="preserve"><value>Избранное</value></data>
+  <data name="Nav_Search" xml:space="preserve"><value>Поиск</value></data>
+  <data name="Nav_SearchNoResults" xml:space="preserve"><value>Ничего не найдено по запросу «{0}»</value></data>
+  <data name="Nav_SearchPlaceholder" xml:space="preserve"><value>Поиск новостей...</value></data>
+  <data name="Nav_SearchPressEnter" xml:space="preserve"><value>Нажмите Enter для поиска по запросу «{0}»</value></data>
+  <data name="Nav_SearchStartTyping" xml:space="preserve"><value>Начните вводить запрос...</value></data>
+  <data name="Nav_SectionAdmin" xml:space="preserve"><value>Администрирование</value></data>
+  <data name="Nav_SectionModeration" xml:space="preserve"><value>Модерация</value></data>
+  <data name="Nav_SectionPublicist" xml:space="preserve"><value>Публицистика</value></data>
+  <data name="Nav_ShowMenu" xml:space="preserve"><value>Показать меню</value></data>
+  <data name="Nav_ShowToc" xml:space="preserve"><value>Показать содержание</value></data>
+  <data name="Nav_Tags" xml:space="preserve"><value>Управление тегами</value></data>
+  <data name="Nav_ThemeDark" xml:space="preserve"><value>Тёмная тема</value></data>
+  <data name="Nav_ThemeLight" xml:space="preserve"><value>Светлая тема</value></data>
+  <data name="Nav_Toc" xml:space="preserve"><value>Содержание</value></data>
+  <data name="Nav_Users" xml:space="preserve"><value>Пользователи</value></data>
+  <data name="Nav_WriteArticle" xml:space="preserve"><value>Написать статью</value></data>
+  <data name="Profile_AvatarColorNoPhoto" xml:space="preserve"><value>(если нет фото)</value></data>
+  <data name="Profile_ConfirmPassword" xml:space="preserve"><value>Подтвердите пароль</value></data>
+  <data name="Profile_ConfirmRequired" xml:space="preserve"><value>Подтверждение пароля обязательно</value></data>
+  <data name="Profile_DeleteAccount" xml:space="preserve"><value>Удалить профиль</value></data>
+  <data name="Profile_DeleteBody" xml:space="preserve"><value>Это действие необратимо. Все ваши данные, комментарии и сохранённые статьи будут удалены безвозвратно.</value></data>
+  <data name="Profile_DeleteConfirm" xml:space="preserve"><value>Да, удалить</value></data>
+  <data name="Profile_DeletePhoto" xml:space="preserve"><value>Удалить фото</value></data>
+  <data name="Profile_DeleteTitle" xml:space="preserve"><value>Удалить аккаунт?</value></data>
+  <data name="Profile_EditSection" xml:space="preserve"><value>Редактировать профиль</value></data>
+  <data name="Profile_FileTooLarge" xml:space="preserve"><value>Файл не должен превышать 5 МБ.</value></data>
+  <data name="Profile_Logout" xml:space="preserve"><value>Выйти</value></data>
+  <data name="Profile_NewPassword" xml:space="preserve"><value>Новый пароль</value></data>
+  <data name="Profile_NewUsernamePlaceholder" xml:space="preserve"><value>Новое имя</value></data>
+  <data name="Profile_PageTitle" xml:space="preserve"><value>Профиль — Runews</value></data>
+  <data name="Profile_PasswordOptionalHint" xml:space="preserve"><value>(оставьте пустым, чтобы не менять)</value></data>
+  <data name="Profile_RepeatPasswordPlaceholder" xml:space="preserve"><value>Повторите новый пароль</value></data>
+  <data name="Profile_SavedSuccess" xml:space="preserve"><value>Профиль успешно обновлён.</value></data>
+  <data name="Profile_UploadAvatar" xml:space="preserve"><value>Загрузить аватар</value></data>
+  <data name="Role_Admin" xml:space="preserve"><value>Администратор</value></data>
+  <data name="Role_Moderator" xml:space="preserve"><value>Модератор</value></data>
+  <data name="Role_Publicist" xml:space="preserve"><value>Публицист</value></data>
+  <data name="Role_User" xml:space="preserve"><value>Пользователь</value></data>
+  <data name="Rules_AppealNote" xml:space="preserve"><value>Если вы считаете, что ваша статья была отклонена ошибочно — свяжитесь с командой модерации. Мы рассмотрим апелляцию в течение 48 часов.</value></data>
+  <data name="Rules_Consequence1Text" xml:space="preserve"><value>Статья отклоняется с объяснением причины.</value></data>
+  <data name="Rules_Consequence1Title" xml:space="preserve"><value>Первое нарушение</value></data>
+  <data name="Rules_Consequence2Text" xml:space="preserve"><value>Временная блокировка возможности публикации.</value></data>
+  <data name="Rules_Consequence2Title" xml:space="preserve"><value>Систематические нарушения</value></data>
+  <data name="Rules_Consequence3Text" xml:space="preserve"><value>Постоянная блокировка аккаунта без возможности восстановления.</value></data>
+  <data name="Rules_Consequence3Title" xml:space="preserve"><value>Грубые нарушения</value></data>
+  <data name="Rules_ConsequencesTitle" xml:space="preserve"><value>Последствия нарушений</value></data>
+  <data name="Rules_Forbidden1" xml:space="preserve"><value>Дезинформация и фейки — публикация заведомо ложных сведений, непроверенных слухов или манипулятивных материалов.</value></data>
+  <data name="Rules_Forbidden2" xml:space="preserve"><value>Разжигание ненависти — материалы, направленные против людей по признаку расы, национальности, религии, пола или сексуальной ориентации.</value></data>
+  <data name="Rules_Forbidden3" xml:space="preserve"><value>Спам и реклама — коммерческие объявления, партнёрские ссылки без пометки, массовые однотипные публикации.</value></data>
+  <data name="Rules_Forbidden4" xml:space="preserve"><value>Насилие и жестокость — детальные описания или изображения насилия, контент 18+.</value></data>
+  <data name="Rules_Forbidden5" xml:space="preserve"><value>Нарушение авторских прав — полное копирование чужих материалов без указания источника и разрешения автора.</value></data>
+  <data name="Rules_Forbidden6" xml:space="preserve"><value>Личные данные — публикация персональных данных третьих лиц без их согласия.</value></data>
+  <data name="Rules_ForbiddenTitle" xml:space="preserve"><value>Запрещённый контент</value></data>
+  <data name="Rules_Format1" xml:space="preserve"><value>Используйте заголовки (H2, H3) для структурирования длинных материалов.</value></data>
+  <data name="Rules_Format2" xml:space="preserve"><value>Обложка статьи должна соответствовать теме и не содержать текст, перекрывающий изображение.</value></data>
+  <data name="Rules_Format3" xml:space="preserve"><value>Ссылки на внешние источники должны вести на авторитетные ресурсы.</value></data>
+  <data name="Rules_Format4" xml:space="preserve"><value>Цитаты из других источников оформляйте через блок цитирования (&amp;gt; текст) с указанием автора.</value></data>
+  <data name="Rules_Format5" xml:space="preserve"><value>Теги должны точно соответствовать тематике статьи — не добавляйте нерелевантные теги для привлечения трафика.</value></data>
+  <data name="Rules_FormatTitle" xml:space="preserve"><value>Требования к оформлению</value></data>
+  <data name="Rules_General1" xml:space="preserve"><value>Статья должна быть написана на русском, английском или татарском языке.</value></data>
+  <data name="Rules_General2" xml:space="preserve"><value>Минимальный объём — 300 символов. Слишком короткие материалы не несут ценности для читателей.</value></data>
+  <data name="Rules_General3" xml:space="preserve"><value>Заголовок должен точно отражать содержание статьи и не вводить читателя в заблуждение.</value></data>
+  <data name="Rules_General4" xml:space="preserve"><value>Текст должен быть грамотным, структурированным и читаемым.</value></data>
+  <data name="Rules_General5" xml:space="preserve"><value>Один автор не может публиковать более 5 статей в сутки.</value></data>
+  <data name="Rules_GeneralTitle" xml:space="preserve"><value>Общие требования</value></data>
+  <data name="Rules_ModerationTitle" xml:space="preserve"><value>Процесс модерации</value></data>
+  <data name="Rules_PageTitle" xml:space="preserve"><value>Правила публикации — Runews</value></data>
+  <data name="Rules_Step1Text" xml:space="preserve"><value>После нажатия «{0}» статья получает статус «{1}» и становится видна только вам.</value></data>
+  <data name="Rules_Step1Title" xml:space="preserve"><value>Отправка на проверку</value></data>
+  <data name="Rules_Step2Text" xml:space="preserve"><value>Модератор проверяет соответствие правилам. Обычно это занимает до 24 часов.</value></data>
+  <data name="Rules_Step2Title" xml:space="preserve"><value>Проверка модератором</value></data>
+  <data name="Rules_Step3Text" xml:space="preserve"><value>Статья получает статус «{0}» или «{1}» с указанием причины.</value></data>
+  <data name="Rules_Step3Title" xml:space="preserve"><value>Результат</value></data>
+  <data name="Rules_Subtitle" xml:space="preserve"><value>Перед публикацией убедитесь, что ваша статья соответствует требованиям сообщества. Нарушение правил приведёт к отклонению материала или блокировке аккаунта.</value></data>
+  <data name="Rules_Title" xml:space="preserve"><value>Правила публикации статей</value></data>
+  <data name="Saved_BackToFeed" xml:space="preserve"><value>← В ленту</value></data>
+  <data name="Saved_Count" xml:space="preserve"><value>{0} статей</value></data>
+  <data name="Saved_Empty" xml:space="preserve"><value>Вы ещё ничего не сохранили.</value></data>
+  <data name="Saved_Heading" xml:space="preserve"><value>Избранное</value></data>
+  <data name="Saved_Title" xml:space="preserve"><value>Избранное — Runews</value></data>
+  <data name="Status_Draft" xml:space="preserve"><value>Черновик</value></data>
+  <data name="Status_Pending" xml:space="preserve"><value>На проверке</value></data>
+  <data name="Status_Published" xml:space="preserve"><value>Опубликована</value></data>
+  <data name="Status_Rejected" xml:space="preserve"><value>Отклонена</value></data>
+</root>

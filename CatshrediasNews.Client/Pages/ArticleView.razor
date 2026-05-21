@@ -35,7 +35,7 @@ else
 
         <!-- Кнопка назад -->
         <button class="article-back" @onclick="() => Nav.NavigateTo(Nav.BaseUri)">
-            <i class="bi bi-arrow-left"></i> Назад
+            <i class="bi bi-arrow-left"></i> @L["Common_Back"]
         </button>
 
         <!-- Заголовок -->
@@ -43,7 +43,7 @@ else
 
         <!-- Мета -->
         <div class="article-view-meta">
-            <span><i class="bi bi-calendar3"></i> @_article.PublishedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("ru-RU"))</span>
+            <span><i class="bi bi-calendar3"></i> @_article.PublishedAt.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</span>
             @if (!string.IsNullOrEmpty(_article.RssAuthor))
             {
                 <span><i class="bi bi-person"></i> @_article.RssAuthor</span>
@@ -158,7 +158,7 @@ else
                     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
                         @if (_replyTo is not null)
                         {
-                            <button class="feed-sort-btn" @onclick="() => _replyTo = null">Отмена</button>
+                            <button class="feed-sort-btn" @onclick="() => _replyTo = null">@L["Common_Cancel"]</button>
                         }
                         <button class="auth-btn" style="width:auto;padding:8px 20px"
                                 @onclick="PostComment" disabled="@(_sending || string.IsNullOrWhiteSpace(_newComment))">
@@ -181,7 +181,7 @@ else
             {
                 <div class="admin-loading" style="padding:20px 0">
                     <span class="auth-spinner" style="border-color:var(--border);border-top-color:var(--accent)"></span>
-                    Загрузка...
+                    @L["Common_Loading"]
                 </div>
             }
             else if (!_comments.Any())
@@ -223,7 +223,7 @@ else
                 <p style="color:#2e7d32;font-size:13px">Жалоба отправлена. Спасибо!</p>
             }
             <div class="modal-actions">
-                <button class="modal-btn-cancel" @onclick="() => _showReport = false">Отмена</button>
+                <button class="modal-btn-cancel" @onclick="() => _showReport = false">@L["Common_Cancel"]</button>
                 @if (!_reportSent)
                 {
                     <button class="modal-btn-confirm" style="background:#f57c00"

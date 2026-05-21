@@ -47,9 +47,9 @@ public class AuthController(AuthService authService) : ControllerBase
     // ? ForgotPassword : отправляет письмо со ссылкой сброса пароля
     // вызывается клиентом (Public)
     [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword([FromBody] string email)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
     {
-        await authService.SendPasswordResetAsync(email);
+        await authService.SendPasswordResetAsync(dto.Email, dto.Culture);
         return Ok(); // всегда 200 — не раскрываем, есть ли такой email
     }
 

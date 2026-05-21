@@ -10,7 +10,7 @@
     {
         <div class="sidebar-left-wrap sidebar-visible">
             <LeftSidebar />
-            <button class="sidebar-toggle sidebar-toggle-left" title="Скрыть меню"
+            <button class="sidebar-toggle sidebar-toggle-left" title="@L["Nav_HideMenu"]"
                     @onclick="() => _leftVisible = false">
                 <i class="bi bi-chevron-left"></i>
             </button>
@@ -18,7 +18,7 @@
     }
     else
     {
-        <button class="sidebar-show sidebar-show-left" title="Показать меню"
+        <button class="sidebar-show sidebar-show-left" title="@L["Nav_ShowMenu"]"
                 @onclick="() => _leftVisible = true">
             <i class="bi bi-chevron-right"></i>
         </button>
@@ -31,7 +31,7 @@
     @if (_rightVisible && HasRightContent)
     {
         <div class="sidebar-right-wrap sidebar-visible">
-            <button class="sidebar-toggle sidebar-toggle-right" title="Скрыть содержание"
+            <button class="sidebar-toggle sidebar-toggle-right" title="@L["Nav_HideToc"]"
                     @onclick="() => _rightVisible = false">
                 <i class="bi bi-chevron-right"></i>
             </button>
@@ -40,7 +40,7 @@
     }
     else if (HasRightContent)
     {
-        <button class="sidebar-show sidebar-show-right" title="Показать содержание"
+        <button class="sidebar-show sidebar-show-right" title="@L["Nav_ShowToc"]"
                 @onclick="() => _rightVisible = true">
             <i class="bi bi-chevron-left"></i>
         </button>

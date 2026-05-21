@@ -9,7 +9,7 @@
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<PageTitle>@(EditId.HasValue ? "Редактировать статью" : "Написать статью") — Runews</PageTitle>
+<PageTitle>@(EditId.HasValue ? L["Editor_Edit"] : L["Editor_Write"]) — Runews</PageTitle>
 
 @if (Auth.CurrentUser?.Role is not ("Publicist" or "Moderator" or "Admin"))
 {
@@ -22,23 +22,23 @@
     <!-- Заголовок -->
     <div class="editor-header">
         <h1 class="page-title" style="margin:0">
-            @(EditId.HasValue ? "Редактировать статью" : "Написать статью")
+            @(EditId.HasValue ? L["Editor_Edit"] : L["Editor_Write"])
         </h1>
         <div class="editor-header-actions">
             <button class="feed-sort-btn @(_preview ? "active" : "")"
                     @onclick="TogglePreview">
-                <i class="bi bi-eye"></i> @(_preview ? "Редактор" : "Предпросмотр")
+                <i class="bi bi-eye"></i> @(_preview ? L["Editor_EditorMode"] : L["Editor_Preview"])
             </button>
             <button class="feed-sort-btn" @onclick="SaveDbDraft" disabled="@_savingDraft">
                 @if (_savingDraft) { <span class="auth-spinner" style="width:14px;height:14px;border-color:var(--border);border-top-color:var(--accent)"></span> }
                 else { <i class="bi bi-floppy2"></i> }
-                Черновик
+                @L["Editor_Draft"]
             </button>
             <button class="auth-btn" style="width:auto;padding:8px 20px"
                     @onclick="Save" disabled="@_saving">
                 @if (_saving) { <span class="auth-spinner"></span> }
                 else { <i class="bi bi-floppy"></i> }
-                Сохранить
+                @L["Common_Save"]
             </button>
         </div>
     </div>
@@ -55,7 +55,7 @@
     {
         <div class="editor-rejection-panel">
             <h3 class="editor-rejection-title">
-                <i class="bi bi-exclamation-triangle"></i> Замечания модератора
+                <i class="bi bi-exclamation-triangle"></i> @L["Editor_ModeratorNotes"]
             </h3>
             @foreach (var (note, i) in _rejectionNotes.Select((n, i) => (n, i)))
             {
@@ -65,23 +65,23 @@
                     <p class="mod-note-reason">@note.Reason</p>
                 </div>
             }
-            <p class="editor-rejection-hint">Подсветка фрагментов отображается в режиме «Предпросмотр».</p>
+            <p class="editor-rejection-hint">@L["Editor_HighlightHint"]</p>
         </div>
     }
 
     @if (_draftRestored)
     {
         <div class="auth-success" style="background:#fff8e1;border-color:#ffe082;color:#795548">
-            <i class="bi bi-clock-history"></i> Черновик восстановлен.
+            <i class="bi bi-clock-history"></i> @L["Editor_DraftRestored"]
             <button style="margin-left:auto;background:none;border:none;cursor:pointer;color:#795548;font-size:13px;font-weight:600"
-                    @onclick="DiscardDraft">Отменить</button>
+                    @onclick="DiscardDraft">@L["Editor_Discard"]</button>
         </div>
     }
 
     <!-- Обложка -->
     <div class="editor-cover-row">
         <div class="auth-field" style="flex:1">
-            <label>Обложка (ссылка)</label>
+            <label>@L["Editor_CoverLink"]</label>
             <div class="input-wrap">
                 <i class="bi bi-link-45deg"></i>
                 <input type="url" placeholder="https://example.com/image.jpg"
@@ -89,7 +89,7 @@
             </div>
         </div>
         <div style="display:flex;align-items:flex-end;gap:8px">
-            <span style="color:var(--text-muted);font-size:13px;padding-bottom:10px">или</span>
+            <span style="color:var(--text-muted);font-size:13px;padding-bottom:10px">@L["Editor_Or"]</span>
             <label class="editor-upload-btn">
                 @if (_coverUploading)
                 {
@@ -98,7 +98,7 @@
                 else
                 {
                     <i class="bi bi-upload"></i>
-                    <span>Загрузить</span>
+                    <span>@L["Editor_Upload"]</span>
                 }
                 <InputFile style="display:none" accept="image/*" OnChange="OnCoverSelected" />
             </label>
@@ -108,7 +108,7 @@
     {
         <div class="editor-cover-preview">
             <img src="@_coverUrl" alt="cover" />
-            <button class="editor-cover-remove" @onclick="() => _coverUrl = null" title="Удалить">
+            <button class="editor-cover-remove" @onclick="() => _coverUrl = null" title="@L["Common_Delete"]">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -120,16 +120,16 @@
 
     <!-- Ссылки -->
     <a href="/editor-guide" class="editor-guide-link">
-        <i class="bi bi-question-circle"></i> Инструкция к редактору
+        <i class="bi bi-question-circle"></i> @L["Editor_GuideLink"]
     </a>
     <a href="/publishing-rules" class="editor-guide-link">
-        <i class="bi bi-shield-check"></i> Правила публикации
+        <i class="bi bi-shield-check"></i> @L["Editor_RulesLink"]
     </a>
 
     <!-- Заголовок статьи -->
     <input class="editor-title-input"
            type="text"
-           placeholder="Заголовок статьи..."
+           placeholder="@L["Editor_TitlePlaceholder"]"
            value="@_title"
            @oninput="OnTitleInput" />
 
@@ -137,7 +137,7 @@
     @if (_tags.Any())
     {
         <div class="editor-tags-row">
-            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">Теги:</span>
+            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">@L["Editor_Tags"]</span>
             @foreach (var tag in _tags)
             {
                 <button class="feed-tag-btn @(_selectedTags.Contains(tag.Id) ? "active" : "")"
@@ -148,18 +148,18 @@
         </div>
 
         <div class="editor-tags-row" style="margin-top:8px;align-items:flex-start">
-            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap;padding-top:10px">Поиск:</span>
+            <span style="font-size:13px;color:var(--text-muted);white-space:nowrap;padding-top:10px">@L["Editor_TagSearch"]</span>
             <div style="display:flex;flex-direction:column;gap:8px;flex:1">
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <input class="admin-inline-input"
                            style="min-width:260px"
-                           placeholder="Введите тег для поиска или создания"
+                           placeholder="@L["Editor_TagSearchPlaceholder"]"
                            @bind="_tagQuery"
                            @bind:event="oninput" />
                     <button class="feed-sort-btn"
                             disabled="@(!CanCreateTag)"
                             @onclick="CreateTagFromQuery">
-                        <i class="bi bi-plus-lg"></i> Создать тег
+                        <i class="bi bi-plus-lg"></i> @L["Editor_CreateTag"]
                     </button>
                 </div>
                 @if (_tagSuggestions.Any())
@@ -214,7 +214,7 @@
 
         <textarea id="md-editor"
                   class="editor-textarea"
-                  placeholder="Начните писать статью в формате Markdown..."
+                  placeholder="@L["Editor_ContentPlaceholder"]"
                   value="@_content"
                   @oninput="OnContentInput"
                   @onkeydown="OnKeyDown"
@@ -225,7 +225,7 @@
         <div id="editor-preview" class="editor-preview">
             @if (string.IsNullOrWhiteSpace(_content))
             {
-                <p style="color:var(--text-muted)">Нет содержимого для предпросмотра.</p>
+                <p style="color:var(--text-muted)">@L["Editor_PreviewEmpty"]</p>
             }
             else
             {
@@ -240,7 +240,7 @@
             @if (_gigaOpen)
             {
                 <i class="bi bi-x-lg"></i>
-                <span>Отмена</span>
+                <span>@L["Common_Cancel"]</span>
             }
             else
             {
@@ -334,6 +334,7 @@
     private string? _error, _success;
     private List<TagDto> _tags = [];
     private HashSet<int> _selectedTags = [];
+    private string _tagQuery = "";
 
     private bool    _gigaOpen;
     private bool    _gigaBusy;
@@ -371,7 +372,7 @@
         var draftContent = await JS.InvokeAsync<string?>("localStorage.getItem", DraftKey + "_content");
         if (!string.IsNullOrEmpty(draftTitle) || !string.IsNullOrEmpty(draftContent))
         {
-            // Черновик актуален только если он отличается от текущего содержимого
+            // @L["Editor_Draft"] актуален только если он отличается от текущего содержимого
             if (draftTitle != _title || draftContent != _content)
             {
                 _title   = draftTitle   ?? _title;
@@ -454,7 +455,7 @@
         var created = await ArticleSvc.CreateTagAsync(_tagQuery.Trim());
         if (created is null)
         {
-            _error = "Не удалось создать тег.";
+            _error = L["Editor_ErrorCreateTag"];
             return;
         }
 
@@ -473,15 +474,15 @@
         _savingDraft = false;
         if (error is not null) { _error = error; return; }
         await DiscardDraft();
-        _success = "Черновик сохранён.";
+        _success = L["Editor_DraftSaved"];
         if (!EditId.HasValue && article is not null)
             Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
     }
 
     private async Task Save()
     {
-        if (string.IsNullOrWhiteSpace(_title))   { _error = "Введите заголовок."; return; }
-        if (string.IsNullOrWhiteSpace(_content)) { _error = "Статья не может быть пустой."; return; }
+        if (string.IsNullOrWhiteSpace(_title))   { _error = L["Editor_ErrorTitle"]; return; }
+        if (string.IsNullOrWhiteSpace(_content)) { _error = L["Editor_ErrorContent"]; return; }
 
         _saving = true; _error = null; _success = null;
         var (article, error) = await ArticleSvc.SaveArticleAsync(EditId, _title.Trim(), _content, _selectedTags.ToList(), _coverUrl);
@@ -490,7 +491,7 @@
         if (error is not null) { _error = error; return; }
 
         await DiscardDraft();
-        _success = EditId.HasValue ? "Статья обновлена и отправлена на модерацию." : "Статья создана и отправлена на модерацию.";
+        _success = EditId.HasValue ? L["Editor_Saved"] : L["Editor_Created"];
         if (!EditId.HasValue && article is not null)
             Nav.NavigateTo("/publicist/create/" + article.Id, replace: true);
     }
@@ -580,7 +581,7 @@
     {
         _coverError = null;
         var f = e.File;
-        if (f.Size > 10 * 1024 * 1024) { _coverError = "Файл не должен превышать 10 МБ."; return; }
+        if (f.Size > 10 * 1024 * 1024) { _coverError = L["Editor_CoverTooLarge"]; return; }
         _coverUploading = true;
         using var ms = new System.IO.MemoryStream();
         await f.OpenReadStream(10 * 1024 * 1024).CopyToAsync(ms);

@@ -9,7 +9,8 @@ public record RegisterDto(
     string Email,
     string Password,
     string AvatarColor = "#1a73e8",
-    string? AvatarDataUrl = null);
+    string? AvatarDataUrl = null,
+    string? Culture = null);
 
 public record LoginDto(string Email, string Password);
 

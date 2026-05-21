@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore Coursework.sln
+
+      - name: Build
+        run: dotnet build Coursework.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test Coursework.sln --no-build -c Release --verbosity normal

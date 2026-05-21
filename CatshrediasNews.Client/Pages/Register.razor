@@ -5,17 +5,18 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject CultureService Culture
 
-<PageTitle>Регистрация — Runews</PageTitle>
+<PageTitle>@L["Auth_PageRegister"]</PageTitle>
 
 <div class="auth-card">
     <button class="auth-back" @onclick="GoBack">
-        <i class="bi bi-arrow-left"></i> Назад
+        <i class="bi bi-arrow-left"></i> @L["Common_Back"]
     </button>
     <div class="auth-logo">
         <span>Runews</span>
     </div>
-    <h1 class="auth-title">Создать аккаунт</h1>
+    <h1 class="auth-title">@L["Auth_RegisterTitle"]</h1>
 
     @if (!string.IsNullOrEmpty(_error))
     {
@@ -27,13 +28,13 @@
     {
         <div class="auth-success">
             <i class="bi bi-envelope-check"></i>
-            Письмо с подтверждением отправлено на <strong>@_email</strong>
-            Перейдите по ссылке в письме, чтобы активировать аккаунт
+            @L["Auth_RegisterEmailSent"] <strong>@_email</strong>.
+            @L["Auth_RegisterEmailSentHint"]
         </div>
     }
 
     <div class="auth-field">
-        <label>Имя пользователя</label>
+        <label>@L["Auth_Username"]</label>
         <div class="input-wrap">
             <i class="bi bi-person"></i>
             <input type="text" placeholder="username"
@@ -42,7 +43,7 @@
     </div>
 
     <div class="auth-field">
-        <label>Email</label>
+        <label>@L["Auth_Email"]</label>
         <div class="input-wrap @(_emailInvalid ? "input-invalid" : "")">
             <i class="bi bi-envelope"></i>
             <input type="email" placeholder="you@example.com"
@@ -51,16 +52,16 @@
         </div>
         @if (_emailInvalid)
         {
-            <span class="field-error">Введите корректный email (например: you@example.com)</span>
+            <span class="field-error">@L["Auth_ErrorEmail"]</span>
         }
     </div>
 
     <div class="auth-field">
-        <label>Пароль</label>
+        <label>@L["Auth_Password"]</label>
         <div class="input-wrap @(_passwordInvalid ? "input-invalid" : "")">
             <i class="bi bi-lock"></i>
             <input type="@(_showPassword ? "text" : "password")"
-                   placeholder="Минимум 6 символов"
+                   placeholder="@L["Auth_PasswordMin6"]"
                    @bind="_password" @bind:event="oninput"
                    @onblur="ValidatePassword" />
             <button class="input-eye" type="button" @onclick="TogglePassword">
@@ -69,27 +70,27 @@
         </div>
         @if (_passwordInvalid)
         {
-            <span class="field-error">Пароль должен содержать минимум 6 символов</span>
+            <span class="field-error">@L["Auth_ErrorPasswordMin6"]</span>
         }
     </div>
 
     <div class="auth-field">
-        <label>Повторите пароль</label>
+        <label>@L["Auth_PasswordConfirm"]</label>
         <div class="input-wrap @(_confirmInvalid ? "input-invalid" : "")">
             <i class="bi bi-lock-fill"></i>
             <input type="@(_showPassword ? "text" : "password")"
-                   placeholder="Повторите пароль"
+                   placeholder="@L["Auth_PasswordConfirm"]"
                    @bind="_confirm" @bind:event="oninput"
                    @onblur="ValidateConfirm" />
         </div>
         @if (_confirmInvalid)
         {
-            <span class="field-error">Пароли не совпадают</span>
+            <span class="field-error">@L["Auth_ErrorPasswordMismatch"]</span>
         }
     </div>
 
     <div class="auth-field">
-        <label>Цвет аватара</label>
+        <label>@L["Auth_AvatarColor"]</label>
         <div class="avatar-color-row">
             @foreach (var color in _palette)
             {
@@ -113,22 +114,22 @@
             {
                 <i class="bi bi-person-circle" style="color:@_avatarColor"></i>
             }
-            <span style="color:var(--text-muted);font-size:12px">Предпросмотр</span>
+            <span style="color:var(--text-muted);font-size:12px">@L["Auth_AvatarPreview"]</span>
         </div>
         <label class="reg-avatar-upload">
             <i class="bi bi-upload"></i>
-            @(_avatarFile is null ? "Загрузить аватар (необязательно)" : _avatarFile.Name)
+            @(_avatarFile is null ? L["Auth_AvatarUploadOptional"].Value : _avatarFile.Name)
             <InputFile style="display:none" accept="image/*" OnChange="OnRegAvatarSelected" />
         </label>
     </div>
 
     <button type="button" class="auth-btn" @onclick="Submit" disabled="@_loading">
         @if (_loading) { <span class="auth-spinner"></span> }
-        else { <span>Зарегистрироваться</span> }
+        else { <span>@L["Auth_RegisterBtn"]</span> }
     </button>
 
     <div class="auth-links">
-        <a href="/login">Уже есть аккаунт? Войти</a>
+        <a href="/login">@L["Auth_HaveAccount"]</a>
     </div>
 </div>
 
@@ -177,7 +178,7 @@
     private async Task Submit()
     {
         if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
-        { _error = "Заполните все поля."; return; }
+        { _error = L["Auth_ErrorFillAll"]; return; }
         ValidateEmail();
         ValidatePassword();
         ValidateConfirm();
@@ -194,7 +195,8 @@
                 Email = _email,
                 Password = _password,
                 AvatarColor = _avatarColor,
-                AvatarDataUrl = _avatarPreviewUrl
+                AvatarDataUrl = _avatarPreviewUrl,
+                Culture = Culture.CurrentCulture
             });
 
             if (result == "email_sent")

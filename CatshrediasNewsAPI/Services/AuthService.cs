@@ -14,7 +14,7 @@ namespace CatshrediasNewsAPI.Services;
 public class AuthService(
     AppDbContext db,
     IConfiguration config,
-    EmailService emailService,
+    IEmailService emailService,
     IWebHostEnvironment env,
     IHttpContextAccessor httpContextAccessor)
 {
@@ -57,7 +57,8 @@ public class AuthService(
                 return null;
             }
 
-            await emailService.SendConfirmationAsync(existing.Email, existing.Username, existing.EmailConfirmToken);
+            var culture = ResolveCulture(dto.Culture);
+            await emailService.SendConfirmationAsync(existing.Email, existing.Username, existing.EmailConfirmToken, culture);
             return new AuthResponseDto(GenerateToken(existing), MapToDto(existing));
         }
 
@@ -88,7 +89,8 @@ public class AuthService(
 
         await db.Entry(user).Reference(u => u.Role).LoadAsync();
 
-        await emailService.SendConfirmationAsync(user.Email, user.Username, user.EmailConfirmToken!);
+        var registerCulture = ResolveCulture(dto.Culture);
+        await emailService.SendConfirmationAsync(user.Email, user.Username, user.EmailConfirmToken!, registerCulture);
 
         return new AuthResponseDto(GenerateToken(user), MapToDto(user));
     }
@@ -234,16 +236,24 @@ public class AuthService(
 
     // ? SendPasswordResetAsync : генерирует токен сброса и отправляет письмо
     // вызывается из AuthController.ForgotPassword (Public)
-    public async Task SendPasswordResetAsync(string email)
+    public async Task SendPasswordResetAsync(string email, string? culture = null)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var normalized = email.Trim().ToLowerInvariant();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalized);
         if (user is null) return; // не раскрываем, существует ли email
 
         user.PasswordResetToken       = Guid.NewGuid().ToString("N");
         user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
         await db.SaveChangesAsync();
 
-        await emailService.SendPasswordResetAsync(user.Email, user.Username, user.PasswordResetToken!);
+        var mailCulture = ResolveCulture(culture);
+        await emailService.SendPasswordResetAsync(user.Email, user.Username, user.PasswordResetToken!, mailCulture);
+    }
+
+    private string ResolveCulture(string? explicitCulture)
+    {
+        var acceptLanguage = httpContextAccessor.HttpContext?.Request.Headers.AcceptLanguage.ToString();
+        return CultureHelper.Resolve(explicitCulture, acceptLanguage);
     }
 
     // ? ResetPasswordAsync : проверяет токен и устанавливает новый пароль

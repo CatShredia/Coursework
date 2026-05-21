@@ -6,17 +6,17 @@
 <nav class="app-sidebar-left">
 
     <div class="sidebar-section">
-        <SidebarItem Href="/" Icon="bi-newspaper" Label="Лента" />
-        <SidebarItem Href="/saved" Icon="bi-bookmark" Label="Избранное" />
+        <SidebarItem Href="/" Icon="bi-newspaper" Label="@L["Nav_Feed"]" />
+        <SidebarItem Href="/saved" Icon="bi-bookmark" Label="@L["Nav_Saved"]" />
     </div>
 
     @if (Auth.CurrentUser?.Role is "Publicist" or "Moderator" or "Admin")
     {
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
-            <div class="sidebar-section-title">Публицистика</div>
-            <SidebarItem Href="/publicist/create" Icon="bi-pencil-square" Label="Написать статью" />
-            <SidebarItem Href="/publicist/my-articles" Icon="bi-file-earmark-text" Label="Мои статьи" />
+            <div class="sidebar-section-title">@L["Nav_SectionPublicist"]</div>
+            <SidebarItem Href="/publicist/create" Icon="bi-pencil-square" Label="@L["Nav_WriteArticle"]" />
+            <SidebarItem Href="/publicist/my-articles" Icon="bi-file-earmark-text" Label="@L["Nav_MyArticles"]" />
         </div>
     }
 
@@ -24,9 +24,9 @@
     {
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
-            <div class="sidebar-section-title">Модерация</div>
-            <SidebarItem Href="/moderation/queue"   Icon="bi-list-check" Label="Очередь" Badge="@(_counts?.Queue   > 0 ? _counts.Queue.ToString()   : null)" />
-            <SidebarItem Href="/moderation/reports" Icon="bi-flag"       Label="Жалобы"  Badge="@(_counts?.Reports > 0 ? _counts.Reports.ToString() : null)" />
+            <div class="sidebar-section-title">@L["Nav_SectionModeration"]</div>
+            <SidebarItem Href="/moderation/queue"   Icon="bi-list-check" Label="@L["Nav_Queue"]" Badge="@(_counts?.Queue   > 0 ? _counts.Queue.ToString()   : null)" />
+            <SidebarItem Href="/moderation/reports" Icon="bi-flag"       Label="@L["Nav_Reports"]"  Badge="@(_counts?.Reports > 0 ? _counts.Reports.ToString() : null)" />
         </div>
     }
 
@@ -34,10 +34,10 @@
     {
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
-            <div class="sidebar-section-title">Администрирование</div>
-            <SidebarItem Href="/admin/rss" Icon="bi-rss" Label="Настройка RSS" />
-            <SidebarItem Href="/admin/tags" Icon="bi-tags" Label="Управление тегами" />
-            <SidebarItem Href="/admin/users" Icon="bi-people" Label="Пользователи" />
+            <div class="sidebar-section-title">@L["Nav_SectionAdmin"]</div>
+            <SidebarItem Href="/admin/rss" Icon="bi-rss" Label="@L["Nav_Rss"]" />
+            <SidebarItem Href="/admin/tags" Icon="bi-tags" Label="@L["Nav_Tags"]" />
+            <SidebarItem Href="/admin/users" Icon="bi-people" Label="@L["Nav_Users"]" />
         </div>
     }
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using CatshrediasNews.Client;
 using CatshrediasNews.Client.Services;
+using CatshrediasNews.Client.Resources;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -12,15 +13,15 @@ var apiEndpoints = builder.Configuration.GetSection("Api:Endpoints");
 var configuredApiBaseUrl = builder.Configuration["Api:BaseUrl"];
 var apiBaseUrl = ResolveApiBaseUrl(apiMode, apiEndpoints, configuredApiBaseUrl, builder.HostEnvironment.BaseAddress);
 
+builder.Services.AddScoped<CultureHttpHandler>();
 builder.Services.AddScoped<UnauthorizedLogoutHandler>();
 builder.Services.AddScoped(sp =>
 {
-    var handler = sp.GetRequiredService<UnauthorizedLogoutHandler>();
-    handler.InnerHandler = new HttpClientHandler();
-    return new HttpClient(handler)
-{
-    BaseAddress = new Uri(apiBaseUrl)
-};
+    var cultureHandler = sp.GetRequiredService<CultureHttpHandler>();
+    var logoutHandler = sp.GetRequiredService<UnauthorizedLogoutHandler>();
+    cultureHandler.InnerHandler = logoutHandler;
+    logoutHandler.InnerHandler = new HttpClientHandler();
+    return new HttpClient(cultureHandler) { BaseAddress = new Uri(apiBaseUrl) };
 });
 
 builder.Services.AddScoped<AuthService>();
@@ -30,12 +31,16 @@ builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<GigaChadService>();
 builder.Services.AddScoped<ArticleHeadingsService>();
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<CultureService>();
 builder.Services.AddScoped<CommentService>();
+builder.Services.AddLocalization();
 
 var host = builder.Build();
 
-var auth  = host.Services.GetRequiredService<AuthService>();
-var theme = host.Services.GetRequiredService<ThemeService>();
+var auth    = host.Services.GetRequiredService<AuthService>();
+var theme   = host.Services.GetRequiredService<ThemeService>();
+var culture = host.Services.GetRequiredService<CultureService>();
+await culture.InitAsync();
 await auth.InitAsync();
 await theme.InitAsync();
 
